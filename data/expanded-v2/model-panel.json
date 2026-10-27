@@ -1,0 +1,72 @@
+{
+  "configurations": {
+    "astra_chat": {
+      "context_tokens": 1050000,
+      "credential": "project subscription OAuth (.secrets/chatgpt.json)",
+      "endpoint": "https://api.openai.com/v1/responses",
+      "input_usd_per_million": 10,
+      "kind": "chat",
+      "model": "gpt-6-astra",
+      "output_cap": 2048,
+      "output_usd_per_million": 50,
+      "paid_enabled": false,
+      "provider": "OpenAI separately authorized ChatGPT subscription",
+      "reasoning_effort": "low"
+    },
+    "jev_firstparty": {
+      "context_tokens": 32000,
+      "credential": "TYPESAFE_API_KEY",
+      "endpoint": "https://api.typesafe.ai/v1/systemone",
+      "input_usd_per_million": 0.042,
+      "kind": "noul",
+      "model": "jev-1.14.0",
+      "output_cap": null,
+      "output_usd_per_million": 0,
+      "paid_enabled": false,
+      "provider": "TypeSafe first-party"
+    },
+    "luna_chat": {
+      "context_tokens": 1050000,
+      "credential": "project subscription OAuth (.secrets/chatgpt.json)",
+      "endpoint": "https://api.openai.com/v1/responses",
+      "input_usd_per_million": 0.1,
+      "kind": "chat",
+      "model": "gpt-6-luna",
+      "output_cap": 256,
+      "output_usd_per_million": 0.5,
+      "paid_enabled": false,
+      "provider": "OpenAI separately authorized ChatGPT subscription",
+      "reasoning_effort": "none"
+    },
+    "luna_decisions": {
+      "context_tokens": 1050000,
+      "credential": "OPENAI_API_KEY",
+      "endpoint": "https://api.openai.com/v1/decisions",
+      "input_usd_per_million": 0.1,
+      "kind": "predicate",
+      "model": "gpt-6-luna",
+      "output_cap": null,
+      "output_usd_per_million": 0,
+      "paid_enabled": false,
+      "provider": "OpenAI first-party API"
+    },
+    "protectai_local": {
+      "aggregation": "maximum P(INJECTION) over candidate-only windows",
+      "context_tokens": 512,
+      "credential": null,
+      "input_usd_per_million": 0,
+      "kind": "local_detector",
+      "model": "protectai/deberta-v3-base-prompt-injection-v2",
+      "output_cap": null,
+      "output_usd_per_million": 0,
+      "overlap_tokens": 64,
+      "paid_enabled": false,
+      "provider": "Protect AI weights / local CPU",
+      "revision": "90c9989b1a342275dd0d1a95aad283c04e075671",
+      "threshold": 0.5,
+      "window_tokens": 510
+    }
+  },
+  "distinct_model_ids": 4,
+  "note": "Five configurations, four distinct model IDs. Luna Decisions is an interface control, not independently specialized weights."
+}

@@ -18,3 +18,9 @@
   Read it with read_thread when decisions or sources are missing. Start with recent turns
   and retrieve older turns selectively. Later user decisions supersede abandoned ideas.
   Referencing the chat authorizes reading it, not sending messages to other chats.
+
+- Expanded v2 preparation is authorized by the follow-up task. Preserve the original
+  pilot unchanged. Use only existing free/subscription access for useful development.
+  Do not make paid requests or purchases while billing is pending; the prior pilot
+  cap does not authorize expanded spending. Keep the expanded protocol and outputs
+  separately versioned and obtain a new bounded run instruction before paid inference.
