@@ -147,7 +147,7 @@ def plot_results(summary):
         mid=np.array([vals[c]['delta_ba'] for c in cs]);lo=np.array([vals[c]['delta_cluster95'][0] for c in cs]);hi=np.array([vals[c]['delta_cluster95'][1] for c in cs])
         b.errorbar(mid,yy,xerr=[mid-lo,hi-mid],fmt=['o','s'][i],capsize=3,color=COLORS[p],markersize=6)
     a.set(yticks=np.arange(4),yticklabels=[LABELS[c] for c in CONDITIONS],xlim=(-.03,1.03),xlabel='Balanced accuracy',title='Detection on 18 held-out emails');a.invert_yaxis()
-    b.set(yticks=np.arange(3),yticklabels=[LABELS[c] for c in CONDITIONS[1:]],xlim=(-.55,.55),xlabel='Change from candidate only (percentage points)',title='Paired effect of revealing context');b.invert_yaxis();b.axvline(0,color='#444444',lw=1)
+    b.set(yticks=np.arange(3),yticklabels=[LABELS[c] for c in CONDITIONS[1:]],xlim=(-.55,.55),xlabel='Change from candidate only (percentage points)',title='Paired change with context');b.invert_yaxis();b.axvline(0,color='#444444',lw=1)
     a.xaxis.set_major_formatter(PercentFormatter(1));b.xaxis.set_major_formatter(PercentFormatter(1,decimals=0,symbol=' pp'))
     for axis in [a,b]:axis.grid(axis='x',color='#e5e5e5',lw=.7);axis.set_axisbelow(True)
     fig.legend(*a.get_legend_handles_labels(),loc='lower center',bbox_to_anchor=(.5,.095),ncol=2,frameon=False)
@@ -217,9 +217,9 @@ def write_report(summary,rows):
         state=request['state'] if r['provider']=='jevmodel' else (request['input'][0]['content'] if r['provider']=='openai' else request['contents'][0]['parts'][0]['text'])
         candidate=json.loads(state)['CANDIDATE_EMAIL']
         # Excerpts are source text, not generated replacement examples or relabels.
-        lines+=[f"- **{r['provider']} / {r['id']} / {r['condition']}**: gold={r['gold']}, prediction={r['prediction']}, status={r['status']}. [Raw request/response](../../{r['record']}).",f"  Source excerpt: {candidate[:420].replace(chr(10),' ')}"]
+        lines+=[f"- **{r['provider']} / {r['id']} / {r['condition']}**: gold={r['gold']}, prediction={r['prediction']}, status={r['status']}. [Raw request/response](../../{r['record']}).",f"  Source excerpt: {candidate[:420].replace(chr(10),' ').replace(chr(13),' ').rstrip()}"]
     lines+=['','## Interpretation limits and next experiment','',
-            'The intervals are conditional on a single task and a small selected sample. All benign examples share a source theme; its cluster bootstrap can be degenerate. Wilson intervals describe a stronger independence assumption and are included only as a small-sample warning. No interval estimates generalization to new benign domains. Public-data contamination and historical-success selection remain possible. Model probabilities are uncalibrated, and interface/provider differences prevent attributing differences to specialization alone.','',
+            'The intervals are conditional on a single task and a small selected sample. All benign examples share a source theme; its cluster bootstrap can be degenerate. Wilson intervals describe a stronger independence assumption and are included only as a small-sample warning. No interval estimates generalization to new benign domains. Public-data contamination and historical-success selection remain possible. Model probabilities are uncalibrated, and interface/provider differences prevent attributing differences to specialization alone. Each cell has one response: these intervals do not capture inference randomness, and GPT used provider-default sampling/reasoning. Returned model IDs are recorded exactly, but the GPT slug is not an independently verified immutable weights revision.','',
             'Revealing context does not alter the original gold label: the target is the same whole email in the same original scenario. These results cannot establish sentence-level labels, task-dependent relabeling, end-to-end agent safety or full-document context effects.','',
             'The next useful experiment is to obtain multiple independent published task/source fixtures with human-validated candidate labels, keep teams and source families grouped, and expand paired evaluation across genuinely varied tasks and ambiguous benign instructions. Check an adequate chat output/reasoning budget using development data before the next evaluation, to distinguish semantic errors from truncation. Recheck Gemini availability on a later date and expand its common panel rather than treating four cases as a reliable model ranking.','',
             '## Figures','','![Balanced accuracy and paired changes](figures/context-effects.png)','','![False-positive and false-negative rates](figures/error-rates.png)','','Offline reproduction and live-run commands are in the root README.']
@@ -257,6 +257,8 @@ def main():
              'reported_input_tokens':sum(u[0] or 0 for u in usage),'reported_output_tokens':sum(u[1] or 0 for u in usage),
              'median_route_seconds':statistics.median([sum(a['elapsed_seconds'] for a in r['attempts']) for r in selected]) if selected else None,
              'free_jev_balance_min':min(balances) if balances else None,'paid_api_spend_usd':sum(r['paid_spend_usd'] for r in selected)}
+    settings=sorted({json.dumps(r['returned_settings'],sort_keys=True) for r in rows if r['provider']=='openai' and r.get('returned_settings')})
+    summary['operations']['openai']['returned_settings']=[json.loads(x) for x in settings]
     supplement_rows=summarize_substitution(summary,rows)
     write_table(rows+supplement_rows)
     # Reject NaN/Infinity rather than serializing invalid JSON.

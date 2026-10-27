@@ -44,3 +44,20 @@ experimental protocol. Results and any omissions are reported in the final repor
   terminal incomplete-stream metadata without changing its invalid prediction.
   Operational additions after development (a gate blocking failed-development models
   from evaluation and credential-free selected-data packaging) changed no requests.
+
+## Reproduction and analysis qualifications
+
+Pre-inference character-count estimates were computed in a separate command after
+freezing: 151,178 Jev request characters (~37,794 tokens at chars/4), 162,378 GPT
+characters (~40,594 tokens), and 41,765 Gemini characters (~10,441 tokens). These were
+approximations, not provider-tokenizer or billing estimates. The frozen protocol's
+statement that freeze prints those estimates refers to this preflight sequence; the
+`--freeze-only` command itself prints request counts. The saved exact requests make
+the character counts independently reproducible. The separate byte-count guard was
+conservative and kept Jev well within its free balance.
+
+The primary experiment uses one response per cell, without matched sampling seeds.
+Bootstrap intervals concern the selected example groups, not model-generation noise.
+The exact GPT response ID is `gpt-6-luna`; no immutable underlying weights revision
+is independently available. Provider-returned sampling and reasoning defaults are
+extracted into the summary, including usage from the incomplete stream.
