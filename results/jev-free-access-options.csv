@@ -1,0 +1,7 @@
+route,free_access_status,tiny_test,source,limitation
+TypeSafe direct API,No free balance in current account; no request made,not_run,https://docs.typesafe.ai/models,Key creation requires credits in this account
+OpenCode Jev 1.13 Free,Free model enabled; gateway rejects this account with FreeUsageLimitError,HTTP_429,https://opencode.ai/v2/docs/console/models/,Provider-controlled free usage gate; no further retries
+Vercel AI Gateway direct,Free tier covers eligible models only; Jev eligibility not confirmed,not_run,https://vercel.com/docs/ai-gateway/pricing,No key created; no paid request attempted
+Cloudflare Workers AI,Requested Jev model documentation redirected to model-not-available catalog,not_run,https://developers.cloudflare.com/workers-ai/models/jev/,No confirmed current free Jev route; other decision models are different models
+jevplayground.com public browser UI,No signup or key; one free request succeeded,YES_displayed_probability_0.99,https://jevplayground.com/jev-api,Independent service; upstream identity site-reported; exact Jev version unknown; no public API
+jevmodel.org documented API trial,100000-token signup grant verified; 99721 remain after one successful API call,HTTP_200_YES_P_0.99_model_jev-1.13.0,https://jevmodel.org/docs/,"Independent reseller reports exact model jev-1.13.0 in response. Jev 1.14 rejected as paid-only, contradicting the signup pricing page. No further tests authorized."
