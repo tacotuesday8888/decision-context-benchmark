@@ -101,7 +101,7 @@ Offline commands (no inference):
 .venv/bin/python scripts/expanded_execution/analyze.py
 ```
 
-Tests at handoff: 12 execution, 18 expanded-preparation, 29 pilot/setup tests passed;
+Tests at handoff: 13 execution, 18 expanded-preparation, 29 pilot/setup tests passed;
 182 protected pilot files and every preparation freeze hash matched; secret scan clean.
 The new CI workflow checks execution offline and never calls an API. The report,
 summary, CSV and figures are derived from saved per-attempt records. Rebuild them after

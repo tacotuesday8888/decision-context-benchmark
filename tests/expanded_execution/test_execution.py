@@ -62,6 +62,12 @@ class ExecutionTests(unittest.TestCase):
             self.assertNotIn('secret-test-value',''.join(p.read_text() for p in Path(d).rglob('*.json')))
             self.assertEqual(post.call_count,1)
 
+    def test_standalone_stream_quota_error_is_provider_failure(self):
+        body='data: '+json.dumps({'type':'error','code':'subscription_sharing_usage_limit_exceeded'})+'\n\n'
+        result=e.safe_parse('luna_chat',body)
+        self.assertEqual(result['status'],'provider_failed')
+        self.assertFalse(result['valid'])
+
     def test_frozen_artifacts_still_match(self):
         e.verify_preparation()
 

@@ -127,6 +127,17 @@ def metered_cost(config, parsed, access):
 
 
 def safe_parse(config, body):
+    # Some streaming failures arrive as standalone error events without a terminal
+    # response object. Stop the route on those, including subscription quota gates.
+    for line in body.splitlines():
+        if line.startswith('data:'):
+            try:
+                event = json.loads(line[5:].strip())
+            except ValueError:
+                continue
+            if isinstance(event, dict) and event.get('type') == 'error':
+                return {'status': 'provider_failed', 'valid': False, 'prediction': None,
+                        'provider_error_code': event.get('code') or (event.get('error') or {}).get('code')}
     try:
         return parse(config, body)
     except (ValueError, KeyError, TypeError, IndexError):
