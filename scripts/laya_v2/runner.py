@@ -53,7 +53,14 @@ def freeze():
 
 def verify_freeze():
     frozen=json.loads((OUT/'execution-freeze-v2.3.json').read_text())
-    if frozen['hashes']!=provenance_files():raise ValueError('Frozen code/config/data changed')
+    expected=dict(frozen['hashes'])
+    amendment_path=OUT/'execution-freeze-v2.3.2.json'
+    if amendment_path.exists():
+        amendment=json.loads(amendment_path.read_text())
+        if amendment['prior_freeze_sha256']!=sha((OUT/'execution-freeze-v2.3.json').read_bytes()):raise ValueError('Integration amendment prior freeze differs')
+        if set(amendment['integration_hashes'])!={'scripts/laya_v2/runner.py','scripts/expanded_execution/execute.py'}:raise ValueError('Unapproved integration amendment scope')
+        expected.update(amendment['integration_hashes'])
+    if expected!=provenance_files():raise ValueError('Frozen code/config/data changed')
     for path,value in frozen['development_sha256'].items():
         if sha((ROOT/path).read_bytes())!=value:raise ValueError('Frozen development evidence changed')
 

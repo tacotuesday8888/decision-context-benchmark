@@ -21,7 +21,7 @@ from transport import post
 from spending import provider_for_key, totals as provider_totals, caps as provider_caps
 
 OUT = ROOT / 'results/expanded-execution'
-VERSION = 'expanded-execution-v2.3'
+VERSION = 'expanded-execution-v2.3.2'
 sys.path.insert(0, str(ROOT/'scripts/laya_v2'))
 from adapter import CONFIG as LAYA_CONFIG, request as laya_request
 sys.path.insert(0, str(ROOT/'scripts/nimble_v2'))
@@ -194,13 +194,8 @@ def run(config, split, routes, ledger, config_hash):
     directory.mkdir(parents=True, exist_ok=True)
     stop_path = directory / 'STOP.json'
     if stop_path.exists():
-        resolution_path = directory / 'stop-resolution.json'
-        resolution = json.loads(resolution_path.read_text()) if resolution_path.exists() else {}
-        failures = [json.loads(p.read_text()) for p in directory.glob('*-0.json')]
-        empty = [r for r in failures if r['observation'].get('http_status') == 200 and
-                 not r['raw_body'] and not r['observation'].get('transport_exit_code')]
-        if not (access == 'subscription' and resolution.get('stop_sha256') == sha(stop_path.read_bytes())
-                and resolution.get('action') == 'retain_empty_cell_invalid_and_continue' and empty):
+        from stop_resolution import resolved
+        if not resolved(directory, access):
             raise PermissionError('Provider stopped previously; resolve saved STOP before any new calls')
     completed = 0
     for row in rows:

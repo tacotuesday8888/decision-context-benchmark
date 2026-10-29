@@ -39,4 +39,15 @@ class ForecastTests(unittest.TestCase):
         self.assertEqual(got['n'],4)
         self.assertEqual(got['exact_zero_or_one_scores'],2)
 
+    def test_error_contrasts_keep_invalids_separate(self):
+        from research_summaries import error_contrast
+        rows=self.rows();base={r['id']:{'valid':True,'prediction':r['gold']} for r in rows}
+        other={r['id']:{'valid':True,'prediction':r['gold']} for r in rows}
+        other['1']={'valid':False,'prediction':None}
+        got=error_contrast(rows,base,other,1)
+        self.assertEqual(got['eligible_n'],2)
+        self.assertEqual(got['common_valid_n'],1)
+        self.assertEqual(got['strict_failure_delta'],.5)
+        self.assertEqual(got['valid_error_delta'],0)
+
 if __name__=='__main__':unittest.main()
