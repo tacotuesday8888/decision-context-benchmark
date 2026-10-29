@@ -12,14 +12,17 @@ The paper/report makes no novelty claim: closely related context ablations alrea
 
 The expanded collection contains **402 distinct evaluation candidates and 60 development
 candidates**, with original task/source support recorded per row. The frozen preparation
-record is preserved. **Expanded execution has started** under a separate October 29
-authorization (now superseded by the separate provider caps below); read the [execution notes](docs/expanded-execution/README.md),
-[current partial report](results/expanded-execution/report.md), and
-[continuation handoff](docs/expanded-execution/HANDOFF.md).
-The current setup uses separate **OpenAI $15 / TypeSafe $20** all-in caps.
-Pinned local Nimble has passed bounded development inference checks; its held-out run
-has not started. See the [research/statistical plan](docs/expanded-execution/RESEARCH-PLAN.md)
-and [copyable continuation prompt](docs/expanded-execution/CONTINUE-PROMPT.txt).
+record is preserved. **Expanded evaluation is complete: 5,274 saved logical cells**
+across seven configurations (six model IDs), including five operational failures and
+seven classification abstentions. No original pilot record was changed.
+Read the [source-specific report](results/expanded-execution/report.md),
+[research draft](paper/manuscript.md), [PDF draft](output/pdf/decision-context-benchmark-draft.pdf),
+and [offline paper reproduction instructions](paper/README.md).
+The [research/statistical plan](docs/expanded-execution/RESEARCH-PLAN.md) distinguishes
+primary classification analysis from the later exploratory probability analysis.
+Conservative all-in metered accounting is $0.096443 OpenAI and $0.051171 TypeSafe,
+within the independent $15 / $20 caps; subscription fees and local electricity are excluded.
+Local Nimble and Laya both completed all 812 planned cells without discarded weak results.
 
 Read the [expanded protocol](docs/expanded-v2/protocol.md),
 [dataset review](docs/expanded-v2/dataset-review.md),

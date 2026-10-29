@@ -22,6 +22,19 @@ def resolved(directory, access, now=None):
             r=json.loads(p.read_text())
             if r['id']==stopped.get('id') and r['observation'].get('http_status')==200 and not r['raw_body'] and not r['observation'].get('transport_exit_code'):return True
         return False
+    if action=='retain_overload_cell_invalid_and_continue':
+        if stopped.get('status')!='provider_failed' or stopped.get('http_status')!=200:return False
+        name=resolution.get('record_file','')
+        if '/' in name or '\\' in name or not name.endswith('-0.json'):return False
+        record_path=directory/name
+        if not record_path.exists() or resolution.get('record_sha256')!=digest(record_path):return False
+        r=json.loads(record_path.read_text());p=r['parsed'];obs=r['observation']
+        if r.get('config')!='astra_chat' or r.get('id')!=stopped.get('id') or r.get('access_route')!='subscription':return False
+        if p.get('status')!='provider_failed' or p.get('valid') or p.get('provider_error_code')!='server_is_overloaded' or obs.get('http_status')!=200:return False
+        try:end=datetime.fromisoformat(r['started_at']);elapsed=float(r['elapsed_seconds'])
+        except (KeyError,TypeError,ValueError):return False
+        if end.tzinfo is None or not math.isfinite(elapsed) or elapsed<0:return False
+        return ((now or datetime.now(timezone.utc))-end).total_seconds()>=120+elapsed
     if action!='retain_long_retry_after_cell_invalid_and_continue':return False
     if stopped.get('reason')!='Long Retry-After; manual resume required':return False
     name=resolution.get('record_file','')

@@ -3,12 +3,46 @@ import csv
 import json
 import math
 from collections import Counter
+from functools import lru_cache
+import numpy as np
 from execute import OUT,DATA,PANEL,jsonl,sha
 
 
 def close(a,b):
     if a is None or b is None:assert a is b,(a,b)
     else:assert math.isclose(a,b,rel_tol=1e-10,abs_tol=1e-12),(a,b)
+
+
+
+@lru_cache(maxsize=64)
+def audit_weights(signature):
+    rng=np.random.default_rng(20261026)
+    result=np.zeros((10000,len(signature)))
+    for stratum in sorted({s for s,k in signature}):
+        keys=sorted({k for s,k in signature if s==stratum})
+        sampled=rng.multinomial(len(keys),[1/len(keys)]*len(keys),size=10000)
+        for i,(s,k) in enumerate(signature):
+            if s==stratum:result[:,i]=sampled[:,keys.index(k)]
+    return result
+
+
+def check_interval(rows,values,axis,reported,balanced=False):
+    signature=tuple(('all',r['groups'][axis]) if axis in ('document','attack_family') else
+        (str(r['gold']),r['groups']['team' if r['gold'] else ('topic' if 'topic' in r['groups'] else 'fixture')]) for r in rows)
+    selected=np.array([v is not None for v in values]);strata={s for s,k in signature}
+    counts=[len({k for i,(s,k) in enumerate(signature) if s==stratum and selected[i]}) for stratum in strata]
+    if not selected.any() or any(n<2 for n in counts):
+        assert reported is None;return
+    weights=audit_weights(signature)
+    values=np.array([v if v is not None else 0 for v in values])
+    masks=[selected & np.array([r['gold']==g for r in rows]) for g in sorted({r['gold'] for r in rows})] if balanced else [selected]
+    numerators=[weights[:,m]@values[m] for m in masks]
+    denominators=[weights[:,m].sum(axis=1) for m in masks]
+    keep=np.all(np.array(denominators)>0,axis=0)
+    draws=sum(n[keep]/d[keep] for n,d in zip(numerators,denominators))/len(masks)
+    expected=np.quantile(draws,[.025,.975])
+    assert reported is not None
+    for a,b in zip(expected,reported):close(float(a),b)
 
 
 def check_forecasts(items,summary):
@@ -69,6 +103,10 @@ def main():
             pairs=[(raw[c['config'],i,base]['parsed'],raw[c['config'],i,other]['parsed']) for i,r in eligible if r['gold']==g]
             by_class.append(sum(int(b['valid'] and b['prediction']==g)-int(a['valid'] and a['prediction']==g) for a,b in pairs)/len(pairs))
         close(c['strict_correctness_delta'],sum(by_class)/len(by_class))
+        eligible_rows=[r for i,r in eligible]
+        differences=[int(raw[c['config'],i,other]['parsed']['valid'] and raw[c['config'],i,other]['parsed']['prediction']==r['gold'])-int(raw[c['config'],i,base]['parsed']['valid'] and raw[c['config'],i,base]['parsed']['prediction']==r['gold']) for i,r in eligible]
+        for axis,reported in c['intervals'].items():check_interval(eligible_rows,differences,axis,reported['interval'],balanced=True)
+
     research=json.loads((OUT/'research-summary.json').read_text())
     import statistics
     for o in research['operations']:
@@ -91,6 +129,11 @@ def main():
         valid=[int(b['prediction']!=g)-int(a['prediction']!=g) for a,b in common]
         close(contrast['strict_failure_delta'],sum(strict)/len(strict) if strict else None)
         close(contrast['valid_error_delta'],sum(valid)/len(valid) if valid else None)
+        eligible_rows=[rows[i] for i in ids]
+        valid_values=[int(b['prediction']!=g)-int(a['prediction']!=g) if a['valid'] and b['valid'] else None for a,b in pairs]
+        for reported in contrast['strict_intervals']:check_interval(eligible_rows,strict,reported['axis'],reported['interval'])
+        for reported in contrast['valid_intervals']:check_interval(eligible_rows,valid_values,reported['axis'],reported['interval'])
+
     for t in research['threshold_tradeoffs']:
         ps=[(rows[i]['gold'],r['parsed']['score']) for (config,i,condition),r in raw.items() if config==t['config'] and condition==t['condition'] and rows[i]['dataset']==t['dataset'] and r['parsed']['status'] in ('ok','tie')]
         assert t['scored_n']==len(ps) and t['abstentions']==sum(p==t['threshold'] for g,p in ps)
@@ -118,6 +161,10 @@ def main():
         values=[(score(s['config'],i,s['condition']),rows[i]['gold']) for i in ids]
         values=[(p,y) for p,y in values if p is not None]
         check_forecasts(values,s);assert s['missing_score_n']==len(ids)-len(values)
+        for j,bucket in enumerate(s['calibration']):
+            outcomes=[rows[i]['gold'] if score(s['config'],i,s['condition']) is not None and min(int(score(s['config'],i,s['condition'])*5),4)==j else None for i in ids]
+            for reported in bucket['observed_fraction_intervals']:check_interval([rows[i] for i in ids],outcomes,reported['axis'],reported['interval'])
+
     for c in forecast['paired_contrasts']:
         other,base=c['contrast'].split(' minus ')
         ids=[i for i,row in rows.items() if row['dataset']==c['dataset'] and other in row['conditions'] and base in row['conditions']]
@@ -126,6 +173,9 @@ def main():
         assert c['execution_complete'] and c['common_score_n']==len(common)
         check_forecasts([(a,y) for a,b,y in common],c['base']);check_forecasts([(b,y) for a,b,y in common],c['context'])
         close(c['brier_delta'],sum((b-y)**2-(a-y)**2 for a,b,y in common)/len(common) if common else None)
+        losses=[(b-y)**2-(a-y)**2 if a is not None and b is not None else None for a,b,y in pairs]
+        for reported in c['intervals']:check_interval([rows[i] for i in ids],losses,reported['axis'],reported['interval'])
+
     print(json.dumps({'point_estimates_verified':True,'cells':len(raw),'classification_strata':len(summary['summaries']),'forecast_strata':len(forecast['summaries']),'paired_forecasts':len(forecast['paired_contrasts'])}))
 
 if __name__=='__main__':main()

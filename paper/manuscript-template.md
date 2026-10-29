@@ -62,7 +62,7 @@ Exact prompts, request hashes, model identities, settings and development eviden
 
 Figure 2. The intervention reveals trusted task information without changing the untrusted candidate. The detector does not execute the source text or act as the protected assistant.
 
-Every attempt retains its request, available response, usage, route and failure status. Existing invalid cells are not silently replaced. A lost Astra attempt is recorded as unknown rather than reconstructed. Luna's empty stream and later gateway timeout remain invalid. The gateway's Retry-After was honored before a versioned, hash-bound continuation to unattempted cells; no failed cell was retried. Authentication, quota and billing failures stop a route. No route silently switches to a reseller or paid chat API.
+Every attempt retains its request, available response, usage, route and failure status. Existing invalid cells are not silently replaced. Astra retains an unknown lost attempt, an interrupted stream and a provider overload as invalid cells. Luna's empty stream and later gateway timeout also remain invalid. The gateway's Retry-After and the overload policy's fixed cooldown were honored before versioned, hash-bound continuations to unattempted cells; no failed cell was retried. Authentication, quota and billing failures stop a route. No route silently switches to a reseller or paid chat API.
 
 ## 5. Statistical analysis
 

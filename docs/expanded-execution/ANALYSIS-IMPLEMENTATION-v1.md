@@ -42,3 +42,17 @@ arms as its only numerical prose. Deterministic qualitative selection takes the
 first candidate ID in each disagreement category per model and preserves inherited
 gold labels. The independent numerical gate checks these displayed predictions
 and probabilities against raw records.
+
+The numerical gate independently reconstructs the fixed-seed cluster draws from
+raw candidate/group assignments and checks primary, Brier and reliability-bin
+interval endpoints. It does not call the analysis bootstrap helpers. Focused
+hand-computable checks verify pair grouping and the one-fixture exclusion.
+
+## Figure interval selection correction v1.3
+
+Final visual inspection found the paired-effects figure selected the first dictionary
+interval, which becomes attack-family after JSON key sorting, while its title said
+document bootstrap. The tables and numerical artifacts were correct. Select the
+`document` key (or explicitly named list axis) instead; a regression test deliberately
+reverses dictionary/list ordering. Regenerate the figure and PDF before final delivery.
+No statistic, model request or confidence-interval calculation changes.

@@ -1,3 +1,41 @@
+# Decision Context Benchmark: execution completed
+
+Current branch: `codex/expanded-execution`; private draft PR #3 remains stacked on
+PR #2 and PR #1. Do not merge, publish or submit. Commit/push/private draft updates
+remain authorized. Do not rerun completed inference or replace failed cells.
+
+All 5,274 planned logical cells are saved. Jev has 805 valid classifications plus
+seven exact-0.5 abstentions; Luna Decisions, Nimble and Laya each have 812 valid cells;
+Luna Responses has 810 valid and two failed cells; Astra Responses has 809 valid and
+three failed cells; Protect AI has 402 valid candidate scans over 445 forward windows.
+Astra's original lost attempt retains its zero-metered pending reservation and its
+saved unknown/invalid record. This is preserved uncertainty, not unfinished inference.
+
+The latest operational continuation is `HOSTED-RESUME-v2.3.3.md`: exact Astra overload
+failure retained, fixed cooldown honored, only 40 previously unattempted cells run.
+Earlier gateway/empty-stream resolutions, freezes and failures are unchanged.
+No paid request was needed for the completed subscription/local continuations.
+All-in accounted use remains $0.0964428 OpenAI and $0.051170784 TypeSafe, within the
+independent $15/$20 caps. No purchases, recharge or silent provider fallback.
+
+The final terminal execution audit passed, and source-specific analyses and figures
+were regenerated from all raw records. The independent numerical gate verifies
+classification counts, paired effects, Brier/log-loss summaries, reliability bins,
+bootstrap interval endpoints, selected examples and route accounting. See
+`paper/README.md` for offline reproduction. Final paper layout, isolated reproduction and secret scans have passed; see
+`COMPLETION-AUDIT.md` and the hash-bound visual/reproduction receipts. Final remote
+checks are verified at delivery.
+
+Original pilot/preparation files remain frozen. No generated examples, gold labels,
+invented context, evaluation tuning or fitted calibration. Probability analysis and
+local arms are explicitly later exploratory additions. Read `RESEARCH-PLAN.md` and
+`LITERATURE-REVIEW.md` for scope and inspected references.
+
+The following is the preserved historical setup handoff; its incomplete-run counts
+and continuation commands are no longer current.
+
+---
+
 # Continue Decision Context Benchmark
 
 Use `/Users/langqi/Developer/Projects/Decision Context Benchmark`, the existing private

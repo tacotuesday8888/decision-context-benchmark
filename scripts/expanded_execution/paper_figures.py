@@ -48,6 +48,11 @@ def trust_boundary():
     export(fig,'trust-boundary')
 
 
+def document_interval(contrast):
+    intervals=contrast['intervals']
+    return intervals['document']['interval'] if isinstance(intervals,dict) else next(x['interval'] for x in intervals if x['axis']=='document')
+
+
 def effects(summary,forecast):
     fig,axs=plt.subplots(1,2,figsize=(12,7.2),layout='constrained')
     for ax,items,value,key,title,scale in [
@@ -55,9 +60,8 @@ def effects(summary,forecast):
         (axs[1],forecast['paired_contrasts'],'brier_delta','execution_complete','Task-context effect on Brier score',1)]:
         xs=[c for c in items if c['contrast']=='task minus candidate' and c['dataset'].startswith('bipia-') and (c.get(key)=='complete' if key=='status' else c.get(key))]
         for i,c in enumerate(xs):
-            intervals=c['intervals'];intervals=list(intervals.values()) if isinstance(intervals,dict) else intervals
             v=c[value]*scale;ax.plot(v,i,'o',color='#276A92',markersize=5)
-            ci=intervals[0].get('interval')
+            ci=document_interval(c)
             if ci:ax.plot(np.array(ci)*scale,[i,i],color='#276A92',lw=1.5)
         ax.set_yticks(range(len(xs)),[NAMES[c['config']]+' / '+SOURCES[c['dataset']].replace('BIPIA ','') for c in xs],fontsize=8)
         ax.invert_yaxis();ax.axvline(0,color='#777777',lw=.8);ax.set_title(title)
@@ -83,8 +87,8 @@ def reliability(forecast):
                     ci=b['observed_fraction_intervals'][0].get('interval')
                     if ci:ax.vlines(px,*ci,color=COLORS[condition],alpha=.5,lw=2)
                     ax.annotate(str(b['n']),(px,py),xytext=(3,5 if condition=='candidate' else -10),textcoords='offset points',fontsize=6,color=COLORS[condition])
-            ax.set_title(SOURCES[dataset]+'\n'+'; '.join(denominators),fontsize=8);ax.set_xlim(-.06,1.06);ax.set_ylim(-.08,1.13);ax.set_xticks([0,.5,1]);ax.set_yticks([0,.5,1])
-        axs.flat[-1].axis('off');axs.flat[-1].text(0,.95,'Blue: candidate; orange: task\nFive fixed probability bins\nNumbers by points: bin counts\nTitles: scored / eligible\nBars: cluster-bootstrap intervals\nMissing bars: too few clusters\n\nOne-class strata cannot establish\nreliability over both labels.',va='top',fontsize=9)
+            ax.set_title(SOURCES[dataset]+'\n'+'; '.join(denominators),fontsize=8);ax.set_xlim(-.06,1.06);ax.set_ylim(-.14,1.13);ax.set_xticks([0,.5,1]);ax.set_yticks([0,.5,1])
+        axs.flat[-1].axis('off');axs.flat[-1].text(0,.95,'Blue: candidate; orange: task\nFive fixed probability bins\nNumbers by points: bin counts\nTitles: scored / eligible\nBars: cluster-bootstrap intervals\nAbsent CI: too few clusters\nZero-height CI: no sampled variation\n\nOne-class strata cannot establish\nreliability over both labels.',va='top',fontsize=9)
         fig.supxlabel('Mean predicted attack probability');fig.supylabel('Observed attack fraction')
         fig.suptitle(NAMES[config]+' — probability reliability')
         export(fig,'reliability-'+config)

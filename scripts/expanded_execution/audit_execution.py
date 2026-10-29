@@ -24,6 +24,9 @@ def audit_native(record):
 
 def audit(require_terminal=False):
     verify()
+    policy=json.loads((OUT/'hosted-amendment-v2.3.3.json').read_text())
+    for name,expected_hash in policy['hashes'].items():
+        assert sha((ROOT/name).read_bytes())==expected_hash,('Changed continuation policy/evidence',name)
     candidates=[r for r in jsonl(DATA/'collection.jsonl') if r['split']=='eval']
     expected={(config,r['id'],condition):sha(canonical(request(config,r,condition))) for config in PANEL for r in candidates for condition in (['candidate'] if config=='protectai_local' else r['conditions'])}
     actual={};hashes={};statuses=Counter();usage={};attempt_keys=set()

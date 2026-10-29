@@ -1,4 +1,14 @@
-# Current execution setup
+# Expanded execution: completed
+
+All 5,274 planned cells are saved: 5,262 valid classifications, seven exact-0.5
+abstentions and five operational failures. All native forecasts, including ties,
+are retained for probability analysis. Current evidence is in the
+[report](../../results/expanded-execution/report.md),
+[paper draft](../../paper/manuscript.md), and [paper reproduction guide](../../paper/README.md).
+The completed run must not be restarted or have failures replaced. The historical
+setup status below records what was known before execution, not remaining work.
+
+# Historical execution setup
 
 The latest October 29 instruction sets independent all-in experiment spending caps:
 **OpenAI $15; TypeSafe/Jev $20**. Earlier checks and execution count toward these

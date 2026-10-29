@@ -19,3 +19,6 @@ jobs:
       - run: python -m unittest discover -s tests/nimble_v2 -v
       - run: python -c "import sys; sys.path.insert(0, 'scripts/nimble_v2'); from run import verify_freeze; verify_freeze()"
       - run: python scripts/expanded_execution/verify.py
+      - run: python scripts/expanded_execution/audit_execution.py --require-terminal
+      - run: python scripts/expanded_execution/verify_analysis.py
+      - run: python scripts/expanded_execution/verify_paper.py

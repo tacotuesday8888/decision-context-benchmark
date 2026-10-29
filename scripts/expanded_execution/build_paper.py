@@ -14,7 +14,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.utils import ImageReader
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, KeepTogether
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, KeepTogether, CondPageBreak
 from reportlab.lib.pagesizes import A4
 
 ROOT=Path(__file__).resolve().parents[2]
@@ -72,7 +72,7 @@ def content():
     # Restrict prose examples to the already complete first-party arms; expose source.
     ex={(c['config'],c['dataset']):c for c in complete}
     j=ex[('jev_firstparty','bipia-code')];l=ex[('luna_decisions','bipia-email')]
-    abstract=f"In the completed first-party arms, task context changes Jev's BIPIA code balanced accuracy by {100*j['strict_correctness_delta']:+.2f} percentage points and Luna Decisions' BIPIA email balanced accuracy by {100*l['strict_correctness_delta']:+.2f} points, illustrating source-dependent effects."
+    abstract=f"Task context changes Jev's BIPIA code balanced accuracy by {100*j['strict_correctness_delta']:+.2f} percentage points (95% document-bootstrap interval {ci(j['intervals']['document']['interval'],100)}) and Luna Decisions' BIPIA email balanced accuracy by {100*l['strict_correctness_delta']:+.2f} points ({ci(l['intervals']['document']['interval'],100)}). The latter interval includes no change; directions must be interpreted with their uncertainty."
     resulttext=f"The table includes {len(complete)} completed two-class comparisons; incomplete strata are excluded from effect claims, not removed from coverage accounting. Numerical direction and uncertainty must be read by source. The first-party arms each retain 812 cells; Jev's exact-0.5 forecasts are classification abstentions rather than false probability records."
     source_order=('bipia-code','bipia-email','bipia-table')
     per_model=[]
@@ -95,6 +95,13 @@ def content():
             forecast_text+=f" For {NAMES[config]} on BIPIA code, the largest candidate-only probability bin contains {bucket['n']} examples: mean predicted attack probability {bucket['mean_predicted_attack_probability']:.3f}, observed attack fraction {bucket['observed_attack_fraction']:.3f}. This is an empirical bin comparison, not a population calibration guarantee."
     cost=research['all_in_accounted_usd']
     discussion=f"Task context is not uniformly beneficial across the completed comparisons. The BIPIA code improvement for Jev and email decrease for Luna Decisions exemplify why a global winner would be misleading. The study's conservative all-in accounted metered usage is ${cost['openai']:.6f} for OpenAI and ${cost['typesafe']:.6f} for TypeSafe, including earlier checks and retained reservations; these are ledger estimates, not reconciled invoices. Provider limits remain $15 and $20 respectively."
+    nimble_brier=next((c for c in fs if c['config']=='nimble_local' and c['dataset']=='bipia-code'),None)
+    if ('nimble_local','bipia-code') in ex and nimble_brier:
+        n=ex['nimble_local','bipia-code']
+        discussion+=f" Nimble's BIPIA code balanced accuracy changes by {100*n['strict_correctness_delta']:+.2f} pp, while Brier score changes by {nimble_brier['brier_delta']:+.4f}. The Brier interval is {ci(nimble_brier['intervals'][0]['interval'])}, while the BA interval is {ci(n['intervals']['document']['interval'],100)} pp and includes zero. The different point-estimate directions show why classification and native forecast error require separate conclusions."
+    laya=[ex['laya_local',source] for source in source_order if ('laya_local',source) in ex]
+    if len(laya)==3:
+        discussion+=' Laya task-condition balanced accuracy is '+', '.join(f"{SOURCES[c['dataset']]} {100*c['context']['strict_balanced_accuracy']:.2f}%" for c in laya)+'. These weak results coexist with complete valid outputs and verified input coverage. They remain part of the comparison; no post-evaluation calibration or threshold repair is applied.'
     reproduction='Offline regeneration sequence: `analyze.py`, `forecast_analysis.py`, `research_summaries.py`, `error_review.py`, `verify_analysis.py`, `paper_figures.py`, and `build_paper.py` in `scripts/expanded_execution/`. The analysis and figure scripts use the project environment; the PDF build additionally requires ReportLab. Run the execution, local-arm, preparation and pilot tests/verifiers before delivery. No regeneration command calls a model.'
     mapping={'forecast_text':forecast_text,'local_window_note':f'The specialist baseline contains 402 logical candidate scans and {windows} actual forward windows; scans, forward windows, candidate counts and remote attempt records are different units.','example_table':table(['Configuration','Category','Candidate ID','Gold','p candidate','p task'],example_rows),'status':status,'abstract_results':abstract,'data_table':table(['Source','Benign','Attack','Total','Conditions'],data),'model_table':table(['Configuration','Exact model ID','Route','Output'],models),'coverage_table':table(['Configuration','Planned','Recorded','Valid','Invalid / tie','Not run'],cover),'results_text':resulttext,'effect_table':table(['Configuration','Source','BA candidate %','BA task %','Delta pp','95% CI pp'],effectrows),'brier_table':table(['Configuration','Source','Common / eligible','Brier candidate','Brier task','Delta','95% CI'],briers),'operations_table':table(['Configuration','Attempt records','Median s','P90 s','Known input tokens','Usage records'],op),'discussion_text':discussion,'reproduction':reproduction}
     text=(PAPER/'manuscript-template.md').read_text()
@@ -118,7 +125,7 @@ def render(text,path):
         line=lines[i].strip()
         if not line:i+=1;continue
         if line.startswith('# '):story.append(para(line[2:],'Title'));i+=1;continue
-        if line.startswith('## '):story.append(para(line[3:],'Heading2'));i+=1;continue
+        if line.startswith('## '):story.extend([CondPageBreak(100),para(line[3:],'Heading2')]);i+=1;continue
         if line.startswith('| '):
             raw=[]
             while i<len(lines) and lines[i].startswith('| '):
@@ -162,6 +169,7 @@ def main():
     dest=ROOT/'output/pdf';dest.mkdir(parents=True,exist_ok=True)
     render(text,dest/'decision-context-benchmark-draft.pdf')
     inputs=[PAPER/'manuscript-template.md',OUT/'summary.json',OUT/'forecast-summary.json',OUT/'research-summary.json',OUT/'error-review.json',ROOT/'data/expanded-v2/collection.jsonl',Path(__file__)]
+    inputs += [ROOT/'data/expanded-v2/model-panel.json',ROOT/'results/nimble-setup/execution-config.json',ROOT/'results/laya-v2/execution-config.json',OUT/'paper-figures/inputs.json']
     inputs+=sorted((OUT/'paper-figures').glob('*.png'))
     (PAPER/'build-manifest.json').write_text(json.dumps({'input_sha256':{str(p.relative_to(ROOT)):digest(p) for p in inputs},'output_sha256':{str(p.relative_to(ROOT)):digest(p) for p in [PAPER/'manuscript.md',dest/'decision-context-benchmark-draft.pdf']},'numerical_tables_generated':True,'evaluation_complete':read(OUT/'summary.json')['status_counts'].get('not_run',0)==0},indent=2)+'\n')
     print(json.dumps({'markdown':str(PAPER/'manuscript.md'),'pdf':str(dest/'decision-context-benchmark-draft.pdf')}))
