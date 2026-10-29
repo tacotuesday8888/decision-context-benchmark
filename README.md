@@ -11,8 +11,11 @@ The paper/report makes no novelty claim: closely related context ablations alrea
 ## Expanded v2 preparation
 
 The expanded collection contains **402 distinct evaluation candidates and 60 development
-candidates**, with original task/source support recorded per row. **No expanded evaluation
-has run.** Paid execution is disabled while billing is pending.
+candidates**, with original task/source support recorded per row. The frozen preparation
+record is preserved. **Expanded execution has started** under a separate October 29
+authorization with a $15 total cap; read the [execution notes](docs/expanded-execution/README.md),
+[current partial report](results/expanded-execution/report.md), and
+[continuation handoff](docs/expanded-execution/HANDOFF.md).
 
 Read the [expanded protocol](docs/expanded-v2/protocol.md),
 [dataset review](docs/expanded-v2/dataset-review.md),
