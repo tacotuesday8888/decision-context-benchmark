@@ -117,3 +117,30 @@ content-bearing responses). This is not frozen selection. Some read_file outputs
 are published synthetic account fixtures; avoid printing their contents again.
 No secrets from this workspace were read. A proper final adapter still needs
 first-encounter checks, licensed extraction, exclusions and label review.
+
+## Offline AgentDojo replay completed after the source review
+
+`scripts/extension_v3/replay_agentdojo.py` now runs the pinned official clone's
+ground-truth user calls, in memory, with socket connections/DNS disabled and
+credential-like environment variables removed before importing SDKs. No LLM or
+real service used. Environment created only inside the ignored clone with
+`uv sync --frozen --no-dev --project data/raw/extension-v3/agentdojo --python 3.12`.
+It uses the upstream frozen lock; package versions and lock hash are in the receipt.
+
+Observed 337 outputs /150 distinct texts from96 of97 tasks. Suite occurrences:
+workspace82, travel124, banking33, slack98. Original data and arguments remain in
+ignored `data/raw/extension-v3/agentdojo-clean-replay.jsonl`; tracked inventory
+contains only provenance/hashes. No gold labels assigned yet. Content eligibility,
+grouping, and frozen selection remain required. Current upstream default formatter
+is JSON, unlike the older paper's YAML representation: record this difference.
+
+Preserved failure: workspace:user_task_10 ground_truth raises AttributeError.
+Cause established in source: calendar.current_day is declared str, but task calls
+`.isoformat()` on it. Do not silently fix the upstream fixture or invent outputs.
+No downstream calls for that task were attempted. This is a one-task exclusion,
+not a blocker for all other source preparation.
+
+Current branch includes a dedicated new v3 CI workflow. At commit0bc267c, all eight
+push/PR checks passed, including both v3 integrity/test/reproduction jobs. No
+inference process is live. The v3 goal remains active and confirmation remains
+unfinished; continue extraction/validation and design, not another paper build.
