@@ -114,3 +114,11 @@ remaining limitations. Avoid jargon dumps and repeated proposals/permission ques
 Nimble runner robustness amendment `execution-freeze-v2.3.1.json` preserves the
 original setup freeze and ensures a stopped runtime cannot erase an inference failure
 when its follow-up metadata request also fails. No model/data/prompt or dev evidence changed.
+
+Cost at setup: conservative accounted usage is $0.096443 OpenAI and $0.051171
+TypeSafe, including prior checks. Remaining planned Nimble and subscription comparator
+cells reserve $0 in metered API fees on the frozen routes. Local electricity and
+existing subscription fees are excluded. The full-panel estimate, if started fresh,
+reserves at most $1.066068 OpenAI Decisions and $0.446817 Jev including bounded
+transient retries; these completed API arms must not be rerun. Any comparator switch
+to paid API requires a new route configuration, estimate and development verification.
