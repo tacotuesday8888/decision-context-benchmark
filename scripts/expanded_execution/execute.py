@@ -12,16 +12,28 @@ from datetime import datetime, timezone
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts/expanded_v2'))
 from common import DATA, sha, jsonl
-from panel import PANEL
-from adapters import request, parse, LocalDetector
+from panel import PANEL as PREPARED_PANEL
+from adapters import request as prepared_request, parse, LocalDetector
 from development import dev_rows
 from provider_access import subscription_credentials
 from smoke_access import env_secret
 from transport import post
+from spending import provider_for_key, totals as provider_totals, caps as provider_caps
 
 OUT = ROOT / 'results/expanded-execution'
-VERSION = 'expanded-execution-v2.1'
+VERSION = 'expanded-execution-v2.3'
+sys.path.insert(0, str(ROOT/'scripts/laya_v2'))
+from adapter import CONFIG as LAYA_CONFIG, request as laya_request
+sys.path.insert(0, str(ROOT/'scripts/nimble_v2'))
+from local import CONFIG as NIMBLE_CONFIG, request as nimble_request
+PANEL = dict(PREPARED_PANEL, laya_local=LAYA_CONFIG, nimble_local=NIMBLE_CONFIG)
 CONFIGS = tuple(PANEL)
+
+
+def request(config, row, condition):
+    if config == 'laya_local':return laya_request(row, condition)
+    if config == 'nimble_local':return nimble_request(row, condition)
+    return prepared_request(config, row, condition)
 
 
 def canonical(value):
@@ -44,7 +56,7 @@ def verify_preparation():
 
 
 def route(config, routes):
-    if config == 'protectai_local':
+    if config in ('protectai_local', 'laya_local', 'nimble_local'):
         return 'local'
     return routes[config]
 
@@ -88,11 +100,21 @@ class Ledger:
     def begin(self, key, amount):
         if any(e['key'] == key for e in self.data['entries']):
             raise ValueError('Attempt already reserved; inspect pending evidence')
-        total = sum(e['accounted_usd'] for e in self.data['entries'])
-        if self.path.name.startswith('execution-ledger'):
-            for path in self.path.parent.glob('execution-ledger*.json'):
+        provider = provider_for_key(key)
+        if provider:
+            if self.cap > provider_caps()[provider]:raise PermissionError('Ledger cap exceeds owner provider cap')
+            # Include the in-memory current ledger exactly once, and every old/new
+            # ledger for this provider. TypeSafe cannot consume OpenAI's allowance.
+            total = sum(e['accounted_usd'] for e in self.data['entries'] if provider_for_key(e['key']) == provider)
+            for path in self.path.parent.glob('*ledger*.json'):
                 if path != self.path:
-                    total += sum(e['accounted_usd'] for e in json.loads(path.read_text())['entries'])
+                    total += sum(e['accounted_usd'] for e in json.loads(path.read_text())['entries'] if provider_for_key(e['key']) == provider)
+        else:
+            total = sum(e['accounted_usd'] for e in self.data['entries'])
+            if self.path.name.startswith('execution-ledger'):
+                for path in self.path.parent.glob('execution-ledger*.json'):
+                    if path != self.path:
+                        total += sum(e['accounted_usd'] for e in json.loads(path.read_text())['entries'])
         if total + amount > self.cap + 1e-12:
             raise PermissionError('Execution spending cap reached before request')
         self.data['entries'].append({'key': key, 'reserved_usd': amount,
@@ -156,6 +178,12 @@ def development_passed(config, access):
 
 
 def run(config, split, routes, ledger, config_hash):
+    if config == 'nimble_local':
+        from run import run as run_nimble
+        return run_nimble(split)
+    if config == 'laya_local':
+        from runner import run as run_laya
+        return run_laya(split)
     access = route(config, routes)
     paid = access == 'api_key'
     if split == 'eval' and access != 'local' and not development_passed(config, access):
@@ -254,7 +282,15 @@ def main():
     p.add_argument('--config', choices=CONFIGS)
     args = p.parse_args()
     verify_preparation()
-    config = json.loads((OUT/'execution-config.json').read_text())
+    if args.config == 'nimble_local' and args.mode in ('check', 'eval', 'local'):
+        from run import run as run_nimble
+        run_nimble('dev' if args.mode == 'check' else 'eval')
+        return
+    if args.config == 'laya_local' and args.mode in ('check', 'eval', 'local'):
+        from runner import run as run_laya
+        run_laya('dev' if args.mode == 'check' else 'eval')
+        return
+    config = json.loads((OUT/'execution-config-v2.3.json').read_text())
     routes = config['routes']
     digest = sha(canonical(config))
     if args.mode == 'estimate':
@@ -275,13 +311,11 @@ def main():
             configs = [args.config] if args.config else [c for c in CONFIGS if c != 'protectai_local']
             split, cap, ledger_path = 'dev', .99, OUT/'check-ledger.json'
         else:
-            if config['execution_cap_usd'] is None:
-                raise PermissionError('Owner execution cap pending; no paid evaluation')
             configs, split = [args.config] if args.config else list(CONFIGS), 'eval'
-            cap = config['execution_cap_usd']
-            ledger_path = OUT/('execution-ledger-'+(args.config or 'all')+'.json')
-        ledger = Ledger(ledger_path, cap)
+            cap, ledger_path = 0, OUT/'local-ledger-v2.3.json'
         for c in configs:
+            provider = 'typesafe' if c == 'jev_firstparty' else ('openai' if c in ('luna_decisions','luna_chat','astra_chat') else None)
+            ledger = Ledger(OUT/(provider+'-ledger-v2.3.json'), config['provider_spending_caps_usd'][provider]) if provider else Ledger(OUT/'local-ledger-v2.3.json',0)
             run(c, split, routes, ledger, digest)
 
 if __name__ == '__main__':

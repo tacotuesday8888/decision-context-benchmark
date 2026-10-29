@@ -14,4 +14,8 @@ jobs:
           cache-dependency-path: requirements-expanded-v2-data.txt
       - run: pip install -r requirements-expanded-v2-data.txt
       - run: python -m unittest discover -s tests/expanded_execution -v
+      - run: python -m unittest discover -s tests/laya_v2 -v
+      - run: python -c "import sys; sys.path.insert(0, 'scripts/laya_v2'); from runner import verify_freeze; verify_freeze()"
+      - run: python -m unittest discover -s tests/nimble_v2 -v
+      - run: python -c "import sys; sys.path.insert(0, 'scripts/nimble_v2'); from run import verify_freeze; verify_freeze()"
       - run: python scripts/expanded_execution/verify.py

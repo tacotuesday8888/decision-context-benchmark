@@ -4,7 +4,11 @@ import json
 from pathlib import Path
 import sys
 from execute import OUT, ROOT, DATA, PANEL, canonical, sha, jsonl, verify_preparation, safe_parse, reserve_usd
-from adapters import request, probability
+from execute import request
+from adapters import probability
+from adapter import parse as parse_laya
+from local import parse as parse_nimble
+from spending import totals as provider_totals, caps as provider_caps
 from verify_pilot import check_secrets
 
 
@@ -30,6 +34,16 @@ def verify():
                     assert parsed['revision']==PANEL[config]['revision']
                     expected=probability(max(scores))
                     assert all(parsed[k]==v for k,v in expected.items())
+                elif config=='laya_local':
+                    assert record['parsed']==parse_laya(record['raw_response'])
+                    assert not record['token_audit']['truncated']
+                    assert record['token_audit']['state_tokens_dropped']==0
+                    assert record['parsed']['usage']['input_tokens']==record['token_audit']['input_tokens']
+                elif config=='nimble_local':
+                    if record['observation']['http_status']==200 and record['parsed']['status']!='local_runtime_error':
+                        assert record['parsed']==parse_nimble(record['raw_response'])
+                    else:
+                        assert record['parsed']['valid'] is False and record['parsed']['prediction'] is None
                 elif record['observation']['http_status']==200:
                     assert record['parsed']==safe_parse(config,record['raw_body'])
                 assert record['reserved_usd']==reserve_usd(config,record['request'],record['access_route'])
@@ -43,11 +57,12 @@ def verify():
         n=sum(e['accounted_usd'] for e in d['entries'])
         assert n<=d['cap_usd']+1e-12
         if path.name.startswith('execution-ledger'):total+=n
-    assert total<=14.01+1e-12
+    provider_usage=provider_totals(OUT)
+    assert all(value <= provider_caps()[provider]+1e-12 for provider,value in provider_usage.items())
     check=json.loads((OUT/'check-ledger.json').read_text())
     assert sum(e['accounted_usd'] for e in check['entries'])<=.99+1e-12
-    source_files=[p for base in ('scripts/expanded_execution','tests/expanded_execution','docs/expanded-execution','results/expanded-execution') for p in (ROOT/base).rglob('*') if p.is_file() and '__pycache__' not in str(p) and p.suffix!='.lock']
+    source_files=[p for base in ('scripts/expanded_execution','tests/expanded_execution','docs/expanded-execution','results/expanded-execution','scripts/laya_v2','tests/laya_v2','results/laya-v2','results/local-decision-review','scripts/nimble_v2','tests/nimble_v2','results/nimble-setup') for p in (ROOT/base).rglob('*') if p.is_file() and '__pycache__' not in str(p) and p.suffix!='.lock']
     check_secrets(source_files)
-    print(json.dumps({'records':dict(counts),'evaluation_accounted_usd':total,'pilot_and_preparation_intact':True,'credential_matches':0},sort_keys=True))
+    print(json.dumps({'records':dict(counts),'evaluation_accounted_usd':total,'all_checks_and_execution_by_provider_usd':provider_usage,'pilot_and_preparation_intact':True,'credential_matches':0},sort_keys=True))
 
 if __name__=='__main__':verify()

@@ -129,4 +129,40 @@ class SharedBudgetTests(unittest.TestCase):
             self.assertEqual(len(data['entries']),2)
             self.assertAlmostEqual(sum(x['accounted_usd'] for x in data['entries']),.05)
 
+class ProviderCapTests(unittest.TestCase):
+    def test_legacy_checks_and_other_provider_are_accounted_separately(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            e.save(root/'check-ledger.json',{'cap_usd':.99,'entries':[{'key':'dev:luna_decisions:old:0','accounted_usd':.04,'reserved_usd':.04,'state':'recorded'},{'key':'dev:jev_firstparty:old:0','accounted_usd':.08,'reserved_usd':.08,'state':'recorded'}]})
+            openai=e.Ledger(root/'openai-ledger-v2.3.json',.1)
+            with self.assertRaises(PermissionError):openai.begin('eval:luna_decisions:new:0',.07)
+            openai.begin('eval:luna_decisions:new:0',.05)
+            typesafe=e.Ledger(root/'typesafe-ledger-v2.3.json',.1)
+            with self.assertRaises(PermissionError):typesafe.begin('eval:jev_firstparty:new:0',.03)
+            typesafe.begin('eval:jev_firstparty:new:0',.01)
+
+    def test_cannot_create_ledger_above_owner_provider_cap(self):
+        with tempfile.TemporaryDirectory() as d:
+            ledger=e.Ledger(Path(d)/'openai-ledger-v2.3.json',16)
+            with self.assertRaises(PermissionError):ledger.begin('eval:luna_decisions:x:0',0)
+
+
+class ProbabilityMetricTests(unittest.TestCase):
+    def test_hand_computed_brier_and_half_probability(self):
+        from probability_metrics import forecast_metrics
+        m=forecast_metrics([(.9,1),(.2,0),(.5,1)])
+        self.assertAlmostEqual(m['brier'],(.01+.04+.25)/3)
+        self.assertEqual(m['n'],3)
+        self.assertEqual(sum(b['n'] for b in m['calibration']),3)
+
+    def test_boundary_bins_clipping_and_bad_values(self):
+        from probability_metrics import forecast_metrics
+        m=forecast_metrics([(0,0),(1,1)])
+        self.assertEqual(m['brier'],0)
+        self.assertEqual(m['calibration'][0]['n'],1)
+        self.assertEqual(m['calibration'][-1]['n'],1)
+        self.assertTrue(m['log_loss']>0)
+        for value in [True,float('nan'),1.1]:
+            with self.assertRaises(ValueError):forecast_metrics([(value,1)])
+
 if __name__=='__main__':unittest.main()

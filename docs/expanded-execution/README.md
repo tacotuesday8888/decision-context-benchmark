@@ -1,122 +1,94 @@
-# Expanded execution v2.1
+# Current execution setup
 
-This execution supersedes preparation-only restrictions under the owner's October 29,
-2026 instruction. It preserves every original pilot and expanded-v2.0 freeze hash.
-The collection, prompts, model settings, split boundaries and labels are unchanged.
-Code, credentials and execution outputs are separately versioned.
+The latest October 29 instruction sets independent all-in experiment spending caps:
+**OpenAI $15; TypeSafe/Jev $20**. Earlier checks and execution count toward these
+limits. They are not spending targets. Historical shared-cap configuration and
+ledgers remain unchanged; `execution-config-v2.3.json` is the active configuration.
+The runner counts every legacy and new reservation by provider under one file lock.
+There are no purchases, recharge, new subscriptions, public releases or submissions.
 
-## Authorization and credentials
+The primary question is whether authentic trusted task context improves decision
+models' prompt-injection judgments. See [the plain-language research and statistical
+plan](RESEARCH-PLAN.md) and [the continuation handoff](HANDOFF.md). The experiment does
+not establish end-to-end prevention by an assistant.
 
-The owner authorized **less than $15 total** for development checks plus execution.
-The configuration reserves $0.99 for checks and $14.01 for evaluation; the ledger
-rejects requests that would exceed either shared budget. No purchases, recharge,
-new subscriptions or public release are authorized. There is no automatic paid chat fallback; a deliberate route switch needs a new configuration, development validation and sufficient remaining budget.
-Balances were visibly $17 OpenAI and $25 TypeSafe before inference; those are not
-spending caps. Both official APIs passed two actual development inference checks,
-including exact returned IDs, strict parsing and token usage. `access.json` records
-credentials, authentication and inference separately.
+## Access
 
-New project keys were saved only in Git-ignored `.env.local`, mode 600, preserving
-other entries. OpenAI used encrypted Platform key creation after reconnecting its
-connector. TypeSafe used the official console and a one-time loopback password form.
-The originally created ContextBench TypeSafe key was preserved after explicit owner
-confirmation to create a recoverable new key. No unrelated or historical credentials
-were revoked. Legacy Gemini, OpenCode and reseller Jev entries support the separate
-pilot/history and are not loaded by expanded execution. No Codex cached token is used.
-Temporary key-encryption files and clipboard copies were cleaned after setup.
+- Official TypeSafe `jev-1.14.0`: existing project API key; 812 eval cells saved.
+- OpenAI Decisions `gpt-6-luna`: existing project API key; 812 eval cells saved.
+- Luna/Astra Responses: project-authorized subscription; no silent API-key fallback.
+- **Nimble `nimble:9b-q4_K_M`**: local Ollama 0.40.11, native `/v1/systemone`, digest
+  `d99f22c363cea449151cc473887de081b98ca98e8a29b1a8710e09da916f2c79`.
+  Download is 5.6 GB; actual native inference succeeded in all 14 dev checks, including
+  the longest development candidate. Loaded accelerator allocation was reported at
+  about 6.3 GB; this is not a measured whole-system peak. No key or per-request API fee.
+- Laya multilingual 322M: pinned publisher snapshot and SDK 0.4.17 in `.venv-laya`;
+  120 dev cells completed without truncation. Weak zero-shot accuracy; retain as a
+  supplementary baseline, not a claimed best model. No Laya eval has run.
+- Protect AI: completed candidate-only specialist baseline. Do not invent a native
+  context comparison or discard its poor results.
 
-## Routes and accounting
+Seven registered configurations over six distinct model IDs (Luna has two interfaces).
+Frozen original panel/data/prompts remain unchanged; additions are versioned execution
+extensions. See local setup metadata, exact raw dev records, and freeze files.
 
-`results/expanded-execution/execution-config.json` fixes these routes:
+API keys remain only in ignored `.env.local`, permissions 600. Values must never be
+printed, uploaded or committed. Original pilot keys and unrelated Ollama models remain
+untouched. Abandoned Strands/Liquid exploratory downloads were removed; no more models
+or accounts are needed for this setup.
 
-- `jev_firstparty`: official TypeSafe System One, `jev-1.14.0`, API key.
-- `luna_decisions`: official OpenAI Decisions, `gpt-6-luna`, API key.
-- `luna_chat`: `gpt-6-luna` Responses, existing project-authorized subscription.
-- `astra_chat`: `gpt-6-astra` Responses, the same subscription.
-- `protectai_local`: pinned local Protect AI model, candidate-only, CPU.
+## Evidence and continuation
 
-There are five configurations and four distinct model IDs. No Gemini or Perplexity
-key, subscription or model is required. There has been no subscription-to-paid-chat
-route switch. Such a switch requires a new configuration/version and development
-validation before evaluation; do not silently substitute it after a quota failure.
+All actual provider/local attempts retain requests, responses, usage and failures.
+Astra has 169 response records plus one unknown interrupted attempt. That pending
+zero-metered reservation is retained. Its missing response was not fabricated and the
+cell is not silently retried. Luna has 38 saved cells, including an empty-response
+failure; its bound STOP resolution permits continuation of the remaining cells.
+No original evaluation process is currently being relied upon as a background job.
 
-The next full remote plan is 812 cells per configuration; local has 402 scans.
-Preparation estimated about $0.057 for Jev+Decisions evaluation without retries,
-or about $0.060 including a 5% retry allowance, with chat calls included in the
-subscription. These are character-based estimates, not confirmed invoices.
-Current reservations are deliberately more conservative: about $1.513 for both
-metered evaluation configurations including worst-size retries. Actual raw usage
-is preserved and is the basis for accounting; the owner did not authorize spending
-credit balances in full.
+The primary payloads, 402 eval / 60 dev collection and original pilot's 182 protected
+files remain intact. Laya's original v2.2 freeze is preserved; its v2.3 integration
+amendment records the shared runner/budget changes with identical model settings and
+identical saved dev responses. Nimble has its own dev-first freeze; no Nimble held-out
+model inference has run during setup.
 
-Before each attempt, reserve UTF-8 request bytes plus a 4,096-token framing allowance
-at twice documented input rates, plus the full output-token cap. This covers standard
-cache-write premiums without relying on discounts. Reservations are an engineering
-bound conditional on current standard prices and framing allowance, not a provider-side
-billing hard limit. Stop if returned usage exceeds the reservation. Missing/ambiguous
-usage retains the whole reservation. Prices: TypeSafe $0.042/M input, Decisions
-$0.10/M input; output free for both. Subscriptions and local inference count as zero
-new metered expense. No tools or separately billed services are enabled in payloads.
-
-`execution-ledger*.json` together share **one $14.01 evaluation cap**, not $14.01 each.
-`.budget.lock` serializes their mutations; crashed/pending attempts keep their reserves.
-The original serial ledger retains completed Jev and the initially launched Astra
-process; separately named ledgers allow independent configurations to continue.
-Do not launch duplicate configuration processes. Each completed logical cell, including
-invalid outputs, is skipped on resume; changed routes/payloads are rejected.
-
-## Failures and reproduction
-
-All requests, responses, returned settings, usage and per-attempt failures are saved.
-Only one transient HTTP 500/502/503/504 or transport retry is allowed, at most 41 per
-remote evaluation configuration. No development retries. Authentication, billing,
-quota or model mismatch stops the provider and writes STOP.json. No retries of
-refusals, ties, invalid formats or truncation. Partial transport bodies are retained
-by the execution transport.
-
-The first Luna evaluation process used the historical transport helper. One cell
-returned HTTP 200, curl exit 0, and an empty saved body, with no terminal event or usage.
-This is an observed invalid cell, not a semantic prediction and not a proven timeout.
-The original failure and STOP.json remain. `stop-resolution.json` records continuation
-of remaining subscription cells while skipping that invalid cell, with no repair or
-retry. A queued process waits for the initial serial Astra run before resuming Luna.
-
-Offline checks and analysis (no inference):
+Run only explicit configurations after inspecting saved state:
 
 ```sh
-.venv/bin/python -m unittest discover -s tests/expanded_execution -v
-.venv/bin/python -m unittest discover -s tests/expanded_v2 -v
-.venv/bin/python scripts/expanded_v2/verify.py
-.venv/bin/python scripts/expanded_execution/analyze.py
-```
-
-On a fresh checkout install `requirements-expanded-v2-data.txt`; local inference also
-needs the frozen local-runtime lock and cached pinned weights. No dependency or model
-change is needed on this host. Secrets are never in Git. A new machine must obtain its
-own authorized credentials; copying this repository does not copy access.
-
-Live commands use current authorization and configured caps; inspect running processes
-and saved state before invoking them:
-
-```sh
-.venv/bin/python scripts/expanded_execution/execute.py estimate
-.venv/bin/python scripts/expanded_execution/execute.py eval --config luna_decisions
+# Native local metadata/server; start a loopback server only if none is listening.
+ollama --version
+# OLLAMA_HOST=127.0.0.1:11434 ollama serve
+.venv/bin/python scripts/nimble_v2/run.py eval
 .venv/bin/python scripts/expanded_execution/execute.py eval --config astra_chat
 .venv/bin/python scripts/expanded_execution/execute.py eval --config luna_chat
 ```
 
-## Analysis
+Completed cells, including invalid ones, are skipped. Failed auth/billing/quota/model
+identity stops a provider; no repeated retries or purchases. Only bounded transient
+transport/500/502/503/504 retry rules from the frozen protocol apply. Local Nimble
+uses only loopback, disallows redirects/proxies, checks the exact digest/runtime, and
+has no chat/cloud fallback. Native local API rejects inputs that exceed its context
+rather than silently truncating. Runtime failure is preserved, not repaired by a
+follow-up prompt. No full evaluation is launched automatically by setup.
 
-`summary.json`, `per-example.csv`, `figures/` and `report.md` are offline derivations.
-The report explicitly stays partial while intended cells remain unrun. Source strata
-retain class counts, valid coverage/denominators and observed invalid/missing counts.
-Strict balanced accuracy counts observed invalid outputs incorrect; it is undefined
-for one-class strata. Paired inference is suppressed until the source stratum has
-run both conditions. BIPIA uses separate document/family bootstrap sensitivity analyses;
-LLMail positive teams and negative fixtures/topics use their own grouping units.
-One-fixture negatives cannot support a population FPR interval. No pooled winner,
-confirmatory p-values, generated labels or evaluation-based tuning are introduced.
+Offline checks (no model loading, downloads, keys or inference):
 
-Official payload/rate references: [OpenAI Decisions](https://developers.openai.com/api/docs/guides/decisions),
-[TypeSafe models](https://docs.typesafe.ai/models), [TypeSafe quick start](https://docs.typesafe.ai/introduction/quickstart),
-[authorized subscription Responses](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference).
+```sh
+.venv/bin/python -m unittest discover -s tests/expanded_execution -v
+.venv/bin/python -m unittest discover -s tests/nimble_v2 -v
+.venv/bin/python -m unittest discover -s tests/laya_v2 -v
+.venv/bin/python -m unittest discover -s tests/expanded_v2 -v
+.venv/bin/python -m unittest discover -s tests -v
+.venv/bin/python scripts/expanded_execution/verify.py
+.venv/bin/python scripts/expanded_v2/verify.py
+.venv/bin/python scripts/verify_pilot.py
+```
+
+Rebuild derived partial reports offline with `scripts/expanded_execution/analyze.py`.
+A report must stay explicitly partial until intended cells are completed or operational
+blockers are documented. Probability scoring helpers are tested; implement the paired
+probability analysis under the exploratory amendment before writing final conclusions.
+
+Nimble runner robustness amendment `execution-freeze-v2.3.1.json` preserves the
+original setup freeze and ensures a stopped runtime cannot erase an inference failure
+when its follow-up metadata request also fails. No model/data/prompt or dev evidence changed.

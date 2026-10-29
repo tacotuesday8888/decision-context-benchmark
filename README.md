@@ -13,9 +13,13 @@ The paper/report makes no novelty claim: closely related context ablations alrea
 The expanded collection contains **402 distinct evaluation candidates and 60 development
 candidates**, with original task/source support recorded per row. The frozen preparation
 record is preserved. **Expanded execution has started** under a separate October 29
-authorization with a $15 total cap; read the [execution notes](docs/expanded-execution/README.md),
+authorization (now superseded by the separate provider caps below); read the [execution notes](docs/expanded-execution/README.md),
 [current partial report](results/expanded-execution/report.md), and
 [continuation handoff](docs/expanded-execution/HANDOFF.md).
+The current setup uses separate **OpenAI $15 / TypeSafe $20** all-in caps.
+Pinned local Nimble has passed bounded development inference checks; its held-out run
+has not started. See the [research/statistical plan](docs/expanded-execution/RESEARCH-PLAN.md)
+and [copyable continuation prompt](docs/expanded-execution/CONTINUE-PROMPT.txt).
 
 Read the [expanded protocol](docs/expanded-v2/protocol.md),
 [dataset review](docs/expanded-v2/dataset-review.md),

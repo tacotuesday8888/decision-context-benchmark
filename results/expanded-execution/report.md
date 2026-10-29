@@ -1,6 +1,6 @@
 # Expanded experiment execution
 
-Observed 2135 of 3650 planned cells in 2135 attempts over 402 candidates. Missing cells are marked not_run, separate from observed invalid responses. This report is partial until all intended configurations complete.
+Observed 2234 of 5274 planned cells in 2234 attempts over 402 candidates. Missing cells are marked not_run, separate from observed invalid responses. This report is partial until all intended configurations complete.
 
 The primary question is the within-candidate effect of authentic trusted task context on injection detection. Neighboring-source context is secondary and available only for LLMail task2. No AI-generated examples or labels, invented context, evaluation tuning, or pilot changes are used.
 
@@ -8,6 +8,8 @@ The primary question is the within-candidate effect of authentic trusted task co
 
 | Configuration | Source | Condition | N− / N+ | Valid | Strict BA | FPR | FNR |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| astra_chat | bipia-code | candidate | 40 / 40 | 100.0% | 98.8% | 0.0% | 2.5% |
+| astra_chat | bipia-code | task | 40 / 40 | 100.0% | 100.0% | 0.0% | 0.0% |
 | jev_firstparty | bipia-code | candidate | 40 / 40 | 97.5% | 67.5% | 0.0% | 63.2% |
 | jev_firstparty | bipia-code | task | 40 / 40 | 100.0% | 83.8% | 0.0% | 32.5% |
 | jev_firstparty | bipia-email | candidate | 40 / 40 | 98.8% | 83.8% | 0.0% | 30.8% |
@@ -62,6 +64,7 @@ FPR and FNR use valid negative and positive denominators, respectively, saved in
 - luna_decisions, bipia-table, task minus candidate: +5.00 percentage points; 120 paired candidates. 95% intervals: document: [+0.83, +10.00] pp; attack_family: [+0.00, +10.19] pp.
 - luna_decisions, llmail-task3, task minus candidate: +10.94 percentage points; 48 paired candidates. 95% intervals: class_clusters: unavailable; too few independent clusters.
 - luna_decisions, llmail-task4, task minus candidate: +6.25 percentage points; 34 paired candidates. 95% intervals: class_clusters: unavailable; too few independent clusters.
+- astra_chat, bipia-code, task minus candidate: +1.25 percentage points; 80 paired candidates. 95% intervals: document: [+0.00, +3.75] pp; attack_family: [+0.00, +3.57] pp.
 
 ![Paired context effects](figures/paired-effects.png)
 

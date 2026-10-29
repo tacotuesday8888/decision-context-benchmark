@@ -1,108 +1,116 @@
 # Continue Decision Context Benchmark
 
-Workspace: `/Users/langqi/Developer/Projects/Decision Context Benchmark`
-Private repository: https://github.com/tacotuesday8888/decision-context-benchmark
-Working branch: `codex/expanded-execution`, stacked on `codex/expanded-v2` (PR 2),
-which is stacked on `codex/context-pilot` (PR 1). Do not merge these PRs without
-shipping authorization. Commit/push/private PR management is authorized.
+Use `/Users/langqi/Developer/Projects/Decision Context Benchmark`, the existing private
+repository `https://github.com/tacotuesday8888/decision-context-benchmark`, branch
+`codex/expanded-execution`, and draft PR #3. It is stacked on PR #2, which is stacked
+on PR #1. Commit/push/private PR management is authorized; merging/publication is not.
 
-## Read and preserve
+## Latest owner direction
 
-Read AGENTS.md, README.md, docs/expanded-v2, docs/expanded-execution/README.md,
-results/expanded-execution/execution-config.json and access.json. The newer October 29
-user instruction authorizes execution, superseding preparation-only restrictions.
-Protect every pilot-integrity and preparation-freeze hash. The 402 eval and 60 dev
-candidates, exact prompts, labels, supported contexts and settings are unchanged.
-No generated examples/labels/context or tuning on evaluation outcomes.
+Set up and clean the project, then continue a rigorous research study of whether
+**trusted context improves decision models' decisions and probability reliability**,
+using prompt-injection detection as the current case study. Recognizing attacks is
+not proof of end-to-end attack prevention. Do not generalize from this corpus to all
+decision tasks. Explain results in plain language first, then precise technical details.
 
-## Credentials and cap are resolved
+Read AGENTS.md, README.md, docs/expanded-v2, this directory's README.md and
+RESEARCH-PLAN.md, and `results/expanded-execution/execution-config-v2.3.json`.
+The newest instructions supersede older preparation-only and shared-cap restrictions.
 
-Both `OPENAI_API_KEY` and `TYPESAFE_API_KEY` are configured in project-only ignored
-`.env.local`, mode 600. Never print, upload or commit them. Preserve other entries.
-Both official providers passed two actual development requests: authentication,
-model match, parsing and token usage. Do not create more keys or repeat smoke checks.
-OpenAI's encrypted connector required reconnecting and then succeeded. TypeSafe's
-masked old ContextBench secret could not be recovered; after explicit confirmation,
-one new benchmark key was created while preserving the original. Temporary secret
-setup material and clipboard state were cleaned. Legacy pilot keys are unused by
-expanded execution but retained for history; no unrelated credential was revoked.
+## Budget and access: resolved, do not repeat setup
 
-The owner's total cap is **$15 including checks and execution**, not $17+$25 credit
-balances. $0.99 is reserved for checks, $14.01 for evaluation. All execution-ledger*.json
-share that single evaluation cap, not one cap each. Current conservative accounting
-is around $0.15; inspect live ledgers for the exact number. It deliberately overestimates
-standard input rates, retains unknown reservations and assumes no discounts. No
-purchases, recharge, public publication or submissions. No automatic paid chat fallback. Any deliberate route switch requires a new configuration, development validation, and remaining budget under the same $15 total cap.
+Independent **all-in caps: OpenAI $15; TypeSafe/Jev $20**, including earlier development,
+evaluation, failures and pending reservations. These are limits, not spending targets.
+The new ledger guard counts legacy and new records by provider. Old shared-cap files
+remain historical evidence. No purchases, recharge, extra subscriptions, public release
+or submissions. Account balances are not budgets. Ask only if a genuinely new scope
+would exceed authorization; do not repeatedly ask for the already confirmed caps.
 
-## Panel: no extra providers needed
+Existing project OpenAI/TypeSafe keys work and are stored only in ignored `.env.local`
+with mode 600. Never print, commit or upload secrets. Reuse project subscription OAuth
+for Luna/Astra; never read Codex cached credentials or silently switch routes.
 
-- Official TypeSafe System One `jev-1.14.0`: API key; **812/812 evaluation cells complete**.
-- Official OpenAI Decisions `gpt-6-luna`: API key; **812/812 complete**.
-- GPT-6 Luna Responses: authorized subscription; initial 38 cells saved, including
-  one observed invalid empty response. Remaining cells are queued after Astra.
-- GPT-6 Astra Responses: authorized subscription; **actively running**.
-- Local `protectai/deberta-v3-base-prompt-injection-v2`, pinned immutable revision:
-  **402/402 complete**, Mac CPU, no API or per-request cost. This is not Laya.
+## Model status and commands
 
-Five configurations, four distinct model IDs. Gemini and Perplexity are not needed.
-Do not expand the panel merely because the user offered those alternatives.
-A route change needs a new explicit configuration/version and dev validation before
-its evaluation; never silently replace subscription access with paid API calls.
+- Official Jev `jev-1.14.0`: 812 eval cells saved.
+- OpenAI Decisions `gpt-6-luna`: 812 eval cells saved. Luna Responses is the same
+  model ID through another interface, not another independent model family.
+- Astra Responses: 169 response records plus one preserved unknown interrupted attempt.
+- Luna Responses: 38 saved cells, one empty-response failure. Its STOP resolution is
+  bound to the original failure and permits the remaining cells, without repairing it.
+- **Selected new local candidate: Nimble `nimble:9b-q4_K_M`**, official Ollama library,
+  digest `d99f22c363cea449151cc473887de081b98ca98e8a29b1a8710e09da916f2c79`, runtime
+  Ollama 0.40.11, native `http://127.0.0.1:11434/v1/systemone`. Local model is 5.6 GB;
+  14 development cells over seven existing candidates (including longest dev input)
+  succeeded with usage/probabilities and matching loaded digest. About 6.3 GB reported
+  accelerator allocation; not whole-system peak RAM. No native input truncation is
+  permitted by the API; oversized requests fail. No keys, cloud fallback or API charge.
+  Exact config, evidence and freeze: `results/nimble-setup/`. No Nimble eval yet.
+- Laya 322M: pinned SDK/checkpoint in `.venv-laya`; 120 dev cells over 60 candidates,
+  all valid/untruncated, weak accuracy. Keep supplementary baseline results, not a
+  best-model claim. No Laya eval. Original freeze plus integration amendment preserved.
+- Protect AI: 402 completed candidate-only baseline scans; no native context factorial.
 
-## Active jobs: inspect before running anything
+No other model downloads are needed. Abandoned Strands/Liquid exploratory downloads
+were removed. Preserve unrelated global Ollama models and the older SLM workspace.
+No original Astra/Luna OS process was live at setup inspection. Inspect again before
+starting anything. The pending Astra ledger reservation was retained; its lost attempt
+was recorded as unknown/invalid without inventing a response or retrying it. Normal
+resume skips that cell. Never delete reservations or completed failures to rerun them.
 
-At handoff, these processes are expected on this same Mac:
-
-- PID 87764: `execute.py eval --config astra_chat` (initial serial process).
-- PID 93165: `resume_luna_after_astra.py` waits on the original `.run.lock`, then resumes
-  Luna on the same subscription and rebuilds analysis.
-
-PIDs may finish before the next chat starts. Inspect `ps` and actual saved records.
-Do not launch another process for either configuration while these are alive. Parent
-chat exec sessions were 48164 and 61016, respectively; another chat can inspect OS
-processes and files without those session handles. Both use this existing checkout;
-do not switch branches/worktrees under live jobs. Runtime locks are Git ignored.
-
-The Luna failure returned HTTP 200/curl exit 0 but an empty body. It is not a proven
-timeout. Keep its invalid cell and original STOP.json. stop-resolution.json binds
-that STOP hash and allows continuing remaining cells without retrying the invalid
-cell. No evaluation-output repair or re-prompting. Native 0.5 ties are abstentions,
-not binary predictions. Preserve failures and raw responses.
-
-If a job is gone, inspect pending ledger entries, STOP markers and raw records before
-resuming. Never delete a pending charge reservation to make room. A new invocation
-skips completed logical cells (including invalid ones) and rejects changed routes or
-payloads. Billing/auth/quota/model mismatch stops that provider; no repeated retries.
-One retry only for transient transport/500/502/503/504, max 41 per remote configuration.
-
-## Finish the requested work
-
-1. Monitor and finish Astra and Luna. Surface real blockers; continue independent work.
-2. Run offline analysis and verification. Inspect source-specific coverage and failures.
-   Complete paired trusted-task effects by source and secondary neighboring-source
-   effects only where authentic LLMail task2 supports them. No pooled ranking or
-   balanced accuracy for one-class strata. Preserve BIPIA document/family interval
-   sensitivity and LLMail team/fixture limits. Source-label caveats remain applicable.
-3. Visually inspect final figures, update the concise report and handoff status. The
-   current report is explicitly partial. Local detector performance is candidate-only.
-4. Stage only intended sanitized artifacts, scan against configured credentials,
-   commit/push and update the execution PR. Obtain green offline CI. No merge/publication
-   requested. Report final complete/incomplete coverage and conservative usage cost.
-
-Offline commands (no inference):
+Useful commands, after checking actual state:
 
 ```sh
-.venv/bin/python -m unittest discover -s tests/expanded_execution -v
-.venv/bin/python -m unittest discover -s tests/expanded_v2 -v
-.venv/bin/python -m unittest discover -s tests -v
-.venv/bin/python scripts/expanded_execution/verify.py
-.venv/bin/python scripts/expanded_v2/verify.py
-.venv/bin/python scripts/verify_pilot.py
+# Start a loopback Ollama server only if none is listening; no new pull is needed.
+# OLLAMA_HOST=127.0.0.1:11434 ollama serve
+.venv/bin/python scripts/nimble_v2/run.py eval
+.venv/bin/python scripts/expanded_execution/execute.py eval --config astra_chat
+.venv/bin/python scripts/expanded_execution/execute.py eval --config luna_chat
 .venv/bin/python scripts/expanded_execution/analyze.py
+.venv/bin/python scripts/expanded_execution/verify.py
 ```
 
-Tests at handoff: 13 execution, 18 expanded-preparation, 29 pilot/setup tests passed;
-182 protected pilot files and every preparation freeze hash matched; secret scan clean.
-The new CI workflow checks execution offline and never calls an API. The report,
-summary, CSV and figures are derived from saved per-attempt records. Rebuild them after
-live jobs complete; do not claim final results based on the present partial snapshot.
+Finish these authorized prepared runs autonomously, preserving every per-attempt raw
+request/response/failure. Model settings/prompts and added local arms are frozen before
+held-out execution. No prompt repair, evaluation tuning, repeated billing/auth retries
+or silent route fallback. If Laya evaluation is included, use its separate runner and
+`.venv-laya`, and label it supplementary. Do not discard poor results.
+
+## Data, statistics and paper work
+
+The fixed 402 eval / 60 dev collection uses released, attributable BIPIA and LLMail
+material with authentic task/context eligibility. No AI-generated examples/labels,
+invented missing context or evaluation-based tuning. Published fixtures can be
+synthetic; do not describe them as private real emails. Preserve every original pilot
+and preparation hash. Distinguish candidates, related groups, conditions and requests.
+
+Follow RESEARCH-PLAN.md: primary paired source-specific balanced accuracy and error
+rates; paired cluster-bootstrap intervals; native probability Brier scores and reliability
+plots with denominators; supplementary clipped log loss/threshold tradeoffs. Scores at
+0.5 count in forecasting metrics even when classification abstains. Boolean chat outputs
+are not probability forecasts. Never invent confidence scores. Probability analysis is
+an exploratory amendment added after some original outcomes existed; do not call it
+preregistered. No pooled winner or unsupported significance claims. Complex hierarchical
+models need enough independent tasks; they are not mandatory for rigor.
+
+Conduct a current primary-source literature review on decision models/Jev and context-aware
+injection detection. Check papers against actual code/data and model versions; social
+posts are leads. Inspect candidate additional published datasets before proposing a
+paper-scale extension. Do not assume novelty or confuse different benchmark versions.
+Any expanded paid scope must fit the remaining caps or receive new bounded authorization.
+Do not expand the model panel or generate data just to make the paper larger.
+
+Finish a concise source-stratified report, experimental trust-boundary diagram, dataset
+coverage figure, paired-effect intervals, probability reliability plots, error breakdown,
+and honest route-specific cost/latency. Check the visuals. Save reproducible code,
+traceable sources, exact settings and limitations. Keep reports explicitly partial until
+intended cells finish or genuine operational blockers are documented.
+
+Run offline CI/tests/verifiers, scan intended artifacts against configured secrets,
+commit/push and update draft PR #3. Do not merge, submit or publish publicly.
+Report back with the simple meaning first, then the necessary numbers, evidence and
+remaining limitations. Avoid jargon dumps and repeated proposals/permission questions.
+
+Nimble runner robustness amendment `execution-freeze-v2.3.1.json` preserves the
+original setup freeze and ensures a stopped runtime cannot erase an inference failure
+when its follow-up metadata request also fails. No model/data/prompt or dev evidence changed.
