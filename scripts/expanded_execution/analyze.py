@@ -141,7 +141,7 @@ def main():
     save(OUT/'summary.json',result)
     with (OUT/'per-example.csv').open('w') as f:
         keys=['config','id','dataset','condition','gold','status','valid','prediction','score','candidate_chars','route']
-        writer=csv.DictWriter(f,fieldnames=keys,extrasaction='ignore');writer.writeheader();writer.writerows(cells)
+        writer=csv.DictWriter(f,fieldnames=keys,extrasaction='ignore',lineterminator='\n');writer.writeheader();writer.writerows(cells)
     figure_dir=OUT/'figures';figure_dir.mkdir(exist_ok=True)
     local=[s for s in summaries if s['config']=='protectai_local']
     fig,ax=plt.subplots(figsize=(9,5.2),layout='constrained')
