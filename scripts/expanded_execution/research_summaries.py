@@ -43,7 +43,7 @@ def main():
         records=[r for r in attempts if r['config']==config]
         times=[r['elapsed_seconds'] for r in records if isinstance(r.get('elapsed_seconds'),(int,float))]
         operations.append({'config':config,'route':dict(Counter(r['access_route'] for r in records)),
-            'saved_attempt_records':len(records),'logical_cells':sum(k[0]==config for k in actual),
+            'native_forward_windows':sum(r['parsed'].get('windows',0) for r in records),'saved_attempt_records':len(records),'logical_cells':sum(k[0]==config for k in actual),
             'status_counts':dict(Counter(r['parsed']['status'] for k,r in actual.items() if k[0]==config)),
             'measured_attempt_times_n':len(times),'elapsed_median_seconds':float(np.median(times)) if times else None,
             'elapsed_p90_seconds':float(np.quantile(times,.9)) if times else None,

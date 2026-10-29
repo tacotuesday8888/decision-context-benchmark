@@ -32,3 +32,13 @@ by ten. This ensures a released score of exactly 0.3 ties the displayed 0.3 cuto
 rather than comparing against a binary-roundoff value just above it. No main 0.5
 classification, Brier result, model request or fitted setting changes. Regenerate
 the descriptive threshold table under `research-summaries-v1.1`.
+
+## Reporting completion and qualitative review v1.2
+
+The report now derives its partial/completed wording from actual planned-cell
+coverage. This changes no statistic or inference behavior. The paper lists all
+completed BIPIA model effects in source order rather than using two illustrative
+arms as its only numerical prose. Deterministic qualitative selection takes the
+first candidate ID in each disagreement category per model and preserves inherited
+gold labels. The independent numerical gate checks these displayed predictions
+and probabilities against raw records.

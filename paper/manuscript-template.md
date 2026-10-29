@@ -80,6 +80,8 @@ Threshold sweeps and attack-family/length breakdowns are descriptive supplements
 
 Table 3. Logical-cell coverage, including preserved invalid outputs.
 
+{{local_window_note}}
+
 {{results_text}}
 
 {{effect_table}}
@@ -89,6 +91,8 @@ Table 4. Completed two-class task-versus-candidate comparisons. BA is strict; in
 ![Paired context effects](../results/expanded-execution/paper-figures/paired-effects.png)
 
 Figure 3. BIPIA task effects on detection and probability error. Bars are paired document-bootstrap intervals, not simultaneous guarantees. Probability panels exclude Boolean chat responses.
+
+{{forecast_text}}
 
 {{brier_table}}
 
@@ -105,6 +109,12 @@ Figure 5. Jev's source-specific reliability under candidate and task conditions.
 {{operations_table}}
 
 Table 6. Route-level recorded durations, not intrinsic model-speed comparisons. Local runs may contend for the same host; subscription timing includes transport/provider overhead. Missing attempts have no invented duration or token count. Electricity and existing subscription fees are excluded from metered API accounting.
+
+{{example_table}}
+
+Table 7. Deterministically selected paired examples. Probabilities are raw native scores, rounded for display; classifications use unrounded values. These examples illustrate disagreements with inherited labels and do not estimate category frequency. Full records and source attribution are linked in `error-review.json`.
+
+The code examples illustrate a limitation of surface-level decisions: a source can contain a legitimate bug fix and an unrelated inserted action in the same document. Task context sometimes changes the decision in the correct direction but sometimes lowers the attack score. A published clean coding answer can also remain a false alarm even when its task is visible. We inspected the corresponding released records; these descriptions are qualitative interpretations, not new annotations or explanations of model internals.
 
 ## 7. Discussion
 

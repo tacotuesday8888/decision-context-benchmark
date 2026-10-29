@@ -168,7 +168,7 @@ def main():
         ax.set_title('Paired context effects in completed two-class strata')
         fig.savefig(figure_dir/'paired-effects.png',dpi=180);plt.close(fig)
     lines=['# Expanded experiment execution','',
-        f"Observed {len(actual)} of {len(cells)} planned cells in {len(attempts)} attempts over 402 candidates. Missing cells are marked not_run, separate from observed invalid responses. This report is partial until all intended configurations complete.",'',
+        f"Observed {len(actual)} of {len(cells)} planned cells in {len(attempts)} attempts over 402 candidates. Missing cells are marked not_run, separate from observed invalid responses. {"All intended configurations are represented, including preserved failures." if len(actual)==len(cells) else "This report is partial until all intended configurations complete."}",'',
         'The primary question is the within-candidate effect of authentic trusted task context on injection detection. Neighboring-source context is secondary and available only for LLMail task2. No AI-generated examples or labels, invented context, evaluation tuning, or pilot changes are used.','',
         '## Completed source strata','',
         '| Configuration | Source | Condition | N− / N+ | Valid | Strict BA | FPR | FNR |',

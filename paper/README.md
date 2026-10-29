@@ -12,6 +12,7 @@ From the repository root, after inference has stopped:
 .venv/bin/python scripts/expanded_execution/analyze.py
 .venv/bin/python scripts/expanded_execution/forecast_analysis.py
 .venv/bin/python scripts/expanded_execution/research_summaries.py
+.venv/bin/python scripts/expanded_execution/error_review.py
 .venv/bin/python scripts/expanded_execution/verify_analysis.py
 .venv/bin/python scripts/expanded_execution/paper_figures.py
 python scripts/expanded_execution/build_paper.py

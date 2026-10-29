@@ -75,11 +75,36 @@ def main():
         selected=[r for r in attempts if r['config']==o['config']]
         times=sorted(r['elapsed_seconds'] for r in selected if isinstance(r.get('elapsed_seconds'),(int,float)))
         assert o['saved_attempt_records']==len(selected)
+        assert o['native_forward_windows']==sum(r['parsed'].get('windows',0) for r in selected)
         close(o['elapsed_median_seconds'],statistics.median(times) if times else None)
         if times:
             pos=.9*(len(times)-1);low=int(pos);high=min(low+1,len(times)-1)
             close(o['elapsed_p90_seconds'],times[low]+(times[high]-times[low])*(pos-low))
         assert o['known_input_tokens']==sum((r['parsed'].get('usage') or {}).get('input_tokens',0) for r in selected)
+    for contrast in research['error_contrasts']:
+        config=contrast['config'];g=contrast['class']
+        ids=[i for i,row in rows.items() if row['dataset']==contrast['dataset'] and row['gold']==g and 'task' in row['conditions']]
+        pairs=[(raw[config,i,'candidate']['parsed'],raw[config,i,'task']['parsed']) for i in ids]
+        common=[(a,b) for a,b in pairs if a['valid'] and b['valid']]
+        assert contrast['execution_complete'] and contrast['eligible_n']==len(ids) and contrast['common_valid_n']==len(common)
+        strict=[int(not b['valid'] or b['prediction']!=g)-int(not a['valid'] or a['prediction']!=g) for a,b in pairs]
+        valid=[int(b['prediction']!=g)-int(a['prediction']!=g) for a,b in common]
+        close(contrast['strict_failure_delta'],sum(strict)/len(strict) if strict else None)
+        close(contrast['valid_error_delta'],sum(valid)/len(valid) if valid else None)
+    for t in research['threshold_tradeoffs']:
+        ps=[(rows[i]['gold'],r['parsed']['score']) for (config,i,condition),r in raw.items() if config==t['config'] and condition==t['condition'] and rows[i]['dataset']==t['dataset'] and r['parsed']['status'] in ('ok','tie')]
+        assert t['scored_n']==len(ps) and t['abstentions']==sum(p==t['threshold'] for g,p in ps)
+        assert t['false_positives']==sum(g==0 and p>t['threshold'] for g,p in ps)
+        assert t['false_negatives']==sum(g==1 and p<t['threshold'] for g,p in ps)
+    review=json.loads((OUT/'error-review.json').read_text())
+    for ex in review['examples']:
+        row=rows[ex['id']];assert row['gold']==ex['gold'] and row['candidate_sha256']==ex['candidate_sha256']
+        for condition in ('candidate','task'):
+            p=raw[ex['config'],ex['id'],condition]['parsed']
+            assert p['prediction']==ex[condition+'_prediction']
+            close(p.get('score'),ex[condition+'_score'])
+    for failure in review['operational_failures']:
+        assert raw[failure['config'],failure['id'],failure['condition']]['parsed']['status']==failure['status']
     forecast=json.loads((OUT/'forecast-summary.json').read_text())
     for name in ['forecast-summary.json','research-summary.json']:
         value=json.loads((OUT/name).read_text())

@@ -11,12 +11,12 @@ DEST=OUT/'paper-figures'
 NAMES={'jev_firstparty':'Jev 1.14','luna_decisions':'Luna Decisions','luna_chat':'Luna Responses','astra_chat':'Astra Responses','nimble_local':'Nimble Q4','laya_local':'Laya','protectai_local':'Protect AI'}
 SOURCES={'bipia-code':'BIPIA code','bipia-email':'BIPIA email','bipia-table':'BIPIA table','llmail-task2':'LLMail task 2','llmail-task3':'LLMail task 3','llmail-task4':'LLMail task 4','llmail-benign-stress':'LLMail benign stress'}
 COLORS={'candidate':'#276A92','task':'#C06725','source':'#38856A','both':'#87579B'}
-plt.rcParams.update({'font.family':'DejaVu Sans','font.size':10,'axes.spines.top':False,'axes.spines.right':False,'svg.fonttype':'none','savefig.facecolor':'white'})
+plt.rcParams.update({'font.family':'DejaVu Sans','font.size':10,'axes.spines.top':False,'axes.spines.right':False,'svg.fonttype':'none','svg.hashsalt':'decision-context-benchmark-paper-v1','savefig.facecolor':'white'})
 
 
 def export(fig,name):
     DEST.mkdir(exist_ok=True)
-    for ext in ('png','svg'):fig.savefig(DEST/(name+'.'+ext),dpi=180,bbox_inches='tight')
+    for ext in ('png','svg'):fig.savefig(DEST/(name+'.'+ext),dpi=180,bbox_inches='tight',metadata={'Date':None} if ext=='svg' else None)
     plt.close(fig)
 
 
@@ -31,6 +31,9 @@ def coverage(rows):
     ax.set_yticks(range(len(sources)),[SOURCES[x] for x in sources]);ax.invert_yaxis()
     ax.set_xlim(0,148);ax.set_xlabel('Distinct evaluation candidates (labels at right: benign / attack)')
     ax.legend(loc='lower right',frameon=False);ax.set_title('402 candidates across seven source strata')
+    counts={axis:len({r['groups'][axis] for r in rows if axis in r['groups']}) for axis in ('document','attack_family','team','fixture','topic')}
+    fig.text(.25,-.06,f"Related units: {counts['document']} BIPIA documents / {counts['attack_family']} attack families;"
+             f" {counts['team']} LLMail teams / {counts['fixture']} fixtures / {counts['topic']} topics.\nThese overlapping grouping axes are not additive independent samples.",fontsize=8)
     export(fig,'coverage')
 
 
@@ -68,10 +71,11 @@ def reliability(forecast):
         fig,axs=plt.subplots(2,4,figsize=(12,6.2),layout='constrained')
         for ax,dataset in zip(axs.flat,list(SOURCES)):
             ax.plot([0,1],[0,1],color='#888888',ls='--',lw=.7)
+            denominators=[]
             for condition in ('candidate','task'):
                 ss=[s for s in forecast['summaries'] if s['config']==config and s['dataset']==dataset and s['condition']==condition]
                 if not ss:continue
-                s=ss[0];bs=[b for b in s['calibration'] if b['n']]
+                s=ss[0];denominators.append(f'{condition}: {s["n"]}/{s["eligible_n"]}');bs=[b for b in s['calibration'] if b['n']]
                 if not bs:continue
                 x=[b['mean_predicted_attack_probability'] for b in bs];y=[b['observed_attack_fraction'] for b in bs]
                 ax.plot(x,y,'o-',color=COLORS[condition],lw=1,ms=4,label=f'{condition}: {s["n"]}/{s["eligible_n"]}')
@@ -79,9 +83,8 @@ def reliability(forecast):
                     ci=b['observed_fraction_intervals'][0].get('interval')
                     if ci:ax.vlines(px,*ci,color=COLORS[condition],alpha=.5,lw=2)
                     ax.annotate(str(b['n']),(px,py),xytext=(3,5 if condition=='candidate' else -10),textcoords='offset points',fontsize=6,color=COLORS[condition])
-            ax.set_title(SOURCES[dataset],fontsize=9);ax.set_xlim(-.06,1.06);ax.set_ylim(-.08,1.13);ax.set_xticks([0,.5,1]);ax.set_yticks([0,.5,1])
-            if ax.get_legend_handles_labels()[0]:ax.legend(fontsize=6,loc='center left',frameon=False)
-        axs.flat[-1].axis('off');axs.flat[-1].text(0,.95,'Five fixed probability bins\nNumbers by points: bin counts\nLegend: scored / eligible\nBars: cluster-bootstrap intervals\nMissing bars: too few clusters\n\nOne-class strata cannot establish\nreliability over both labels.',va='top',fontsize=9)
+            ax.set_title(SOURCES[dataset]+'\n'+'; '.join(denominators),fontsize=8);ax.set_xlim(-.06,1.06);ax.set_ylim(-.08,1.13);ax.set_xticks([0,.5,1]);ax.set_yticks([0,.5,1])
+        axs.flat[-1].axis('off');axs.flat[-1].text(0,.95,'Blue: candidate; orange: task\nFive fixed probability bins\nNumbers by points: bin counts\nTitles: scored / eligible\nBars: cluster-bootstrap intervals\nMissing bars: too few clusters\n\nOne-class strata cannot establish\nreliability over both labels.',va='top',fontsize=9)
         fig.supxlabel('Mean predicted attack probability');fig.supylabel('Observed attack fraction')
         fig.suptitle(NAMES[config]+' — probability reliability')
         export(fig,'reliability-'+config)
