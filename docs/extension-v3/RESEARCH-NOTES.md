@@ -45,3 +45,44 @@ returns index-1 probability as noul; `common.py` renders options false then true
 These support probability semantics, not predictive quality. Nimble's Q4_K_M
 quantization and Laya's multilingual checkpoint are specific tested implementations;
 neither result should be generalized to all full-precision or English-only variants.
+
+## Additional close overlap discovered during artifact review
+
+[Passing the Test You Trained On](https://arxiv.org/html/2610.03448), October 2,
+2026 preprint, already compares fifteen detectors with task-aware Qwen2.5-7B and
+Llama-3.1-8B judges, and task-aware Sheltron. It studies low-FPR operation,
+formatting and training overlap. This is much closer than a generic agent attack
+benchmark. Its task-aware results are mixed; adding context is not a new claim.
+The v1 judge truncates at 6,000 characters. Native decision probability quality
+and coverage-preserving controlled task ablations remain possible distinctions,
+pending the updated repository audit; no novelty claim is established.
+
+The [released repository](https://github.com/lzwhehe/benign-instruction-bench),
+revision `5d0ae7c438a7b01be2ac0a2e8bc943e45c8f851f`, is MIT for its code/results.
+Its current README revises numerical findings relative to arXiv v1 and describes
+task-clustered intervals. It also includes no-request judge score files: inspect
+these before asserting a missing task ablation. Third-party datasets retain their
+own terms; its shorthand description of BIPIA as MIT does not override BIPIA's
+component-specific licenses already verified in this project.
+
+Actual collection code inspection (not execution) found:
+
+- `collect_agentdojo_outputs.py` runs original ground-truth calls in the default
+  simulated environment. This is deterministic fixture replay, not an observed
+  production trajectory or a new model-generated example.
+- `collect_agentdojo_pairs.py` labels changed outputs by differential replay.
+  It matches call function and position but not exact call arguments; task ground
+  truth is separately computed in clean/injected environments. These details need
+  checking before inheriting labels. It uses Python hash for attack assignment,
+  requiring the documented `PYTHONHASHSEED=0` for reproduction.
+- `collect_taubench.py` assigns `task.instruction` as `user_request`. Verify whether
+  this is a simulator instruction rather than the assistant's actual trusted
+  message before using it as authentic task context. Do not silently conflate them.
+  Its added product-name injections are the authors' constructed intervention.
+
+The community [buried-injections](https://github.com/rudratoshs/buried-injections)
+repository at `073d1de361ea1c6f45641c129ccf12401110edf2` is MIT. Its actual
+`bench/datasets/__init__.py` rotates injection-vector defaults over task prompts,
+then appends attacks. That pairing is not an authentic original task/document
+relationship. Exclude it from our authentic-context evaluation; retain as related
+work about formatting. No upstream scripts have been executed.

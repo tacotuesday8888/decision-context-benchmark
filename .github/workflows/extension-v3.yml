@@ -1,0 +1,16 @@
+name: Extension v3 offline checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  offline-extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python scripts/extension_v3/integrity.py
+      - run: python -m unittest discover -s tests/extension_v3 -v
+      - run: python scripts/extension_v3/analyze_diagnostic.py
+      - run: git diff --exit-code -- results/extension-v3/local-diagnostic-v1/summary.json

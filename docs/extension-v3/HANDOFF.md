@@ -85,3 +85,35 @@ python3 scripts/extension_v3/integrity.py
 
 Both local diagnostic processes have exited successfully. Do not repeat requests.
 Their runners skip completed records and reject failed/interrupted reservations.
+
+## Latest checkpoint
+
+Private draft PR #4 is open, stacked on `codex/expanded-execution`:
+https://github.com/tacotuesday8888/decision-context-benchmark/pull/4
+Commit `6b21aca` pushed; all six inherited CI checks passed. The new six tests ran
+locally (existing workflows do not yet discover the separate v3 test directory).
+
+After that checkpoint, added reproducible InjecAgent inventory: 1,054 distinct
+published base texts, 17 tasks/templates, 62 attack instructions; still no final
+eligibility/gold assignments. Its original prompted-agent evaluator interpolates
+`Tool Response` verbatim; retain serialization quotes, do not prettify it.
+
+Important new related-work/source lead: `benign-instruction-bench`, pinned revision
+`5d0ae7c438a7b01be2ac0a2e8bc943e45c8f851f`, under ignored raw directory. Read the new
+research-notes section before proceeding. It already includes task-aware and
+no-request judge variants, replayed AgentDojo/tau-bench, and updated clustered
+analyses. Its clean AgentDojo replay may provide 97 additional authentic task
+fixtures without LLM generation. No upstream code has run. Review network/tool
+side effects before a bounded offline replay; pin dependencies in a new ignored
+environment under `data/raw/extension-v3/` so old environments remain unchanged.
+
+Reject `buried-injections` as a source of authentic task/document pairs: actual
+loader rotates default documents arbitrarily across tasks. Preserve its relevance
+to related work, not its advertised counts as eligible data.
+
+AgentDyn content-tool/first-matched-attack exploratory filter yielded 542
+occurrences /359 distinct texts (422 first attacked responses and120 clean
+content-bearing responses). This is not frozen selection. Some read_file outputs
+are published synthetic account fixtures; avoid printing their contents again.
+No secrets from this workspace were read. A proper final adapter still needs
+first-encounter checks, licensed extraction, exclusions and label review.
