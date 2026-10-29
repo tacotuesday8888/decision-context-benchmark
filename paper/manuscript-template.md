@@ -32,6 +32,8 @@ BIPIA evaluates indirect injection and defenses in task applications [5]. LLMail
 
 {{data_table}}
 
+Table 1. Evaluation candidates and supported conditions.
+
 BIPIA supplies 140 released source documents, each paired with one published inserted attack, across code, email and table tasks. Clean/injected construction determines labels. Insertion follows the pinned upstream builder; the entire document is the candidate. One question per normalized document is selected. The separate development split uses released training material and excludes held-out document, query and attack-family groups, including lexical near duplicates.
 
 LLMail positives require recorded retrieval and successful unauthorized tool-call destination/content checks. Failed submissions are never labeled benign. Negatives inherit the released synthetic fixtures; these are not private real emails. Attack-team and candidate exclusions preserve separation from the original pilot. Historical success selection may favor attacks effective against the original systems. LLM-assisted semantic annotations released by LLMail are not our gold source.
@@ -48,9 +50,11 @@ Figure 1. Distinct candidates by source and inherited class. Counts are not mode
 
 {{model_table}}
 
+Table 2. Exact model identifiers and observed routes.
+
 Jev uses its first-party TypeSafe API [8]. Luna Decisions returns a native predicate probability [9]. The two Luna configurations share the model ID; they are interface comparisons rather than independent model families. Luna and Astra Responses use the separately authorized subscription route, with strict Boolean JSON, reasoning none/low and output caps 256/2048 respectively. No verbal confidence is requested. Hosted IDs do not attest immutable weight snapshots.
 
-Nimble uses the official Ollama native System One interface, pinned quantization digest and runtime [10]. Laya uses a pinned checkpoint and SDK, CPU inference, a complete token audit and no truncation [11]. Both are supplementary additions after initial outcomes from other arms existed. Their held-out settings were frozen after development checks. Weak Laya performance is retained; runtime validity and predictive quality are separate questions. The Protect AI detector is candidate-only and uses all-token overlapping windows, aggregating maximum injection probability; the aggregation can increase false alarms on long documents.
+Nimble uses the official Ollama native System One interface, pinned quantization digest and runtime [10]. Laya uses a pinned checkpoint and SDK, CPU inference, a complete token audit and no truncation [11]. Both are supplementary additions after initial outcomes from other arms existed. Their held-out settings were frozen after development checks. Weak Laya performance is retained; runtime validity and predictive quality are separate questions. The archived Protect AI detector [12] is candidate-only and uses all-token overlapping windows, aggregating maximum injection probability; the aggregation can increase false alarms on long documents.
 
 Exact prompts, request hashes, model identities, settings and development evidence are preserved. A response is valid only if it passes the appropriate native or strict-JSON parser. A score above 0.5 predicts attack, below 0.5 predicts benign, and exactly 0.5 abstains from classification while remaining a valid probability forecast. No evaluation-based tuning, fitting or prompt repair is performed.
 
@@ -74,11 +78,13 @@ Threshold sweeps and attack-family/length breakdowns are descriptive supplements
 
 {{coverage_table}}
 
+Table 3. Logical-cell coverage, including preserved invalid outputs.
+
 {{results_text}}
 
 {{effect_table}}
 
-Table 3. Completed two-class task-versus-candidate comparisons. BA is strict; intervals are document-cluster bootstrap for BIPIA. LLMail point estimates are descriptive when a class has one fixture. Full attack-family sensitivity and class-specific denominators accompany the machine-readable analysis.
+Table 4. Completed two-class task-versus-candidate comparisons. BA is strict; intervals are document-cluster bootstrap for BIPIA. LLMail point estimates are descriptive when a class has one fixture. Full attack-family sensitivity and class-specific denominators accompany the machine-readable analysis.
 
 ![Paired context effects](../results/expanded-execution/paper-figures/paired-effects.png)
 
@@ -86,7 +92,7 @@ Figure 3. BIPIA task effects on detection and probability error. Bars are paired
 
 {{brier_table}}
 
-Table 4. Native probability forecasts on the common scored subset. The main comparison uses raw probabilities, including exact 0.5. No calibration is fitted.
+Table 5. Native probability forecasts on the common scored subset. The main comparison uses raw probabilities, including exact 0.5. No calibration is fitted.
 
 ![Candidate errors](../results/expanded-execution/paper-figures/candidate-errors.png)
 
@@ -98,7 +104,7 @@ Figure 5. Jev's source-specific reliability under candidate and task conditions.
 
 {{operations_table}}
 
-Table 5. Route-level recorded durations, not intrinsic model-speed comparisons. Local runs may contend for the same host; subscription timing includes transport/provider overhead. Missing attempts have no invented duration or token count. Electricity and existing subscription fees are excluded from metered API accounting.
+Table 6. Route-level recorded durations, not intrinsic model-speed comparisons. Local runs may contend for the same host; subscription timing includes transport/provider overhead. Missing attempts have no invented duration or token count. Electricity and existing subscription fees are excluded from metered API accounting.
 
 ## 7. Discussion
 
@@ -112,7 +118,7 @@ Source differences are scientifically relevant. BIPIA's inserted templates and L
 
 The collection is public, modest and highly correlated. Its labels inherit construction and historical outcomes rather than an independent semantic annotation study. Published synthetic fixtures can have recognizable style. Task context is authentic to the released source but does not cover the diversity of real deployments. The LLMail metadata query differs from an additional instruction in the original execution code; we use the released metadata verbatim and do not claim an exact end-to-end replay. Full context factorial evidence is confined to a positive-only, previously exposed neighborhood.
 
-A candidate-only detector cannot know every omitted task, and this study does not construct counterfactual task/label flips. Repeated attack families, limited fixtures and selection on historical success restrict uncertainty estimates. Public-data contamination cannot be ruled out. The original preparation and later local/probability extensions have different timing; none is presented as a fully blind preregistration. Model versions, provider routes and quantization must be retained when interpreting or reproducing observations.
+A candidate-only detector cannot know every omitted task, and this study does not construct counterfactual task/label flips. Repeated attack families, limited fixtures and selection on historical success restrict uncertainty estimates. Public-data contamination cannot be ruled out; the specialist discloses public training sources but not enough information to exclude all overlap. Degenerate bootstrap intervals from observed zero errors do not prove zero population risk. The original preparation and later local/probability extensions have different timing; none is presented as a fully blind preregistration. Model versions, provider routes and quantization must be retained when interpreting or reproducing observations.
 
 Detection is not prevention. A deployed defense also needs a policy for abstentions, false positives, tool permissions, adaptive attacks and utility under attack. No agent tool-call experiment or deployment guarantee follows from these figures. No threshold has been selected for production use.
 
@@ -147,3 +153,5 @@ All reported numerical tables are generated from saved artifacts, not manually t
 [10] Ollama / Bespoke Labs. Nimble library and native System One API documentation. Inspected October 29, 2026. https://ollama.com/library/nimble ; https://docs.ollama.com/api/systemone
 
 [11] Convai Innovations. Laya multilingual model card. Pinned checkpoint 1720e3e3357cfe1e281542e223f8273b0890ca34. https://huggingface.co/convaiinnovations/laya-multilingual
+
+[12] Protect AI. deberta-v3-base-prompt-injection-v2 model card. Pinned revision 90c9989b1a342275dd0d1a95aad283c04e075671. https://huggingface.co/protectai/deberta-v3-base-prompt-injection-v2

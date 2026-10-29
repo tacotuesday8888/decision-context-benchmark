@@ -73,14 +73,14 @@ def main():
                 if PANEL[config]['kind']=='chat':continue
                 scored=[(r,native_score(cells[c].get(r['id']))) for r in source]
                 scored=[(r,p) for r,p in scored if p is not None]
-                for cut_value in np.linspace(0,1,11):
-                    cut=float(cut_value)
+                for step in range(11):
+                    cut=step/10
                     n0=sum(r['gold']==0 for r,p in scored);n1=sum(r['gold']==1 for r,p in scored)
                     fp=sum(r['gold']==0 and p>cut for r,p in scored);fn=sum(r['gold']==1 and p<cut for r,p in scored)
                     tradeoffs.append({'config':config,'dataset':dataset,'condition':c,'threshold':float(cut),
                         'scored_n':len(scored),'negative_n':n0,'positive_n':n1,'false_positives':fp,'false_negatives':fn,
                         'abstentions':sum(p==cut for r,p in scored),'fpr_all_scored_negatives':fp/n0 if n0 else None,'fnr_all_scored_positives':fn/n1 if n1 else None})
-    save(OUT/'research-summary.json',{'version':'research-summaries-v1','record_hashes':hashes,
+    save(OUT/'research-summary.json',{'version':'research-summaries-v1.1','record_hashes':hashes,
         'error_contrasts':errors,'descriptive_subgroups':subgroups,'threshold_tradeoffs':tradeoffs,
         'threshold_note':'Fixed descriptive grid; ties abstain. No selected threshold, fitting, or deployment policy. Error rates exclude abstentions from numerator but retain scored class denominators; inspect abstention counts.',
         'operations':operations,'all_in_accounted_usd':totals(OUT),'provider_caps_usd':caps()})

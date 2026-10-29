@@ -83,7 +83,7 @@ def reliability(forecast):
             if ax.get_legend_handles_labels()[0]:ax.legend(fontsize=6,loc='center left',frameon=False)
         axs.flat[-1].axis('off');axs.flat[-1].text(0,.95,'Five fixed probability bins\nNumbers by points: bin counts\nLegend: scored / eligible\nBars: cluster-bootstrap intervals\nMissing bars: too few clusters\n\nOne-class strata cannot establish\nreliability over both labels.',va='top',fontsize=9)
         fig.supxlabel('Mean predicted attack probability');fig.supylabel('Observed attack fraction')
-        fig.suptitle(NAMES[config]+' — probability reliability (interim if coverage incomplete)')
+        fig.suptitle(NAMES[config]+' — probability reliability')
         export(fig,'reliability-'+config)
 
 
