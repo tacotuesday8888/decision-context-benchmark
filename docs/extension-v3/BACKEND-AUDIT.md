@@ -42,3 +42,11 @@ fitting, alternate backend or outcome-based repair was selected.
 
 Local source/configuration hashes are in `laya-backend-audit-v1.json`. This is an
 implementation audit, not an independent reproduction of vendor quality claims.
+
+A read-only Ollama `/api/ps` snapshot during v3 confirmation verified the loaded
+Nimble digest, Q4_K_M quantization, llama.cpp runner and8,194 context allocation.
+See `nimble-live-runtime-snapshot-v1.json`. The v3 runner saves startup identity
+metadata with each record but does not capture `/api/ps` per request. This single
+observation must not be described as a per-request allocation audit. Native usage
+reports input tokens but does not by itself prove that every historical backend
+used an identical allocation. Preserve this distinction in the final audit.

@@ -31,8 +31,8 @@ hashes, reruns all available completed-arm analyses and independent checks, redr
 figures, and requires compared artifacts to be byte-identical. It never exports
 `.env.local`, `.secrets` or weights. The receipt records the exact input tree,
 commands and artifact hashes. This tests an existing installed runtime, not a fresh
-package installation or a new inference run. The first pass covered14 commands and
-31 artifacts for four completed arms. Later complete arms require a new receipt.
+package installation or a new inference run. The latest pass covered18 commands and
+35 artifacts for four completed arms, including raw-request/response audits. Later complete arms require a new receipt.
 
 Source reconstruction and model execution are different operations. Their pinned
 clones, dependency locks, provenance receipts, source adapters and freeze gates are

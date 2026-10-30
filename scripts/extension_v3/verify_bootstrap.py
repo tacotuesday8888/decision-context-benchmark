@@ -87,8 +87,8 @@ def main(config):
                 assert target['interval'] is None
             else:
                 assert all(math.isclose(a, b, abs_tol=1e-12, rel_tol=1e-10) for a, b in zip(interval, target['interval']))
-            verified.append({'dataset': stratum['dataset'], 'metric': effect['metric'], 'complete_pairs': len(values), 'interval': interval, 'degenerate_draws': skipped})
-    result = {'status': 'passed', 'config': config, 'scope': 'All primary full-collection intervals; control intervals share the tested estimator but are not independently recomputed here.',
+            verified.append({'dataset': stratum['dataset'], 'metric': effect['metric'], 'complete_pairs': len(values), 'reference_interval_rounded_12dp': [round(v, 12) for v in interval] if interval else None, 'degenerate_draws': skipped})
+    result = {'status': 'passed', 'config': config, 'scope': 'All primary full-collection intervals checked at full precision (absolute tolerance 1e-12, relative 1e-10); receipt endpoints rounded to 12 decimal places for cross-platform serialization. Control intervals share the tested estimator but are not independently recomputed here.',
         'analysis_sha256': hashlib.sha256(path.read_bytes()).hexdigest(), 'verifier_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), 'verified': verified}
     (directory / (config + '-bootstrap-verification.json')).write_text(json.dumps(result, indent=2, sort_keys=True) + '\n')
     print(json.dumps({'config': config, 'primary_intervals_checked': len(verified), 'status': 'passed'}))

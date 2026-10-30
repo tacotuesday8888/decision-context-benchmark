@@ -130,3 +130,39 @@ Remaining work includes a dedicated terminal raw-response/request/accounting aud
 with explicit per-route identity/usage checks, as well as remaining live arms and
 final source-specific control interpretation. Do not infer full completion from
 numerical reproduction alone.
+
+At83011ff, six inherited CI jobs passed and both v3 jobs failed only at receipt
+byte comparison: one independently recomputed bootstrap endpoint differed by
+3e-17 on Linux. All numerical assertions passed. The follow-up keeps full-precision
+comparison tolerance unchanged and rounds only independently computed receipt
+endpoints to12 decimal places. Primary estimates/intervals and frozen experiment
+remain unchanged. Regenerate verification receipts and isolated reproduction;
+obtain green CI before calling this checkpoint verified.
+
+A read-only Nimble runtime snapshot verified current loaded digest/Q4_K_M and8194
+context. It is not per-request allocation evidence; v3 stores startup metadata per
+record but lacks old study's per-call loaded-model snapshot. Final audit must say so.
+
+
+Dedicated completed-arm raw-record audit now passes for Jev/Luna Decisions/Laya/
+ProtectAI:6,074 terminal cells; exact frozen requests reconstructed from recorded
+candidate/task strings checked against manifest hashes; raw responses reparsed;
+model metadata, routes, usage, Laya preflight, ledger reserves/costs checked.
+Jev1,759 decisions+12ties; Luna Decisions1,770+1tie; Laya1,771; ProtectAI761scans/
+831forward windows. No false claim of per-call Nimble loaded context or Laya dtype.
+Script audit_records.py is pure offline and uses no credential helpers/weights.
+Include these audits in CI and the next isolated reproduction receipt.
+
+Latest isolated reproduction PASSED18 commands /35 byte-identical artifacts,
+including all four raw-record audits. The rounded verification receipts preserve
+full-precision numerical assertions and leave primary estimates unchanged.
+
+Luna handle78558 is now terminal:367completed +2failed. Second failure
+`e883659b52b7095b4d2c917c` is empty-body HTTP200/curl28, missing terminal event,
+not a semantic model answer. Original continuation helper correctly rejected it.
+Additive amendment-v3.0.2 and continue_empty_timeout.py bind this one exact failure/
+STOP, require subscription route/empty body/curl28/exact parser status, preserve
+all old files/settings, and create a cooldown receipt for unattempted cells only.
+Cooldown elapsed; a new Luna runner will be started after this checkpoint. Base
+runner and v3.0.1 remain unchanged; new raw records still identify the base runtime
+amendment, while the separate receipt identifies this additive resolution.

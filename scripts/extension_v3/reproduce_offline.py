@@ -35,6 +35,8 @@ def main():
     for config in configs:
         commands += [[sys.executable, 'scripts/extension_v3/analyze.py', '--config', config],
                      [sys.executable, 'scripts/extension_v3/verify_analysis.py', '--config', config]]
+        if (directory / (config + '-record-audit.json')).exists():
+            commands.append([sys.executable, 'scripts/extension_v3/audit_records.py', '--config', config])
         if (directory / (config + '-bootstrap-verification.json')).exists():
             commands.append([sys.executable, 'scripts/extension_v3/verify_bootstrap.py', '--config', config])
     commands += [[sys.executable, 'scripts/extension_v3/figures.py'],

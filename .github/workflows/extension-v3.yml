@@ -28,3 +28,10 @@ jobs:
           python scripts/extension_v3/verify_bootstrap.py --config luna_decisions
           python scripts/extension_v3/verify_bootstrap.py --config laya_local
           git diff --exit-code -- results/extension-v3/analysis/*-bootstrap-verification.json
+      - name: Audit exact requests and raw responses
+        run: |
+          python scripts/extension_v3/audit_records.py --config jev_firstparty
+          python scripts/extension_v3/audit_records.py --config luna_decisions
+          python scripts/extension_v3/audit_records.py --config laya_local
+          python scripts/extension_v3/audit_records.py --config protectai_local
+          git diff --exit-code -- results/extension-v3/analysis/*-record-audit.json
