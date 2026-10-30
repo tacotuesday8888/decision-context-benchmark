@@ -22,7 +22,7 @@ def main():
         assert receipt['analysis_sha256'] == hashlib.sha256(path.read_bytes()).hexdigest()
         reports.append(json.loads(path.read_text()))
     assert reports
-    plt.rcParams.update({'font.size': 10, 'axes.spines.top': False, 'axes.spines.right': False})
+    plt.rcParams.update({'font.size': 10, 'axes.spines.top': False, 'axes.spines.right': False, 'svg.hashsalt': 'decision-context-extension-v3'})
     fig, axes = plt.subplots(len(reports), 2, figsize=(15, 4.2 * len(reports)), squeeze=False)
     evidence = {}
     for i, report in enumerate(reports):
@@ -62,7 +62,7 @@ def main():
     target = ROOT / 'results/extension-v3/figures'
     target.mkdir(exist_ok=True)
     fig.savefig(target / 'completed-arm-effects.png', dpi=170)
-    fig.savefig(target / 'completed-arm-effects.svg')
+    fig.savefig(target / 'completed-arm-effects.svg', metadata={'Date': None})
     svg = target / 'completed-arm-effects.svg'
     svg.write_text('\n'.join(line.rstrip() for line in svg.read_text().splitlines()) + '\n')
     plt.close(fig)

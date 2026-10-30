@@ -9,8 +9,10 @@ The source-specific tables and per-example CSVs in `results/extension-v3/analysi
 are computed only for complete arms. An independent stdlib verifier rereads the
 raw records and checks their hashes, class denominators, confusion counts, Brier
 and log losses, reliability bins, paired point estimates and missing-response
-bounds. All four pass. The crossed bootstrap has separate numerical unit tests;
-this is not a claim of a second independent bootstrap implementation.
+bounds. All four pass. A second explicit-multiplicity bootstrap implementation also
+reconstructs all54 primary full-collection intervals for the three completed
+contextual arms, including insufficient-group cases. Control intervals share the
+tested estimator but are not independently reconstructed by that additional check.
 
 The first inspected figure shows that authentic task information has different
 associations across sources and models. Jev and Luna Decisions improve on parts of
@@ -50,3 +52,9 @@ Initial representative error review is in `ERROR-REVIEW.md`. It also documents
 that the narrow frozen credential-fixture regex does not remove prose/serialized
 mentions; no claim of universally credential-free source fixtures is justified.
 The source-construction labels remain unchanged.
+
+Four source-specific fixed-bin reliability grids were generated. They retain
+exact0.5 forecasts and bin counts; no fitted calibration or uncertainty bands are
+claimed. High confidence on clean fixtures is visibly problematic for Laya and
+ProtectAI. Attack-only and clean-only sources cannot identify population-wide
+calibration. Marker counts and source-specific denominators remain explicit.

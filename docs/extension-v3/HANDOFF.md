@@ -102,3 +102,31 @@ are pushed at2114e80; all8 remote CI checks passed there. The later representati
 error/fixture-keyword review is pending a follow-up commit. Read ERROR-REVIEW.md: the
 frozen narrow credential-like regex does not remove prose/serialized details in
 published fixtures. This is a documented limitation, not an outcome-based exclusion.
+
+
+## Subsequent checkpoint
+
+Astra original handle3156 terminated after261 completed plus one HTTP0/curl28
+failure (edc449dacce83221b68d3adb, format control). Raw empty body and STOP preserved.
+Existing amendment continuation receipt7375324915f5435f0edee0772ec87bdd0d1a5200367ae49e28749ef903f6e93f
+was created; cooldown elapsed. New Astra handle58329 resumes only unattempted cells.
+Do not poll/restart original3156 as live. Nimble54609 and Luna78558 remain live.
+
+New research comparison explicitly maps prior ablations/calibration/interfaces.
+Two System One protocol files fetched at pinned revision match upstream manifest.
+Independent explicit-multiplicity bootstrap verification passed54 primary intervals
+across Jev/Luna Decisions/Laya. Four fixed-bin reliability grids generated; figure
+SVG hashes/timestamps made deterministic. Isolated staged-export reproduction is
+being added; do not claim that check passed until its receipt exists and is verified.
+
+
+Isolated staged-export reproduction PASSED:14 commands,31 byte-identical analysis,
+CSV, verification and PNG/SVG/input artifacts. Receipt offline-reproduction-v1.json
+binds the input index tree; existing installed Python/numpy/matplotlib used. No new
+inference, credential/weight export, fresh install or raw-source rebuild claimed.
+All54 primary intervals independently reconstructed; four reliability grids and
+updated common-scale effect plot inspected (figure-visual-review-v1.json).
+Remaining work includes a dedicated terminal raw-response/request/accounting audit,
+with explicit per-route identity/usage checks, as well as remaining live arms and
+final source-specific control interpretation. Do not infer full completion from
+numerical reproduction alone.
