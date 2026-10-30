@@ -1,25 +1,29 @@
-# Extension completion audit — not complete
+# Extension completion audit
 
-This audit maps the full active objective to evidence; it does not redefine success
-around completed arms. The previous completed study and PDF remain historical.
+This audit covers the bounded frozen extension. The wider research program still
+needs independent tasks, semantic label review and stronger controls; NEXT-RUN.md
+specifies that separate work. No prevention experiment or new PDF is claimed.
 
-| Required outcome | Evidence inspected | Current conclusion |
+| Required outcome | Evidence | Conclusion |
 |---|---|---|
-| Preserve original pilot/completed study/preparation | completed-study-freeze.json; integrity check in isolated reproduction checks5,793 hashes | Proven for current exported checkpoint. |
-| Current primary-source/artifact comparison, no novelty assumption | RESEARCH-COMPARISON.md, RESEARCH-NOTES.md, old literature receipts, new pinned protocol receipts | Bounded comparison complete; no exhaustive-review or novelty claim. Differences in interfaces, labels, counts, calibration and backends explicit. |
-| Audit Laya/Nimble weaknesses on development data |42-call diagnostic; token-audit; BACKEND-AUDIT; pinned code/config hashes | Development audit complete; mixed variants rejected before confirmation. No fitted calibration. CPU dtype/per-request loaded-context observation limits remain explicit. |
-| Authentic broader data, licensing, duplication and task alignment |761-pair/582-text/138-task manifest; source adapters/receipts; independent validation against314 source files and482 prior examples | Validated selection complete; isolated preparation from494 pinned local source files reproduced five outputs byte-for-byte. Source-construction labels are not independent semantic gold. Credential-fixture filter limitation is documented without post-outcome relabeling. |
-| Pre-evaluation freeze, size/precision, grouped splits and controls | commit70cfa0c; protocol/prompts/request plan/freezes;108 control-development records | Complete for frozen11,387-job confirmation. New data is confirmation-only; prior development reused.83 control pairs selected before outcomes. |
-| Execute justified extension, preserve every attempt/failure | Six complete configurations9,616 cells; Astra still live; frozen STOP/continuation receipts | **Incomplete.** Planned cells still unattempted. No old request replay or failed-cell replacement. |
-| Exact requests/models/usage/accounting | Six per-arm record audits; global reservation ledger; explicit runtime amendments | Complete for six arms only. Final unmatched-cell/reservation, total usage and all-provider closure remain required. |
-| Paired errors/false alarms/misses/coverage and proper scores | Six analysis JSON/CSVs, independent raw arithmetic checks,81 primary and324 control interval checks | Complete for six arms; Astra required. No Boolean probabilities fabricated. |
-| Controls and honest source-specific interpretation | CONTROL-RESULTS.md; source/primary/control CSVs; error review | Initial complete-arm interpretation saved. Final cross-model report remains unfinished. No pooled winner; small-group and single-class limits explicit. |
-| Inspected scientific figures | Effect plot +five reliability grids; input and visual-review hashes | Current completed-arm figures inspected. Regeneration/inspection after remaining analyses required. No new PDF. |
-| Offline checks and reproduction |34 tests;27 isolated-export commands;53 byte-identical artifacts; prior CI green at f52a0bf | Proven for that checkpoint. Six-arm reproduction passed. The new Luna checkpoint needs its remote CI result; Astra needs completion and verification. |
-| Prevention if justified | Protocol excludes prevention; reviewed source execution/label limitations, clean replay only | No prevention result claimed. A new validated agent protocol would be a separate experiment; not required to reinterpret detection as prevention. |
-| Budgets/security/private delivery | Independent15/20 caps; reserve-before-call; secret scans; private draft PR4 | No purchase/recharge/new accounts. Final provider reconciliation and final reviewed push/green CI remain required. Do not merge/publicly publish. |
+| Preserve historical work | completed-study-freeze.json; integrity checks | All 5,793 protected files unchanged. |
+| Primary-source and artifact comparison | RESEARCH-COMPARISON.md; RESEARCH-NOTES.md; pinned receipts | Bounded comparison complete, including adjacent hate-speech work; no exhaustive review or novelty claim. |
+| Audit Laya/Nimble | 42-call development diagnostic; token audit; BACKEND-AUDIT.md | Completed before confirmation; weak outcomes retained, runtime observation limits explicit. |
+| Authentic data and provenance | 761 pairs, 582 texts, 138 tasks; pinned adapters, licenses, manifests, split/duplicate validation | Preparation from 494 source files reproduced five outputs byte-for-byte. Labels remain source-construction labels, not independently adjudicated semantic truth. |
+| Frozen protocol and controls | commit 70cfa0c; protocol/prompts/freezes; 108 development records | All 11,387 confirmation attempts followed the frozen plan and versioned transport-only continuations. 83 control pairs preselected. |
+| Execution and accounting | execution-closure-v1.json; raw records and ledger | All 11,495 development/confirmation cells terminal; no missing/pending/in-flight cells. Confirmation: 11,367 valid, 13 ties, seven transport failures. No failed-cell replacement. |
+| Independent numerical and raw checks | Seven analysis, verification and record-audit receipts; six bootstrap receipts | All seven configurations checked; 90 primary and 360 control interval cases independently reconstructed. |
+| Source-specific interpretation | report.md; CONTROL-RESULTS.md; source tables; ERROR-REVIEW.md | Mixed findings and absolute error rates retained; baseline gains do not establish meaningful-context benefit. No pooled winner or invented Boolean probabilities. |
+| Figures | Effect plot and five reliability grids; visual-review hashes | Generated and visually inspected; all completed contextual models included. |
+| Reproduction and tests | Offline reproduction receipt; 35 regression tests | Final isolated rebuild status recorded below. Existing installed runtime, not a fresh dependency installation or new inference. |
+| Budget and security | Ledger and configured-secret scan | Conservative all-in OpenAI $0.2896254; TypeSafe $0.154397208. Subscription fees/electricity excluded; not invoice or fresh balance. No purchases/recharge. |
+| Private delivery | Draft PR4 | Reviewed commit/push and final CI verification recorded below; no merge or public publication. |
 
-The goal remains active. Live inference is a verified wait, not an external blocker.
-If a route stops, inspect its exact failure and bounded continuation policy before
-proceeding. Never claim missing outcomes, overwrite the original protocol, relax a
-model threshold or turn this checklist into proof without checking the final state.
+The first complete isolated export exposed a missing ignored lock-directory assumption
+in closure.py. The script now creates its lock directory; a clean-export regression
+test passes. This changes offline packaging only, not frozen requests or outcomes.
+
+Final isolated reproduction passed: 33 commands and 62 byte-identical artifacts,
+including all seven configurations, terminal closure and final report. Configured
+credential-value scanning and staged whitespace checks passed. Remote delivery/CI
+will be verified on the final pushed commit; inference and local verification are complete.

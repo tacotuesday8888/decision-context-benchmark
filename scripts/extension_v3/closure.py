@@ -25,6 +25,7 @@ def closure(require_terminal=False):
             identity = split + ':' + job['config'] + ':' + key
             assert identity not in expected
             expected[identity] = (split, job, key)
+    RAW.mkdir(parents=True, exist_ok=True)
     with (RAW / 'inference-budget.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         ledger_path = OUT / 'inference-ledger-v1.json'

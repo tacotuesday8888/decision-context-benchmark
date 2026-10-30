@@ -1,83 +1,41 @@
-# Confirmation analysis checkpoint — incomplete study
+# Completed extension: evidence and interpretation
 
-Six configurations have finished: Jev first-party, Luna Decisions, Laya, Nimble
-and Luna Responses each1,771 attempts, plus ProtectAI's761 candidate-only scans
-(9,616 cells). Only Astra Responses remains in flight. Do not treat this checkpoint as the completed
-11,387-request experiment or use interim outcomes to change its settings.
+All11,387 frozen confirmation attempts are terminal: seven configurations/six model
+IDs. There are11,367 valid classifications,13 exact-0.5 abstentions, and7 transport
+failures (Luna4/Astra3); failures were never retried or replaced. The separate108
+control-development records are also terminal. All-cell/accounting closure found
+11,495 matching records with no missing or pending cells.
 
-The source-specific tables and per-example CSVs in `results/extension-v3/analysis`
-are computed only for complete arms. An independent stdlib verifier rereads the
-raw records and checks their hashes, class denominators, confusion counts, Brier
-and log losses, reliability bins, paired point estimates and missing-response
-bounds. All six pass. A second explicit-multiplicity bootstrap implementation also
-reconstructs all81 primary full-collection intervals for the five completed
-contextual arms, including insufficient-group cases. It now also independently
-reconstructs all324 preselected-control comparisons using frozen job membership.
-The numerical check includes omitted intervals for insufficient groups.
+Read [the generated report](../../results/extension-v3/report.md),
+[controls](CONTROL-RESULTS.md), [representative errors](ERROR-REVIEW.md), and
+[next-run handoff](NEXT-RUN.md). Tables remain source-specific; no pooled winner.
+All seven raw-request/response audits and independent arithmetic checks passed.
+The second bootstrap implementation reconstructed90 primary and360 control
+comparison cases, including cases where too few groups prohibit an interval.
 
-The first inspected figure shows that authentic task information has different
-associations across sources and models. Jev and Luna Decisions improve on parts of
-InjecAgent, while Laya remains mixed and often worse with task context. No universal
-context benefit or pooled winner follows. Many clean-source classification changes
-are zero, which does not establish perfect probability quality or robustness to
-unseen benign instructions. InjecAgent has attacks only; AgentDojo here has clean
-fixtures only. Neither supports balanced accuracy on its own.
+The key qualification is that gains against candidate alone do not establish useful
+task semantics. Jev's direct-harm gain disappears against empty-field/reminder
+controls, and Astra's control-subset gain disappears against reminders/scrambling.
+Some Luna Decisions/Nimble stealing comparisons remain favorable but imprecise.
+Laya remains weak or adverse on several clean sources; those results are retained.
 
-Jev has exact-0.5 abstentions, and Luna Decisions has at least one incomplete
-classification pair; these are retained in explicit denominators. Native 0.5
-forecasts still enter proper probability scoring. The figure labels complete versus
-planned pairs. Reported intervals condition on existing fixtures/templates, with
-few task groups; the three-task GitHub source is descriptive only. Controls and
-reliability results are saved, but their final cross-model interpretation awaits
-completion and verification of remaining arms.
+Astra completed1,768 valid answers and3 failures. On InjecAgent direct harm its
+misses change36/129→8/129; stealing8/143→1/143. Task-weighted error differences
+are−21.44pp [−37.50,−8.03] and−6.13pp [−17.65,0]. Its eight direct-harm control
+pairs improve−12.5pp against candidate/empty-field but0pp against reminder or
+scrambled task. This does not isolate semantic benefit or prove prevention.
 
-`figures/completed-arm-effects.png` and its SVG contain only the five completed
-contextual configurations. ProtectAI has no task contrast. The plot was visually
-inspected for labels, interval direction, zero references and missing-group symbols.
-It must be regenerated and inspected when more arms finish. No new PDF was built.
+Luna Responses completed1,767 valid answers and4 failures. Its direct-harm
+misses change122/129 candidate→103/128 valid task responses: improvement coexists
+with80.47% misses. Its stealing misses change68/143→21/143. Two shopping false
+alarms appear with task context. Missing outcomes remain in coverage/bounds.
 
-Reproduce a completed arm (from this repository, no inference or credentials):
+Astra used1,771 confirmation attempts with786,259 reported input and40,965 output
+tokens from1,768 usage-bearing responses. Its subscription route has zero
+incremental metered API charge; unknown failure usage is not zero usage. Other
+configurations' actual calls/tokens are in the report. Budgets are limits, not goals.
 
-```sh
-.venv/bin/python scripts/extension_v3/analyze.py --config jev_firstparty
-python3 scripts/extension_v3/verify_analysis.py --config jev_firstparty
-.venv/bin/python scripts/extension_v3/figures.py
-```
-
-Analysis uses a settled per-arm ledger snapshot when available; this is a partial
-accounting subset, not a final provider balance. Raw evidence remains immutable.
-The ongoing full ledger includes other configurations and is not replaced by these
-snapshots. A final all-provider closure audit remains required.
-
-Initial representative error review is in `ERROR-REVIEW.md`. It also documents
-that the narrow frozen credential-fixture regex does not remove prose/serialized
-mentions; no claim of universally credential-free source fixtures is justified.
-The source-construction labels remain unchanged.
-
-Five source-specific fixed-bin reliability grids were generated. They retain
-exact0.5 forecasts and bin counts; no fitted calibration or uncertainty bands are
-claimed. High confidence on clean fixtures is visibly problematic for Laya and
-ProtectAI. Attack-only and clean-only sources cannot identify population-wide
-calibration. Marker counts and source-specific denominators remain explicit.
-
-Nimble completed without operational failures or exact-0.5 ties. Independent
-raw-record, request/response/accounting and 18 primary-interval checks passed.
-Its task-weighted error changes on InjecAgent direct harm and stealing are
-−19.07 and −34.44 percentage points (conditional 95% intervals [−35.79,−4.24]
-and [−51.51,−18.00]). These attack-only sources cannot establish false-alarm
-performance. Shopping error changes by +3.12 points [−3.95,+11.20]; the four
-clean AgentDojo sources have zero classification changes. Probability losses
-and controls remain separate; unchanged classifications do not imply unchanged
-probabilities. All inherited-label, repeated-text and fixed-template limits apply.
-
-Luna Responses has1,767 valid Boolean decisions and four retained transport failures,
-with no invented scores. Its source-specific task-weighted error changes on
-InjecAgent direct harm and stealing are−13.76 and−35.12 percentage points
-(conditional95% intervals [−26.93,−3.35] and [−53.53,−17.26]). The direct-harm
-miss rate still equals103/128 valid task responses (80.47%), versus122/129
-candidate responses (94.57%). On stealing it changes68/143→21/143. Improvement
-is not reliable prevention. Two shopping false alarms appear with task context,
-versus none candidate-only. Clean-source valid decisions are correct relative to
-inherited labels; two missing task responses mean zero complete-pair differences
-cannot be read as perfect all-planned performance. Control intervals all include
-zero and the subset is small. Final report still awaits Astra.
+Final effect plot includes six contextual arms; five reliability grids cover native
+scores. Boolean chat models have no fabricated probabilities. The plots were
+actually inspected. The old pilot/study/PDF remain unchanged; no new PDF was made.
+The completion audit records final reproduction and private-delivery status.

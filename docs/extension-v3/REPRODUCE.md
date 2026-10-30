@@ -3,8 +3,7 @@
 These commands make no inference calls. Use the existing analysis environment with
 Python, numpy2.4.4 and matplotlib3.10.8. They need the committed raw response records,
 manifest, plans and settled per-arm ledger snapshots. They do not need API keys,
-model weights or ignored source downloads. Remaining inference arms must finish
-before their analysis commands can pass.
+model weights or ignored source downloads. All frozen inference arms have now finished; failures remain preserved.
 
 ```sh
 .venv/bin/python scripts/extension_v3/analyze.py --config jev_firstparty
@@ -14,11 +13,11 @@ python3 scripts/extension_v3/verify_analysis.py --config jev_firstparty
 .venv/bin/python scripts/extension_v3/reliability_figures.py
 ```
 
-Substitute `luna_decisions`, `laya_local` `nimble_local` or `luna_chat` for other completed contextual arms.
+Substitute `luna_decisions`, `laya_local`, `nimble_local`, `luna_chat` or `astra_chat` for other completed contextual arms.
 ProtectAI supports analysis and numerical verification, but has no context contrasts.
 The independent bootstrap verifier reconstructs primary and control intervals
-using explicit multiplicities and control membership from frozen jobs. For five
-completed contextual arms, all81 primary and324 control cases passed, including
+using explicit multiplicities and control membership from frozen jobs. For six
+completed contextual arms, all90 primary and360 control cases passed, including
 insufficient-group cases where an interval must be omitted. Numerical assertions
 use full precision; receipt endpoints round to12 decimals for portable serialization.
 
@@ -33,8 +32,8 @@ hashes, reruns all available completed-arm analyses and independent checks, redr
 figures, and requires compared artifacts to be byte-identical. It never exports
 `.env.local`, `.secrets` or weights. The receipt records the exact input tree,
 commands and artifact hashes. This tests an existing installed runtime, not a fresh
-package installation or a new inference run. The latest pass covered27 commands and
-53 artifacts for six completed arms, including raw-request/response audits. Later complete arms require a new receipt.
+package installation or a new inference run. The final pass covered 33 commands and 62 byte-identical artifacts for all seven
+configurations, including raw-request/response audits, terminal closure and final report.
 
 Source reconstruction and model execution are different operations. Their pinned
 clones, dependency locks, provenance receipts, source adapters and freeze gates are
@@ -66,6 +65,6 @@ The replay itself remains bound to its original environment/source receipt.
 
 The final report generator is `python3 scripts/extension_v3/report.py`. It refuses
 to run without terminal execution closure and matching analysis/raw-audit receipts
-for every frozen model configuration. No final report is generated while Astra
-remains incomplete. Once a final report exists, isolated reproduction also reruns
+for every frozen model configuration. The complete report was generated only after all11,495 development/confirmation
+records were terminal. Once a final report exists, isolated reproduction also reruns
 terminal closure and the report, comparing both and their input receipt byte-for-byte.

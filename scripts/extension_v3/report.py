@@ -64,8 +64,17 @@ def main():
         groups[row['dataset']].append(row)
     lines = ['# Decision Context Benchmark — extension v3 results', '',
         'The frozen confirmation is fully attempted. Task context has source- and model-specific effects; '
-        'neither a universal benefit nor a universal model winner follows. The tables below report '
-        'the predeclared paired effects, including negative and inconclusive findings.', '',
+        'neither a universal benefit nor a universal model winner follows. Crucially, some '
+        'task-versus-candidate gains disappear against an empty task field or a generic reminder. '
+        'Thus the candidate baseline alone does not establish a benefit from meaningful task information. '
+        'The tables below report the predeclared paired effects, including negative and inconclusive findings.', '',
+        'What we learned: Astra misses fewer InjecAgent attacks when given the task, but the small '
+        'direct-harm control subset shows no advantage over reminders or scrambled tasks. Jev has a '
+        'similar distinction between candidate-baseline gains and control comparisons. Some Luna Decisions '
+        'and Nimble probability comparisons remain favorable, with broad uncertainty. Laya often worsens '
+        'on clean-source probability loss. These are useful differences between sources and interfaces, '
+        'not a single leaderboard result. Better relative performance can still leave many attacks missed: '
+        'Luna chat misses 103 of 128 valid direct-harm task examples.', '',
         f"The collection contains {len(manifest)} task/text pairs, "
         f"{len({r['candidate_sha256'] for r in manifest})} distinct texts and "
         f"{len({r['groups']['task'] for r in manifest})} task groups. "
@@ -74,7 +83,7 @@ def main():
         'The separate 108 control-development requests and 42 local diagnostic calls are not evaluation examples.', '',
         'Labels inherit published clean/default versus intended-injection construction. They are not '
         'independent semantic adjudications, real private production messages, or measured attack success. '
-        'No model-generated examples, missing context, or replacement gold labels were added.', '',
+        'We generated no benchmark examples or gold labels and invented no missing context. Published source constructions remain explicit.', '',
         '## Source coverage', '', '| Source | Task/text pairs | Distinct texts | Tasks | Clean / injected |',
         '|---|---:|---:|---:|---:|']
     for source, rows in sorted(groups.items()):
@@ -84,15 +93,27 @@ def main():
     lines += ['', 'Task groups and texts recur across strata; do not sum columns as independent sample sizes. '
         'AgentDojo is clean-only and InjecAgent attack-only. False-positive or false-negative rates '
         'are undefined when their denominator class is absent.', '', '## Completed attempts', '',
-        '| Configuration | Planned attempts | Parsed status counts |', '|---|---:|---|']
+        '| Configuration | Planned attempts | Parsed status counts | Reported input / output tokens | Requests with usage |', '|---|---:|---|---:|---:|']
     for config, report in reports.items():
         statuses = Counter()
+        input_tokens = output_tokens = usage_records = 0
         for name in report['record_hashes']:
             record = json.loads((ROOT / name).read_text())
             statuses[record.get('parsed', {}).get('status', 'runtime_error')] += 1
+            usage = record.get('parsed', {}).get('usage') or {}
+            if isinstance(usage.get('input_tokens'), int) and isinstance(usage.get('output_tokens'), int):
+                input_tokens += usage['input_tokens']
+                output_tokens += usage['output_tokens']
+                usage_records += 1
         lines.append(f"| {config} | {report['logical_requests']} | " +
-                     ', '.join(f'{k}: {v}' for k, v in sorted(statuses.items())) + ' |')
-    lines += ['', 'Failures and exact-0.5 abstentions are retained. Native 0.5 forecasts enter proper '
+                     ', '.join(f'{k}: {v}' for k, v in sorted(statuses.items())) + ' | ' +
+                     (f'{input_tokens:,} / {output_tokens:,}' if usage_records else 'Not reported') +
+                     f' | {usage_records}/{report["logical_requests"]} |')
+    lines += ['', 'Token totals above are provider/runtime-reported confirmation usage, not dollar proxies. '
+        'Missing failure usage is unknown, not zero; tokenizers and interfaces differ. Subscription Astra '
+        'has zero incremental metered API charge despite its actual calls and token processing. '
+        'ProtectAI uses overlapping detector windows rather than generated output tokens.', '',
+        'Failures and exact-0.5 abstentions are retained. Native 0.5 forecasts enter proper '
         'scoring; Boolean chat outputs have no invented probabilities. Continuations skip failed cells '
         'and process only unattempted jobs under the saved runtime amendments.', '',
         '## Paired authentic-task effects', '',
@@ -136,12 +157,20 @@ def main():
         'possible pretraining contamination limit generalization. The narrow frozen credential-fixture '
         'filter misses some published simulated prose/serialized mentions; no post-outcome exclusion '
         'or relabeling was applied. No prevention or legitimate-task-completion result is claimed.', '',
+        'Broader research needs remain unmet: this is not a collection of thousands of independent '
+        'tasks, independently adjudicated benign semantic labels, diverse unseen attack templates, '
+        'or real production interactions. The GitHub stratum has only three task groups; clean-only '
+        'and attack-only strata cannot supply both error rates. The preserved sources did not justify '
+        'filling a larger numerical quota with repetitions or invented context. These limits motivate '
+        'a separately scoped future collection with additional independent tasks and human-reviewed '
+        'label semantics, not more calls on these same fixtures.', '',
         'See the [protocol](../../docs/extension-v3/PROTOCOL-v3.0.md), '
         '[related-artifact comparison](../../docs/extension-v3/RESEARCH-COMPARISON.md), '
         '[backend audit](../../docs/extension-v3/BACKEND-AUDIT.md), '
         '[representative errors and label limits](../../docs/extension-v3/ERROR-REVIEW.md), '
         '[reproduction instructions](../../docs/extension-v3/REPRODUCE.md), and '
-        '[completion audit](../../docs/extension-v3/COMPLETION-STATUS.md).', '']
+        '[completion audit](../../docs/extension-v3/COMPLETION-STATUS.md), and '
+        '[prioritized next-run handoff](../../docs/extension-v3/NEXT-RUN.md).', '']
     target = OUT / 'report.md'
     target.write_text('\n'.join(lines))
     (OUT / 'report-inputs-v1.json').write_text(json.dumps({'inputs_sha256': inputs,

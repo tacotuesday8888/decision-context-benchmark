@@ -46,3 +46,18 @@ manifest; URLs and receipts are saved in `related-artifact-receipts-v1.json`.
 Other inspected code/revisions and licensing caveats are in RESEARCH-NOTES.md and
 the existing source receipts. The review is bounded, not exhaustive; acceptance
 status is not inferred from conference templates or a future venue heading.
+
+## Adjacent hate-speech evidence added after confirmation
+
+Paschalides, Pallis and Dikaiakos, University of Cyprus, [To Jev or Not?
+Evaluating the Accuracy and Efficiency of Structured Decision Models for
+Hate-Speech Moderation](https://arxiv.org/html/2610.03324v1), preprint v1,
+compares supplied definitions and decision decomposition across four hate-speech
+datasets. Its abstract and methods distinguish annotation agreement from definition
+adherence and compare the same texts under changed criteria. This closely overlaps
+the conceptual question of whether extra criteria improve judgments. Our task-context
+and reminder controls concern prompt injection, not hate speech; different versions
+and backends prevent direct score comparisons. The paper reports inconsistent gains
+from definitions/decomposition. This supports restrained interpretation and stronger
+label audits, not a novelty claim. This late review did not change frozen inference;
+its released code/data have not been independently reproduced here.

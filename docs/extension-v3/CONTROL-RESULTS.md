@@ -1,4 +1,4 @@
-# Task-information controls — completed arms only
+# Task-information controls — completed frozen experiment
 
 The controls do not support one universal explanation. A task-versus-candidate
 improvement can disappear against an empty task field, while some source/model
@@ -105,7 +105,7 @@ The banking/slack control slices have fewer than five distinct secondary groups;
 GitHub has only three task groups. Their intervals are intentionally omitted.
 Repeated texts and fixed templates remain correlated. No pooled control score,
 model winner, threshold change or fitted calibration follows from this checkpoint.
-Astra must finish before final cross-model interpretation.
+All frozen arms have now finished; the following Astra section completes the planned comparisons.
 
 For Nimble, the eight direct-harm control pairs improve against candidate and
 empty-field baselines (Brier −0.3487 and −0.3673), but intervals against the
@@ -137,3 +137,39 @@ direct-harm pairs the task–scrambled point estimate is+12.5pp (worse), while
 task–candidate is−12.5pp (better). On eight stealing pairs task–candidate is−25pp
 and task–scrambled−12.5pp, with broad intervals ending at zero. These controls
 do not isolate a universal useful-task mechanism despite full-collection gains.
+
+## astra_chat — Boolean decisions
+
+Error differences below are percentage points, with complete/planned pair counts.
+
+| Source | Candidate | Empty field | Reminder | Scrambled task |
+|---|---:|---:|---:|---:|
+| agentdojo-clean-banking | +0.00 (8/8) | +0.00 (7/8) | +0.00 (8/8) | +0.00 (8/8) |
+| agentdojo-clean-slack | +0.00 (8/8) | +0.00 (8/8) | +0.00 (8/8) | +0.00 (8/8) |
+| agentdojo-clean-travel | +0.00 (8/8) | +0.00 (8/8) | +0.00 (8/8) | +0.00 (8/8) |
+| agentdojo-clean-workspace | +0.00 (8/8) | +0.00 (8/8) | +0.00 (8/8) | +0.00 (8/8) |
+| agentdyn-dailylife | +0.00 (16/16) | +0.00 (16/16) | +0.00 (16/16) | +0.00 (16/16) |
+| agentdyn-github | +0.00 (4/4) | +0.00 (4/4) | +0.00 (4/4) | +0.00 (4/4) |
+| agentdyn-shopping | +0.00 (15/15) | +0.00 (15/15) | +0.00 (15/15) | +0.00 (15/15) |
+| injecagent-dh | -12.50 (8/8) | -12.50 (8/8) | +0.00 (8/8) | +0.00 (8/8) |
+| injecagent-ds | +0.00 (8/8) | +0.00 (8/8) | +0.00 (8/8) | +0.00 (8/8) |
+
+Astra's eight direct-harm control pairs show−12.5pp against candidate and empty
+field, with intervals[−60,0]pp, but0pp against reminder and scrambled task. The
+stealing control subset has0pp for every contrast. Full-collection direct-harm
+improvement therefore does not isolate a semantic-task advantage on these controls.
+This is not proof that task semantics never help: eight selected pairs give limited
+precision, and scrambling retains lexical content. No new settings were selected.
+
+## What the completed controls establish
+
+The main scientific qualification is that task-versus-candidate improvement alone
+is insufficient evidence for useful task semantics. Jev's direct-harm probability
+gain disappears against empty-field/reminder controls; Astra's direct-harm control
+gain disappears against reminder/scrambled tasks. Luna Decisions and Nimble retain
+some favorable task–scrambled estimates on stealing, but their intervals are broad
+and the subsets small. Laya can improve against a reminder while worsening against
+candidate alone. These patterns support source/interface dependence, not a universal
+context benefit, calibrated trust or proven prevention. All90 primary and360 control
+comparison cases were independently reconstructed, including insufficient-group
+cases with no interval. Full tables preserve null and adverse results.

@@ -51,6 +51,12 @@ class ClosureTests(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             return module.closure(True)
 
+    def test_clean_export_without_ignored_directory(self):
+        module.RAW.rmdir()
+        result = self.check()
+        self.assertEqual(result["status"], "terminal")
+        self.assertTrue((module.RAW / "inference-budget.lock").exists())
+
     def test_terminal_requires_every_frozen_cell(self):
         self.path.unlink()
         self.entry.update(status='pending', accounted_usd=.01)

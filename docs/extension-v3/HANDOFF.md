@@ -317,3 +317,31 @@ closure/report and compares their artifacts when report.md is present. Full fina
 branch remains to be exercised after Astra completes. No claim of final validation.
 Astra36506 remains live; latest observed1421/1771, still three failures preserved.
 The six-arm CI checkpoint0644d48 passed all eight checks.
+
+## Terminal extension and final reproduction
+
+All seven configurations are complete: 11,387 confirmation attempts, 11,367 valid
+answers, 13 exact-threshold abstentions and seven preserved transport failures.
+Closure reconciles all 11,495 development/confirmation records and settled or
+unknown-usage reservations, with no missing/pending/in-flight cells. No failed
+request was replaced. All earlier live-status entries above are historical.
+
+Final isolated export passed 33 commands and reproduced 62 artifacts byte-for-byte,
+including all analyses, independent raw/arithmetic/bootstrap checks, figures, closure
+and report. The first export found an absent ignored lock directory; closure now
+creates it and a regression test covers clean exports. All 35 tests pass. All
+5,793 protected historical files remain unchanged. Configured-secret scan passed.
+
+Read ABSTRACT.md for the plain-English finding, ASTRA-ACCESS.md for standalone
+subscription-request traceability, and NEXT-RUN.md for the separately proposed
+broader study. Subscription access remains authorized; an API-only migration was
+explicitly withdrawn, so no route change or unnecessary paid check was performed.
+Astra processed 1,771 confirmation requests (1,768 valid), reporting 786,259 input
+and 40,965 output tokens on valid responses. All-in metered accounting is
+$0.2896254 OpenAI / $0.154397208 TypeSafe, not provider invoices or fresh balances.
+
+The controls limit the claim: task-versus-candidate improvements alone do not prove
+meaningful task information helps; Astra's eight-pair direct-harm subset shows no
+advantage over reminders or scrambled tasks. No universal winner, calibrated-safety
+or prevention claim. No new PDF, public publication or merge. Final private PR/CI
+status is checked after pushing the reviewed commit.
