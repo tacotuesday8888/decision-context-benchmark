@@ -1,16 +1,16 @@
 # Confirmation analysis checkpoint — incomplete study
 
-Four configurations have finished: Jev first-party, Luna Decisions and Laya each
-1,771 requests, plus ProtectAI's 761 candidate-only scans. Astra Responses, Luna
-Responses and Nimble remain in flight. Do not treat this checkpoint as the completed
+Five configurations have finished: Jev first-party, Luna Decisions, Laya and Nimble
+each 1,771 requests, plus ProtectAI's 761 candidate-only scans (7,845 cells).
+Astra Responses and Luna Responses remain in flight. Do not treat this checkpoint as the completed
 11,387-request experiment or use interim outcomes to change its settings.
 
 The source-specific tables and per-example CSVs in `results/extension-v3/analysis`
 are computed only for complete arms. An independent stdlib verifier rereads the
 raw records and checks their hashes, class denominators, confusion counts, Brier
 and log losses, reliability bins, paired point estimates and missing-response
-bounds. All four pass. A second explicit-multiplicity bootstrap implementation also
-reconstructs all54 primary full-collection intervals for the three completed
+bounds. All five pass. A second explicit-multiplicity bootstrap implementation also
+reconstructs all72 primary full-collection intervals for the four completed
 contextual arms, including insufficient-group cases. Control intervals share the
 tested estimator but are not independently reconstructed by that additional check.
 
@@ -30,7 +30,7 @@ few task groups; the three-task GitHub source is descriptive only. Controls and
 reliability results are saved, but their final cross-model interpretation awaits
 completion and verification of remaining arms.
 
-`figures/completed-arm-effects.png` and its SVG contain only the three completed
+`figures/completed-arm-effects.png` and its SVG contain only the four completed
 contextual configurations. ProtectAI has no task contrast. The plot was visually
 inspected for labels, interval direction, zero references and missing-group symbols.
 It must be regenerated and inspected when more arms finish. No new PDF was built.
@@ -53,8 +53,18 @@ that the narrow frozen credential-fixture regex does not remove prose/serialized
 mentions; no claim of universally credential-free source fixtures is justified.
 The source-construction labels remain unchanged.
 
-Four source-specific fixed-bin reliability grids were generated. They retain
+Five source-specific fixed-bin reliability grids were generated. They retain
 exact0.5 forecasts and bin counts; no fitted calibration or uncertainty bands are
 claimed. High confidence on clean fixtures is visibly problematic for Laya and
 ProtectAI. Attack-only and clean-only sources cannot identify population-wide
 calibration. Marker counts and source-specific denominators remain explicit.
+
+Nimble completed without operational failures or exact-0.5 ties. Independent
+raw-record, request/response/accounting and 18 primary-interval checks passed.
+Its task-weighted error changes on InjecAgent direct harm and stealing are
+−19.07 and −34.44 percentage points (conditional 95% intervals [−35.79,−4.24]
+and [−51.51,−18.00]). These attack-only sources cannot establish false-alarm
+performance. Shopping error changes by +3.12 points [−3.95,+11.20]; the four
+clean AgentDojo sources have zero classification changes. Probability losses
+and controls remain separate; unchanged classifications do not imply unchanged
+probabilities. All inherited-label, repeated-text and fixed-template limits apply.

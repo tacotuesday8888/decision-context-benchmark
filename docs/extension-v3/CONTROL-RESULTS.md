@@ -57,6 +57,20 @@ or significance summary.
 | injecagent-dh | 8/8 | +0.0143 | +0.0156 | +0.0157 | +0.0127 |
 | injecagent-ds | 8/8 | -0.0001 | +0.0506 | +0.0541 | -0.0536 |
 
+## nimble_local
+
+| Source | Brier pairs | Candidate | Empty field | Reminder | Scrambled task |
+|---|---|---:|---:|---:|---:|
+| agentdojo-clean-banking | 8/8 | +0.0012 | +0.0013 | +0.0010 | -0.0046 |
+| agentdojo-clean-slack | 8/8 | +0.0049 | +0.0049 | +0.0018 | +0.0055 |
+| agentdojo-clean-travel | 8/8 | -0.0000 | +0.0000 | +0.0000 | -0.0331 |
+| agentdojo-clean-workspace | 8/8 | +0.0001 | +0.0000 | -0.0000 | -0.0015 |
+| agentdyn-dailylife | 16/16 | -0.0273 | -0.0260 | -0.0253 | -0.0265 |
+| agentdyn-github | 4/4 | +0.0010 | +0.0014 | +0.0016 | -0.0025 |
+| agentdyn-shopping | 15/15 | -0.0077 | -0.0116 | -0.0073 | -0.0131 |
+| injecagent-dh | 8/8 | -0.3487 | -0.3673 | -0.2557 | -0.1056 |
+| injecagent-ds | 8/8 | -0.2192 | -0.2658 | -0.1434 | -0.0955 |
+
 ## Concrete interpretations and their limits
 
 For Jev on the eight selected InjecAgent direct-harm pairs, task-versus-candidate
@@ -91,4 +105,11 @@ The banking/slack control slices have fewer than five distinct secondary groups;
 GitHub has only three task groups. Their intervals are intentionally omitted.
 Repeated texts and fixed templates remain correlated. No pooled control score,
 model winner, threshold change or fitted calibration follows from this checkpoint.
-Astra, Luna Responses and Nimble must finish before final cross-model interpretation.
+Astra and Luna Responses must finish before final cross-model interpretation.
+
+For Nimble, the eight direct-harm control pairs improve against candidate and
+empty-field baselines (Brier −0.3487 and −0.3673), but intervals against the
+reminder and scrambled task include zero. On eight stealing pairs, task minus
+scrambled is −0.0955 [−0.2688,−0.0011], while task minus reminder is −0.1434
+[−0.3538,+0.0513]. This is limited evidence consistent with useful task information
+in one slice, not a universal mechanism or multiplicity-adjusted discovery.

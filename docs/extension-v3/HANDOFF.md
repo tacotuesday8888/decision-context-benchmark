@@ -233,3 +233,22 @@ Current isolated reproduction now PASSED19 commands /39 byte-identical artifacts
 including updated coverage audit and source/control display tables. Latest observed
 loop positions859Luna/745Astra/1425Nimble, same three live handles. No new failures
 in these checks. Complete-arm analyses remain four configurations, not final study.
+
+## Five-arm checkpoint: Nimble completed
+
+Nimble handle54609 exited0 after1771/1771. Do not restart it. All1771 parse
+validly with no ties/failures; independent raw arithmetic, request/response audit
+and18 reconstructed primary intervals passed. Total complete-arm cells7845.
+Figures regenerated and actually inspected; native reliability grid includes
+Nimble. Source/control interpretations saved without tuning any settings.
+Isolated staged export passed23 commands/47 byte-identical artifacts.
+
+Still-live handles: Luna31950 at loopposition1085/1771 (three preserved failures);
+Astra58329 at884/1771 (one preserved failure). These are historical observations,
+not terminal counts. Poll original handles; never restart a live process.
+Latest accounting remains0.2896254 OpenAI and0.154397208 TypeSafe all-in.
+Global moving ledger deliberately remains unstaged. No final closure receipt yet.
+
+Continue through both remaining arms, final source-specific report/controls/error
+review, all-cell closure, regenerated inspected figures, isolated reproduction and
+private draft PR/green CI. Goal remains active; slow live inference is not a blocker.
