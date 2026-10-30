@@ -9,7 +9,7 @@ def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def main():
     assert json.loads((OUT/'execution-closure-v1.json').read_text())['status']=='terminal'
     tree=subprocess.check_output(['git','write-tree'],cwd=ROOT,text=True).strip()
-    outputs=list((OUT/'analysis').glob('*'))+list((OUT/'figures').glob('*'))+list((OUT/'tables').glob('*'))+[OUT/'execution-closure-v1.json']
+    outputs=list((OUT/'analysis').glob('*'))+list((OUT/'figures').glob('*'))+list((OUT/'tables').glob('*'))+[OUT/'execution-closure-v1.json',OUT/'report-inputs-v1.json',ROOT/'docs/controls-v4/RESULTS.md']
     expected={str(p.relative_to(ROOT)):sha(p) for p in outputs if p.is_file()}
     commands=[]
     with tempfile.TemporaryDirectory(prefix='offline-reproduce-',dir=RAW) as folder:
@@ -21,7 +21,7 @@ def main():
         for config in CONFIGS:
             for script in ['analyze.py','verify_analysis.py','verify_bootstrap.py','audit_records.py']:
                 commands.append([sys.executable,'scripts/controls_v4/'+script,'--config',config])
-        commands += [[sys.executable,'scripts/controls_v4/tables.py'],[sys.executable,'scripts/controls_v4/figures.py'],[sys.executable,'scripts/controls_v4/closure.py','--require-terminal']]
+        commands += [[sys.executable,'scripts/controls_v4/tables.py'],[sys.executable,'scripts/controls_v4/figures.py'],[sys.executable,'scripts/controls_v4/closure.py','--require-terminal'],[sys.executable,'scripts/controls_v4/report.py']]
         for command in commands:
             result=subprocess.run(command,cwd=isolated,capture_output=True,text=True)
             if result.returncode:raise RuntimeError(str(command[1:])+' failed: '+result.stderr[-1500:])

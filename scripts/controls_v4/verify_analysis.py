@@ -5,6 +5,7 @@ intervals remain covered by estimator tests; this checks underlying denominators
 point estimates, missing-response bounds, reliability bins and record hashes.
 """
 import argparse
+import csv
 import hashlib
 import json
 import math
@@ -52,6 +53,11 @@ def verify(config):
     jobs = [r for r in map(json.loads, (OUT / 'confirmation-jobs-v1.jsonl').read_text().splitlines()) if r['config'] == config]
     rows = []
     paths = set()
+    csv_path = OUT / 'analysis' / (config + '-per-example.csv')
+    csv_rows = list(csv.DictReader(csv_path.open()))
+    csv_lookup = {(r['id'], r['condition']): r for r in csv_rows}
+    assert len(csv_rows) == len(csv_lookup) == len(jobs)
+    ledger = {r['key']: r for r in json.loads((OUT / 'analysis' / (config + '-ledger.json')).read_text())['entries']}
     for job in jobs:
         key = hashlib.sha256(json.dumps(job, sort_keys=True).encode()).hexdigest()[:24]
         path = OUT / 'confirmation' / config / (key + '.json')
@@ -61,6 +67,15 @@ def verify(config):
         record = json.loads(path.read_text())
         equal(record['job'], job)
         assert record['status'] in ('completed', 'failed')
+        parsed = record.get('parsed', {})
+        csv_row = csv_lookup[(job['id'], job['condition'])]
+        datum = manifest[job['id']]
+        expected_csv = dict(config=config, dataset=datum['dataset'], id=job['id'], condition=job['condition'],
+            gold=datum['gold'], status=parsed.get('status', 'runtime_error'), valid=parsed.get('valid', False),
+            prediction=parsed.get('prediction'), score=parsed.get('score'), candidate_sha256=datum['candidate_sha256'],
+            record_path=relative, elapsed_seconds=record['elapsed_seconds'], access_route=record['access_route'],
+            windows=parsed.get('windows'), conservative_accounted_usd=ledger['confirmation:'+config+':'+key]['accounted_usd'])
+        assert csv_row == {k:'' if v is None else str(v) for k,v in expected_csv.items()}, relative
         rows.append(dict(manifest[job['id']], condition=job['condition'], parsed=record.get('parsed', {})))
     equal(paths, set(report['record_hashes']))
     equal(report['logical_requests'], len(rows))
@@ -130,7 +145,7 @@ def verify(config):
             for actual, expected in zip(effect['all_planned_primary_cluster_weighted_bounds'], [grouped(lower, all_tasks), grouped(upper, all_tasks)]):
                 equal(actual, expected)
             comparisons += 1
-    receipt = {'config': config, 'raw_records_checked': len(rows), 'paired_comparisons_checked': comparisons,
+    receipt = {'config': config, 'raw_records_checked': len(rows), 'csv_rows_checked': len(csv_rows), 'paired_comparisons_checked': comparisons,
         'analysis_sha256': hashlib.sha256(report_path.read_bytes()).hexdigest(),
         'verifier_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         'status': 'passed', 'scope': 'Independent raw-record point estimates, denominators, bounds and reliability arithmetic; bootstrap implementation separately unit-tested.'}

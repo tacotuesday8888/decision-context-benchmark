@@ -126,3 +126,25 @@ reproduce_preparation.py, reproduce_offline.py. Last requiresallterminal/stagedt
 not run yet. analyze uses metrics.py now. Never mutate frozenfiles.
 Rawliveconfirmation andinferenceledger deliberatelyexcludedfrom2411ed0commit.
 Nextcommit must include onlycompletedroutefiles untilfinalclosure.
+
+## Four completed routes / current progress
+
+Jev,Laya,LunaDecisions,ProtectAI complete and independently analyzed/audited.
+LunaDecisions2125 attempts:2118ok,4ties,3HTTPfailures(fullreserves). No retries.
+AllrawCSVrows additionally verified against rawrecord+ledger; fourverification
+receipts updated. Bootstrap andrawrequestaudits passed. Tables/figures rebuilt
+for4completedroutes, earlier3routeabsoluteerrorimage visuallyinspected.
+
+Stilllive: Luna85775,Astra28541,Nimble65326. Lastcounts roughly470/274/572;
+these are moving. Decisions16285finished, Laya33292finished. No pending paid
+route. Currenttotalcaps farbelow limits. Never launchduplicate liveprocesses.
+17offline tests pass. Sourceprep13identicaloutputs verified. Checkpoint60a7fdb
+pushed andall10CIgreen. New report.py refusesnonterminalclosure; notrunyet.
+coverage.py generatedcoveragev1; reproduce_offline.py nowincludes tablesandfinal
+report commands andrequiresfinalstagedtree. Finalfullclosure/repro/figinspection
+are outstanding. Do not claimgoalcomplete.
+
+ERROR-REVIEW.md includes original-source inspection of fixed Jev/LunaDecisions
+transitions and Laya high-FPR tradeoff; no relabeling orposthoc exclusions.
+Currentnewchanges awaitcheckpointcommit; activeledger/unfinishedroutefiles remain
+untracked untilterminal toavoidcommitting inconsistent live snapshots.
