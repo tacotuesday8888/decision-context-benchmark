@@ -1,4 +1,4 @@
-# Extension completion audit
+# Extension completion audit — bounded experiment complete
 
 This audit covers the bounded frozen extension. The wider research program still
 needs independent tasks, semantic label review and stronger controls; NEXT-RUN.md
@@ -17,7 +17,7 @@ specifies that separate work. No prevention experiment or new PDF is claimed.
 | Figures | Effect plot and five reliability grids; visual-review hashes | Generated and visually inspected; all completed contextual models included. |
 | Reproduction and tests | Offline reproduction receipt; 35 regression tests | Final isolated rebuild status recorded below. Existing installed runtime, not a fresh dependency installation or new inference. |
 | Budget and security | Ledger and configured-secret scan | Conservative all-in OpenAI $0.2896254; TypeSafe $0.154397208. Subscription fees/electricity excluded; not invoice or fresh balance. No purchases/recharge. |
-| Private delivery | Draft PR4 | Reviewed commit/push and final CI verification recorded below; no merge or public publication. |
+| Private delivery | Draft PR4 | Reviewed commit pushed; all eight checks passed on artifact commit 7141b44. No merge or public publication. |
 
 The first complete isolated export exposed a missing ignored lock-directory assumption
 in closure.py. The script now creates its lock directory; a clean-export regression
@@ -25,5 +25,8 @@ test passes. This changes offline packaging only, not frozen requests or outcome
 
 Final isolated reproduction passed: 33 commands and 62 byte-identical artifacts,
 including all seven configurations, terminal closure and final report. Configured
-credential-value scanning and staged whitespace checks passed. Remote delivery/CI
-will be verified on the final pushed commit; inference and local verification are complete.
+credential-value scanning and staged whitespace checks passed. Artifact commit `7141b44` is pushed to the private draft
+[PR4](https://github.com/tacotuesday8888/decision-context-benchmark/pull/4); all eight
+remote checks passed. The canonical checkout matches its remote branch and is clean.
+This closing audit update changes documentation only. The bounded experiment is
+complete; the proposed broader study has not started.

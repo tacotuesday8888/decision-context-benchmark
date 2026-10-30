@@ -345,3 +345,8 @@ meaningful task information helps; Astra's eight-pair direct-harm subset shows n
 advantage over reminders or scrambled tasks. No universal winner, calibrated-safety
 or prevention claim. No new PDF, public publication or merge. Final private PR/CI
 status is checked after pushing the reviewed commit.
+
+Artifact commit `7141b44` passed all eight remote checks. Private PR4 remains open
+and draft; canonical checkout/remote matched and working tree was clean. This
+closing documentation commit records that verified delivery. The bounded experiment
+is complete; NEXT-RUN.md remains proposed work, not an active inference run.
