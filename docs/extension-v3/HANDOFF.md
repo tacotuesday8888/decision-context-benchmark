@@ -262,3 +262,13 @@ including insufficient-group omissions. No analysis estimates, prompts or settin
 changed. This supersedes earlier statements that only primary intervals received
 independent reconstruction. Numerical assertions remain full precision; displayed
 receipt endpoints round12dp for cross-platform serialization.
+
+## Second Astra transient stop
+
+Astra handle58329 exited0 at loopposition1079 with a preserved failure:
+`6d3310f4ceaec83cf6d0090d`, HTTP0/curl28,60.0184s, empty body, no accounting
+error. The v3.0.3 reviewed-continuation helper verified prior receipts and added
+a hash-bound receipt under unchanged transient eligibility. Cooldown was already
+zero. Continued only unattempted jobs with handle78481. Do not reuse58329 as live.
+Total preserved transport failures now five (Luna3/Astra2). Luna31950 remains
+live, latest observed1427/1771. No request was retried or replaced.
