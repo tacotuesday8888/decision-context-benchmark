@@ -10,7 +10,7 @@ from preserved_adapters import sha
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / 'results/controls-v4'
-spec = importlib.util.spec_from_file_location('extension_metrics', Path(__file__).with_name('statistics.py'))
+spec = importlib.util.spec_from_file_location('extension_metrics', Path(__file__).with_name('metrics.py'))
 metrics = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(metrics)
 

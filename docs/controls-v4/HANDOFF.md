@@ -105,3 +105,24 @@ Continue_transient.py supports bounded reviewed HTTP transients only, preserving
 failed cells and unknown-cost reservations; unsupported failures require inspection.
 Analysis/audit draft copied and adapted;14tests pass with numpy. Analysis not run.
 Full confirmation is13,175calls (2125/contextualroute,425specialist).
+
+## Checkpoint2411ed0 pushed; all10CIgreen
+
+Jev and ProtectAI confirmation complete. Analysis/rawaudit/independentarithmetic
+passed both; Jev bootstrapverified all32comparisons inclsubsets. Firstfigures
+rendered and controlserrorimage visuallyinspected; finalallroutefigures stillneeded.
+Isolatedsourceprep sixcommands13byteidenticaloutputs passed. Testsnow17pass.
+
+Laya initialconfirmationconstructor failed before any reservation because new
+analysis statistics.py shadowedstdlibstatistics in torch. Renamed metrics.py;
+startup-correctionreceipt and regressiontestsaved. No frozenruntimefilechanged.
+Laya now33292running. Decisions first504 andlater503 preserved withfullunknown
+reservations; two continuationreceipts. Current Decisions58813running (old75504
+finished). Other livehandles: Luna85775,Astra28541,Nimble65326. Jev10591 and
+ProtectAI15441finished; Laya9426failedstartup. Never restart blindly.
+
+New unanalyzedcode: closure.py, verify_analysis.py, verify_bootstrap.py, figures.py,
+reproduce_preparation.py, reproduce_offline.py. Last requiresallterminal/stagedtree;
+not run yet. analyze uses metrics.py now. Never mutate frozenfiles.
+Rawliveconfirmation andinferenceledger deliberatelyexcludedfrom2411ed0commit.
+Nextcommit must include onlycompletedroutefiles untilfinalclosure.
