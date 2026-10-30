@@ -1,0 +1,85 @@
+{
+  "artifact_sha256": {
+    ".github/workflows/study-v5.yml": "048a42aa702b9d8c58a9a105cc01480bcef7590cb2052a31a7d589e3c762c674",
+    "docs/study-v5/DESIGN.md": "b1f7cdf21439c555f606515c5a031685e1ccc772bb0586c1e004a0628c0b9578",
+    "docs/study-v5/HANDOFF.md": "ad01472b76e655003943a526ce5b65c82cae05f838be5991683dd85273e96530",
+    "docs/study-v5/RESEARCH.md": "3e33f9af84efea644a4eb86c08085ab128d6e3552750e095c2244f18b0ead946",
+    "docs/study-v5/REVIEW.md": "f8c83ea0306a9e43e6f31c3765e8ade1df40f4b6fa169dd87ad6a7043cf32084",
+    "docs/study-v5/SOL-GOAL.md": "d10af57d073a8bbff6b20c1401f49d9b3d07b3b8d48e1654681daf57d60f865e",
+    "docs/study-v5/WORKLOG.md": "8bd33fec868376843f68470ef9969a235c3f677595b68c199e06dac014b592c4",
+    "results/study-v5/feasibility.json": "dee8854868f621c4bfe308322c386e215f6112f4f1dd3ef75c07926d509075d9",
+    "results/study-v5/group-audit.json": "2759b3e54d6f607c3ea22e299384484dcc42ae23f2bae80fa0d128a689c08669",
+    "results/study-v5/overlap-audit.json": "7b4b849a71806f72649e2b02362b0efd2b3fe930faef19ebad23ebbf367cfde3",
+    "results/study-v5/preparation.json": "059ee2e6fa707f71e1808de9578f18770bb2030421f640a758bbb1520b865d05",
+    "results/study-v5/scope-pairs.json": "322cfaf5efa2a7637e78391a3e725bad4149d537a33c45266459664c73a45826",
+    "results/study-v5/source-code-audit.json": "ca076af4b9c51c4c044e88ad1c2c940196cefbd8b98a816ba7e50a5a0b1d1ac7",
+    "results/study-v5/source-receipts.json": "771e72e51377bc3feb4aa036863e2d227b3f0365cef944d12a3c6001693a5bc8",
+    "results/study-v5/token-audit.json": "358a3403406bf8a23cef8cde0f1004440a67d99091275d20ff56885fb95f4445",
+    "scripts/study_v5/feasibility.py": "577d284bf6389b22766fd52af53ea2825ab31a3244a771747d438dc6281a567a",
+    "scripts/study_v5/fetch_evidence.py": "d7e47c61a5c4b0a44de46926023cc1d691bca2ac32309f25c437962c0352e571",
+    "scripts/study_v5/group_audit.py": "4f27cfdca9e4af3abe5be333051011d4fadc8e1137ac816ec93219356c9a3446",
+    "scripts/study_v5/prepare.py": "374ba27b34ff5742cda188e439a5276aac677259b52abcc672a17b657c5b5929",
+    "scripts/study_v5/prompts.py": "5351659b318da4c92bbfff15b35da980f8d39d0cdfb185c002ab85c45d6d8d7e",
+    "scripts/study_v5/reviews.py": "24c03610637d2412a0216ccf02cd149cd51b2bbb5d9f8b170935b3c502fc9ef4",
+    "scripts/study_v5/scope_pairs.py": "823d33ee6c453323d660676e73632b68c6fa23868ed7c619ed752c56c66fef51",
+    "scripts/study_v5/source_audit.py": "859d6fc21bfc33c802962ca0fce70ff22bfaeb0fe829131459dc0b4ac918e574",
+    "scripts/study_v5/token_audit.py": "55cea18d8b4cdf38fa6b96fc55db46adab52198d02311054c881cc8f7ffc7e94",
+    "scripts/study_v5/verify.py": "6126f632590babb128f7766e32a216984e2a1f138c4cf300bc945f453cb37442",
+    "tests/study_v5/test_preparation.py": "92ae98fa6864259e18864aca80c55f8d54879587af422464c68c5541c6ca675e"
+  },
+  "checks": [
+    {
+      "command": "python3 -m unittest discover -s tests/study_v5 -v",
+      "status": "pass",
+      "tests": 21
+    },
+    {
+      "command": "python3 -m unittest discover -s tests/source_discovery -v",
+      "status": "pass",
+      "tests": 8
+    },
+    {
+      "command": "python3 scripts/study_v5/verify.py",
+      "status": "pass"
+    },
+    {
+      "command": "python3 scripts/study_v5/verify.py --require-cache",
+      "source_file_receipt_entries": 269,
+      "status": "pass"
+    },
+    {
+      "audit_files": 4,
+      "byte_receipts": 24,
+      "command": "python3 scripts/source_discovery/verify.py --require-cache",
+      "inventory_entries": 27,
+      "recomputed_findings": 5,
+      "status": "pass"
+    },
+    {
+      "command": "python3 scripts/study_v5/prepare.py; group_audit.py; scope_pairs.py; feasibility.py (each as Python entrypoint)",
+      "purpose": "byte-identical regeneration of existing versioned artifacts",
+      "status": "pass"
+    },
+    {
+      "aib_seed_links": 120,
+      "command": ".venv/bin/python scripts/study_v5/source_audit.py",
+      "cross_source_lexical_hits": 0,
+      "cross_source_pairs": 77204,
+      "status": "pass"
+    },
+    {
+      "command": ".venv-laya/bin/python scripts/study_v5/token_audit.py",
+      "model_forward_passes": 0,
+      "payloads": 3268,
+      "status": "pass",
+      "truncated": 0
+    }
+  ],
+  "date": "2026-10-30",
+  "external_reviews_completed": 0,
+  "inference_eligible_rows": 0,
+  "new_inference_requests": 0,
+  "new_inference_spend_usd": 0,
+  "remote_ci": "See private PR checks; this local receipt does not assert remote CI completion.",
+  "scope": "research/design/preparation only"
+}
