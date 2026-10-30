@@ -212,3 +212,12 @@ that interval. Final accounting gate now has five operational regression fixture
 reject missing cells, retain unknown-usage reserves plus prior spend, reject extra
 raw records, reject settled-cost mismatches and enforce all-in caps.30 offline tests
 pass. These fixtures are not generated benchmark examples/gold labels.
+
+Source-artifact preparation reproduction now passed separately:494 pinned local
+source files/replay copied into isolated export; prepare.py and independent
+validate_collection.py reproduce five frozen outputs byte-for-byte (including full
+prepared text, manifest, summary, exclusions and validation receipt). Original files
+unchanged. No new model calls, upstream code/replay or downloads. New utility and
+preparation-reproduction-v1.json record hashes and exact scope.
+Latest polled loop positions:618Luna/591Astra/1065Nimble; same handles31950/58329/54609,
+all live with no new failures in that observed interval.

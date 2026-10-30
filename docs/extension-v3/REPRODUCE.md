@@ -46,3 +46,18 @@ Final all-job/accounting closure is separate from completed-arm numerical checks
 planned attempts finish. Without the flag it writes only an ignored live snapshot;
 it must not be cited as completed execution. Frozen requests include108 development
 and11,387 confirmation cells; local diagnostic42 calls are separate and free.
+
+To test deterministic dataset preparation using the pinned local source downloads,
+committed inventories and saved AgentDojo replay:
+
+```sh
+python3 scripts/extension_v3/reproduce_preparation.py
+```
+
+It creates a separate ignored export and copies only source files referenced by
+the inventories. It reruns preparation and independent validation, then compares
+all five outputs with the frozen originals, including the full prepared text.
+The verified run used494 source files and reproduced all five outputs byte-for-byte.
+Original frozen files remain unchanged. This is a source-artifact reconstruction
+check, not a fresh download or new execution of upstream AgentDojo ground truth.
+The replay itself remains bound to its original environment/source receipt.
