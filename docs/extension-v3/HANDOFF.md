@@ -252,3 +252,13 @@ Global moving ledger deliberately remains unstaged. No final closure receipt yet
 Continue through both remaining arms, final source-specific report/controls/error
 review, all-cell closure, regenerated inspected figures, isolated reproduction and
 private draft PR/green CI. Goal remains active; slow live inference is not a blocker.
+
+## Independent control uncertainty verification
+
+The second explicit-multiplicity bootstrap implementation now checks both primary
+and preselected-control contrasts, taking control IDs from frozen confirmation
+jobs. All72 primary and288 control cases pass for Jev/Luna Decisions/Laya/Nimble,
+including insufficient-group omissions. No analysis estimates, prompts or settings
+changed. This supersedes earlier statements that only primary intervals received
+independent reconstruction. Numerical assertions remain full precision; displayed
+receipt endpoints round12dp for cross-platform serialization.

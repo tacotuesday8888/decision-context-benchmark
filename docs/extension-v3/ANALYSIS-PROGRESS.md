@@ -11,8 +11,9 @@ raw records and checks their hashes, class denominators, confusion counts, Brier
 and log losses, reliability bins, paired point estimates and missing-response
 bounds. All five pass. A second explicit-multiplicity bootstrap implementation also
 reconstructs all72 primary full-collection intervals for the four completed
-contextual arms, including insufficient-group cases. Control intervals share the
-tested estimator but are not independently reconstructed by that additional check.
+contextual arms, including insufficient-group cases. It now also independently
+reconstructs all288 preselected-control comparisons using frozen job membership.
+The numerical check includes omitted intervals for insufficient groups.
 
 The first inspected figure shows that authentic task information has different
 associations across sources and models. Jev and Luna Decisions improve on parts of

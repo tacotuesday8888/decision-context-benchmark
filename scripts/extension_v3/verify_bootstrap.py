@@ -1,4 +1,4 @@
-"""Independent explicit-multiplicity reconstruction of primary bootstrap intervals.
+"""Independent explicit-multiplicity reconstruction of primary and control bootstrap intervals.
 
 Uses the frozen RNG stream but no analyzer/statistics functions. It forms per-task
 lists using sampled secondary-group multiplicities instead of vectorized bincount.
@@ -56,15 +56,19 @@ def main(config):
     manifest = {r['id']: r for r in map(json.loads, (OUT / 'collection-manifest-v1.jsonl').read_text().splitlines())}
     rows = list(csv.DictReader((directory / (config + '-per-example.csv')).open()))
     lookup = {(r['id'], r['condition']): r for r in rows}
+    jobs_path = OUT / 'confirmation-jobs-v1.jsonl'
+    jobs = [json.loads(line) for line in jobs_path.read_text().splitlines()]
+    controls = {j['id'] for j in jobs if j['config'] == config and j['condition'] == 'format'}
     verified = []
     for stratum in analysis['strata']:
         for effect in stratum['paired_effects']:
-            if effect['scope'] != 'full_collection':
-                continue
-            ids = sorted({r['id'] for r in rows if r['dataset'] == stratum['dataset']})
+            assert effect['scope'] in ('full_collection', 'preselected_controls')
+            ids = sorted({r['id'] for r in rows if r['dataset'] == stratum['dataset']
+                and (effect['scope'] == 'full_collection' or r['id'] in controls)})
+            assert len(ids) == effect['planned_pairs']
             values, tasks, seconds = [], [], []
             for identity in ids:
-                a, b = lookup[(identity, 'task')], lookup[(identity, 'candidate')]
+                a, b = lookup[(identity, effect['left'])], lookup[(identity, effect['right'])]
                 if effect['metric'] == 'error':
                     if a['valid'] != 'True' or b['valid'] != 'True':
                         continue
@@ -77,6 +81,7 @@ def main(config):
                 values.append(value)
                 tasks.append(item['groups']['task'])
                 seconds.append(item['groups']['attack_family'] if item['dataset'].startswith('injecagent') else item['candidate_sha256'])
+            assert len(values) == effect['complete_pairs']
             target = effect['task_weighted']
             if not values:
                 assert target is None
@@ -87,11 +92,11 @@ def main(config):
                 assert target['interval'] is None
             else:
                 assert all(math.isclose(a, b, abs_tol=1e-12, rel_tol=1e-10) for a, b in zip(interval, target['interval']))
-            verified.append({'dataset': stratum['dataset'], 'metric': effect['metric'], 'complete_pairs': len(values), 'reference_interval_rounded_12dp': [round(v, 12) for v in interval] if interval else None, 'degenerate_draws': skipped})
-    result = {'status': 'passed', 'config': config, 'scope': 'All primary full-collection intervals checked at full precision (absolute tolerance 1e-12, relative 1e-10); receipt endpoints rounded to 12 decimal places for cross-platform serialization. Control intervals share the tested estimator but are not independently recomputed here.',
-        'analysis_sha256': hashlib.sha256(path.read_bytes()).hexdigest(), 'verifier_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), 'verified': verified}
+            verified.append({'dataset': stratum['dataset'], 'scope': effect['scope'], 'left': effect['left'], 'right': effect['right'], 'metric': effect['metric'], 'complete_pairs': len(values), 'reference_interval_rounded_12dp': [round(v, 12) for v in interval] if interval else None, 'degenerate_draws': skipped})
+    result = {'status': 'passed', 'config': config, 'scope': 'All primary full-collection and preselected-control intervals checked at full precision (absolute tolerance 1e-12, relative 1e-10); receipt endpoints rounded to 12 decimal places for cross-platform serialization. Control membership is read from frozen jobs, not regenerated from analysis selection code.',
+        'analysis_sha256': hashlib.sha256(path.read_bytes()).hexdigest(), 'verifier_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), 'jobs_sha256': hashlib.sha256(jobs_path.read_bytes()).hexdigest(), 'verified': verified}
     (directory / (config + '-bootstrap-verification.json')).write_text(json.dumps(result, indent=2, sort_keys=True) + '\n')
-    print(json.dumps({'config': config, 'primary_intervals_checked': len(verified), 'status': 'passed'}))
+    print(json.dumps({'config': config, 'primary_intervals_checked': sum(v['scope'] == 'full_collection' for v in verified), 'control_intervals_checked': sum(v['scope'] == 'preselected_controls' for v in verified), 'status': 'passed'}))
 
 
 if __name__ == '__main__':

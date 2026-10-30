@@ -16,9 +16,11 @@ python3 scripts/extension_v3/verify_analysis.py --config jev_firstparty
 
 Substitute `luna_decisions`, `laya_local` or `nimble_local` for other completed contextual arms.
 ProtectAI supports analysis and numerical verification, but has no context contrasts.
-The independent bootstrap verifier reconstructs primary intervals using explicit
-multiplicities; control intervals use the same original estimator and are covered
-by its tests and point-estimate verifier, not independently recomputed by this tool.
+The independent bootstrap verifier reconstructs primary and control intervals
+using explicit multiplicities and control membership from frozen jobs. For four
+completed contextual arms, all72 primary and288 control cases passed, including
+insufficient-group cases where an interval must be omitted. Numerical assertions
+use full precision; receipt endpoints round to12 decimals for portable serialization.
 
 For a stronger reproduction check, stage intended changes and run:
 
