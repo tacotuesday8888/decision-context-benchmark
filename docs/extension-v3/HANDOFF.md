@@ -144,3 +144,78 @@ Current branch includes a dedicated new v3 CI workflow. At commit0bc267c, all ei
 push/PR checks passed, including both v3 integrity/test/reproduction jobs. No
 inference process is live. The v3 goal remains active and confirmation remains
 unfinished; continue extraction/validation and design, not another paper build.
+
+## Confirmation running — latest authoritative stage
+
+Commit `70cfa0c` pushed the validated collection, exact prompts, protocol,108
+successful control-development calls, token audit and confirmation freeze **before
+any confirmation calls**. Prepared collection:761 task/text pairs,582 distinct
+texts,138 task groups across nine source strata. All62 InjecAgent attack instructions
+covered by16 published base cases per17 tasks. All new data is confirmation-only;
+development uses only the old dev split. No generated gold labels or invented task
+contexts. Source-construction labels are inherited explicitly;582 texts were checked
+against482 prior examples with no5-gram Jaccard≥0.8 overlap. Ninety-one texts occur
+in multiple tasks; max12 tasks/text. Full unchanged text stays in ignored
+`data/raw/extension-v3/prepared-collection-v1.jsonl`; committed manifest carries
+provenance, hashes and inherited label basis. This is now prepared/validated data,
+not just the earlier candidate inventory.
+
+`PROTOCOL-v3.0.md` is frozen and must not be edited. It specifies primary candidate/
+task comparisons and three constructed controls on83 preselected pairs;11,387
+confirmation requests (1,771 each contextual arm;761 specialist scans). Original
+question/threshold/output settings retained after mixed diagnostic results. All1,771
+Laya payloads fit (max1,702 tokens/113 head tokens); no dropped state or forward
+passes in that audit. Development108/108 completed with usage and no truncation;
+incremental cost$0.0019606 OpenAI/$0.001047228 TypeSafe. Separate caps remain$15/$20,
+including all old and new ledger entries. No paid subscription fallback or purchases.
+
+New runner `scripts/extension_v3/run.py` uses separate ledger/output paths and exact
+freeze gates. Native adapters reused read-only. The frozen old study still verifies
+5,793 unchanged files.15 offline tests passed before confirmation;21 now pass in
+`.venv` including numerical estimator tests (system Python skips NumPy tests).
+The new v3 CI workflow now installs pinned numpy2.4.4; that edit is not committed yet.
+
+The first Luna subscription confirmation process (handle52857) terminated after
+three completed cells and one HTTP0/curl28 timeout with empty response. Failure
+`a30c6762565ebe6625c11b0a` and original STOP are retained. Runtime amendment
+`runtime-amendment-v3.0.1.json` binds the changed runner and continuation tool.
+Only unattempted jobs may continue after≥60 seconds or longer numeric Retry-After;
+no retries/replacement, no prompt/data/model/threshold changes. Up to10 isolated
+HTTP/transport stops per hosted route can be documented; auth/billing/quota,
+semantic and accounting failures cannot be bypassed. All old processes already in
+memory retain the original implementation; fresh processes record amendment hash.
+The development-to-confirmation amendment had separately added persistent STOP on
+accounting-settlement exceptions; the108 development records were unchanged.
+
+### Live process handles at last polling (do not restart blindly)
+
+- Jev31554: **exit0**, all1,771 completed.
+- ProtectAI84027: **exit0**, all761 completed.
+- Luna Decisions2746: still live at last direct poll; later disk snapshot1,580 cells.
+- Astra3156: **live**,40 completed plus one reservation at last snapshot.
+- Nimble54609: **live**,163 completed plus one reservation.
+- Laya85932: **live**,778 completed plus one reservation.
+- Luna Responses continuation78558: **live**,15 completed +one failed +one reservation.
+
+Poll these same handles via write_stdin; an observation timeout is not failure.
+Only resume after a terminal handle/process and reviewed stop. To resolve an
+eligible isolated transport stop, run `python3 scripts/extension_v3/continue_transient.py
+--config CONFIG`, honor returned cooldown, then `.venv/bin/python
+scripts/extension_v3/run.py confirmation --config CONFIG`. Keep both raw failure
+and STOP. Do not run freeze-development/freeze-confirmation again: existing freezes
+are immutable and amendment-aware verification handles the new runner. Do not
+regenerate source selection or request plans while inference runs.
+
+Current raw confirmation records and live ledger changes are **not committed yet**;
+they are being written atomically. Avoid staging a moving ledger snapshot as a final
+accounting report. New runtime amendment, continuation receipt/tool, statistics
+implementation/tests and CI edit also need a reviewed commit. Model probabilities
+have not been inspected to choose analysis behavior. `statistics.py` implements the
+already frozen proper scores, task/text weighting, crossed bootstrap and small-group
+exclusions. Next implement the final aggregate analyzer/independent verifier and
+figures from the frozen protocol, while monitoring the live inference.
+
+`benign-instruction-bench/analysis/compute_v4.py` actually computes request/no-request
+judge comparisons, and `scripts/hf_judge.py` truncates tool text to6,000 characters.
+Do not claim those ablations are absent. The extension's native decision probability
+and bounded full-input controls remain its focus; no novelty guarantee.

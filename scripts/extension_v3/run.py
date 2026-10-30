@@ -72,7 +72,16 @@ def freeze(split):
 def verify_freeze(split):
     verify_completed()
     frozen = json.loads((OUT / (split + '-freeze-v1.json')).read_text())
-    if frozen['hashes'] != code_hashes() or frozen['jobs'] != jobs(split):
+    expected = dict(frozen['hashes'])
+    amendment = OUT / 'runtime-amendment-v3.0.1.json'
+    if split == 'confirmation' and amendment.exists():
+        change = json.loads(amendment.read_text())
+        if change['prior_confirmation_freeze_sha256'] != sha((OUT / 'confirmation-freeze-v1.json').read_bytes()):
+            raise ValueError('Amendment prior freeze mismatch')
+        if set(change['implementation_hashes']) != {'scripts/extension_v3/run.py'}:
+            raise ValueError('Unexpected amendment scope')
+        expected.update(change['implementation_hashes'])
+    if expected != code_hashes() or frozen['jobs'] != jobs(split):
         raise ValueError('Frozen configuration/code differs')
     raw = RAW / 'prepared-collection-v1.jsonl'
     summary = json.loads((OUT / 'collection-summary-v1.json').read_text())
@@ -121,8 +130,16 @@ def run(config, split):
     frozen = verify_freeze(split)
     directory = OUT / split / config
     directory.mkdir(parents=True, exist_ok=True)
-    if (directory / 'STOP.json').exists():
-        raise PermissionError('Saved route failure requires documented resolution; no automatic retry')
+    for stop_path in directory.glob('STOP*.json'):
+        resolution = OUT / 'continuations' / (sha(stop_path.read_bytes()) + '.json')
+        if split != 'confirmation' or not resolution.exists():
+            raise PermissionError('Saved route failure requires documented resolution; no automatic retry')
+        receipt = json.loads(resolution.read_text())
+        stop = json.loads(stop_path.read_text())
+        if (receipt['config'] != config or receipt['stop_sha256'] != sha(stop_path.read_bytes())
+            or receipt['failure_sha256'] != sha((ROOT / stop['record']).read_bytes())
+            or time.time() < receipt['not_before_epoch']):
+            raise PermissionError('Continuation receipt mismatch or cooldown incomplete')
     if split == 'confirmation' and config != 'protectai_local':
         expected = [j for j in jobs('development') if j['config'] == config]
         for job in expected:
@@ -156,6 +173,9 @@ def run(config, split):
                 'request': payload, 'request_sha256': payload_hash, 'reserved_usd': amount,
                 'model_metadata': metadata, 'started_at': datetime.now(timezone.utc).isoformat(),
                 'freeze_sha256': sha((OUT / (split + '-freeze-v1.json')).read_bytes())}
+            amendment = OUT / 'runtime-amendment-v3.0.1.json'
+            if split == 'confirmation' and amendment.exists():
+                record['runtime_amendment_sha256'] = sha(amendment.read_bytes())
             save(path, record)
             start = time.perf_counter()
             cost = None
@@ -197,14 +217,16 @@ def run(config, split):
             try:
                 transact(attempt_key, config, settled=cost)
             except Exception as error:
-                save(directory / 'STOP.json', {'job': job, 'record': str(path.relative_to(ROOT)),
+                stop_target = directory / ('STOP-' + key + '.json' if (directory / 'STOP.json').exists() else 'STOP.json')
+                save(stop_target, {'job': job, 'record': str(path.relative_to(ROOT)),
                     'reason': 'Accounting settlement failed; reservation preserved',
                     'error_type': type(error).__name__})
                 raise
             print(json.dumps({'split': split, 'config': config, 'completed_index': index + 1,
                               'planned': len(selected), 'status': record['status']}), flush=True)
             if record['status'] != 'completed':
-                save(directory / 'STOP.json', {'job': job, 'record': str(path.relative_to(ROOT)),
+                stop_target = directory / ('STOP-' + key + '.json' if (directory / 'STOP.json').exists() else 'STOP.json')
+                save(stop_target, {'job': job, 'record': str(path.relative_to(ROOT)),
                     'reason': 'Preserved failure; no automatic retries or fallback'})
                 return
 
