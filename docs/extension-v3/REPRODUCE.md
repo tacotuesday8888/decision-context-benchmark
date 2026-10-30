@@ -40,3 +40,9 @@ documented in the protocol/HANDOFF. Do not run any freeze command again or repla
 failed inference cells as part of numerical reproduction. Published fixture text
 can appear in retained requests; source-license terms and the documented inherited
 label/filter limitations still apply.
+
+Final all-job/accounting closure is separate from completed-arm numerical checks:
+`python3 scripts/extension_v3/closure.py --require-terminal` must succeed after all
+planned attempts finish. Without the flag it writes only an ignored live snapshot;
+it must not be cited as completed execution. Frozen requests include108 development
+and11,387 confirmation cells; local diagnostic42 calls are separate and free.

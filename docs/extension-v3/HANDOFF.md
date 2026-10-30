@@ -185,3 +185,23 @@ not new labels or post-outcome prompt selection. All contrasts and denominators
 are saved, with no pooled winner. Completion-status audit explicitly keeps remaining
 three arms and final closure incomplete. tables.py now reproduces display CSVs;
 full staged reproduction will include it at the next/final checkpoint.
+
+At432721a, control tables and completion-status audit pushed; all8 CI checks passed.
+New closure.py reconciles every frozen dev/confirmation job, raw record and ledger
+entry under the budget lock. Live snapshot is ignored; --require-terminal correctly
+rejects missing/in-flight cells and does not write a false completion receipt.
+Current all-in conservative accounting is OpenAI0.2896254 /TypeSafe0.154397208,
+including preserved prior spending. These are not refreshed balances/invoices.
+
+Luna handle39721 terminated with444completed +3failed after another empty HTTP0/
+curl28 failure `aa88b907dbf98f1972e2a798`. That failure is base-policy eligible.
+The base continuation helper nevertheless stops on the prior resolved HTTP200
+exception. Additive amendment-v3.0.3 and continue_reviewed.py fix receipt handling:
+existing receipts are hash-verified unchanged; only unresolved base-eligible stops
+receive new receipts. The one-failure HTTP200 exception is not generalized, and
+all stops still count toward10. Four regression tests cover idempotence, existing
+special-case receipt, semantic-error rejection and changed-failure rejection.
+25 offline tests pass. New Luna handle31950 now continues only unattempted cells;
+Astra58329 and Nimble54609 remain the other active handles. Confirm live state before
+restarting anything. Prefer continue_reviewed.py for future base-eligible stops;
+never bypass a new unsupported semantic/auth/billing/quota/HTTP200 failure.
