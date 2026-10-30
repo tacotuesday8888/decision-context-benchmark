@@ -205,3 +205,10 @@ special-case receipt, semantic-error rejection and changed-failure rejection.
 Astra58329 and Nimble54609 remain the other active handles. Confirm live state before
 restarting anything. Prefer continue_reviewed.py for future base-eligible stops;
 never bypass a new unsupported semantic/auth/billing/quota/HTTP200 failure.
+
+Latest progress: live handles31950Luna,58329Astra,54609Nimble polled concurrently
+for30seconds; observed loop positions513/512/976 respectively. No new failures in
+that interval. Final accounting gate now has five operational regression fixtures:
+reject missing cells, retain unknown-usage reserves plus prior spend, reject extra
+raw records, reject settled-cost mismatches and enforce all-in caps.30 offline tests
+pass. These fixtures are not generated benchmark examples/gold labels.
