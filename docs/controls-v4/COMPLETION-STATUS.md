@@ -1,7 +1,7 @@
 # Controls v4 completion evidence
 
-Inference, analysis and source preparation are complete. Repository delivery is tracked
-separately below; this document does not substitute for the recorded checks.
+Inference, analysis, source preparation and private draft delivery are complete.
+The evidence below records the scope and limits of verification.
 
 | Goal requirement | Authoritative evidence and result |
 |---|---|
@@ -22,7 +22,7 @@ separately below; this document does not substitute for the recorded checks.
 | Reproducible source preparation | preparation-reproduction-v1.json: six offline commands, 13 byte-identical outputs including ignored prepared text from pinned source clones/downloads. |
 | Isolated final numerical reproduction | offline-reproduction-v1.json: 32 commands rebuilt 56 outputs byte-for-byte from the staged tree without credentials, weights, network or inference; 5,793 historical files verified. |
 | Secret and diff review | Intended v4 files scanned for API/GitHub token patterns, private keys and access/refresh-token values: zero matches. git diff --check passed. Credentials, ignored source downloads and weights are not staged. |
-| Private repository delivery | Branch codex/context-controls-v4; private draft PR5 against context-extension-v3. Final push/CI pending at this checkpoint. No merge, public publication, submission or PDF. |
+| Private repository delivery | Branch codex/context-controls-v4; private draft PR5 against context-extension-v3. Results commit 437a154f pushed; all ten checks passed (delivery-checkpoint-v1.json). Documentation closure follows; current-head checks are verified separately before goal completion. No merge, public publication, submission or PDF. |
 
 The controls do not establish a general benefit specific to authentic task semantics.
 Astra's QA task advantage over candidate/empty formatting is matched by reminder and

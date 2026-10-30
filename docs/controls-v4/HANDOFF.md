@@ -12,6 +12,8 @@ old process handles or resend failed cells. Cumulative conservative usage/reserv
 OpenAI $0.4838404, TypeSafe $0.258774852; not account balances.
 
 Branch: codex/context-controls-v4. Private draft PR5 targets codex/context-extension-v3.
-Final commit/push and current-head CI still require verification at this checkpoint.
+Results commit 437a154f pushed; all ten CI checks passed. delivery-checkpoint-v1.json
+records that immutable result. Documentation closure is the only follow-up commit;
+verify its current-head checks and clean remote state before marking the goal complete.
 No merge, public publication, new PDF, purchases or new inference are authorized
 by the remaining delivery work. The 5,793 protected earlier files remain unchanged.
