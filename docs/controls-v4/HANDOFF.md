@@ -20,13 +20,13 @@ publication, new PDF, purchases, new subscriptions or rented compute are authori
 
 | Configuration | exec session | Last observed completed index (moving) |
 |---|---|---|
-| Luna chat | 85775 | 742 / 2,125 |
+| Luna chat | 91531 | Resumed after preserved failure at 744 / 2,125 |
 | Astra chat | 28541 | 452 / 2,125 |
 | Nimble local | 65326 | 893 / 2,125 |
 
 All three returned fresh progress on the current continuation. Do not launch duplicate
 processes, change frozen order/settings, or infer termination from an observation timeout.
-No failures have been observed on these routes yet. Their sequential runs can take
+Luna retained one nonterminal stream timeout at cell 744; see the exact stream-continuation-v1 policy and receipt. Astra and Nimble have no observed failures. Their sequential runs can take
 hours. Inspect new STOP records if present. `continue_transient.py` permits at most ten
 HTTP-transient continuations per route, after cooldown, preserving every failed cell.
 It never resends a failed confirmation cell. Other error classes require inspection.
@@ -60,7 +60,7 @@ It never resends a failed confirmation cell. Other error classes require inspect
   control-error and absolute-error figures were visually inspected; final all-route
   figures still need inspection. ERROR-REVIEW.md contains exploratory fixed-ID source
   inspections and counterexamples, without relabeling or post-outcome exclusions.
-- Seventeen offline tests pass. Analysis helpers use metrics.py to avoid import shadowing.
+- Nineteen offline tests pass. Analysis helpers use metrics.py to avoid import shadowing.
 
 ## Accounting and files still moving
 
@@ -95,3 +95,5 @@ Read REPRODUCE.md for exact offline commands. Do not rerun successful inference 
 old frozen commands as a reproduction step. Source-specific conclusions and the limits
 of construction labels, tiny benign supplement, lexical controls and fixed attack
 family must remain explicit in the final answer.
+
+Luna session 85775 is terminal. Its exact reviewed HTTP200/curl28 stream contained only created/in-progress events and a keepalive; no output, usage or provider error. continue_stream_v1.py and its tests bind the saved failure and preserve it. Session 91531 continues only untouched jobs; frozen inference files/settings remain unchanged.
