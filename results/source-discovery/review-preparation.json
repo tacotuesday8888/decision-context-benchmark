@@ -1,0 +1,111 @@
+{
+  "all_review_texts_git_ignored": true,
+  "as_of": "2026-10-30",
+  "available_fields": {
+    "aib": {
+      "assistant_reference_outputs_in_detector_payload": false,
+      "initial_user_task": true,
+      "tool_result_messages_with_original_roles": true,
+      "trusted_policy": true,
+      "unique_attack_span_or_target_turn": "not_assumed"
+    },
+    "spml": {
+      "indirect_untrusted_tool_candidate": false,
+      "separate_legitimate_user_task": false,
+      "submitted_user_instruction": true,
+      "trusted_policy": true
+    }
+  },
+  "limitations": [
+    "Review preparation is not verified semantic gold and does not freeze an experiment.",
+    "SPML submitted user instructions remain a separate policy-boundary arm, not lower-trust tool content.",
+    "AIB multi-turn or multiple-tool-result cases need turn-level review before selecting a candidate.",
+    "AIB later user turns and tool catalogs have not been automatically assigned trusted status.",
+    "Original reference assistant messages and execution/gold metadata remain only in the ignored source; they are excluded from detector payloads.",
+    "No development/evaluation split or source independence claim is made; group policies, templates and related cases before splitting."
+  ],
+  "no_generated_examples": true,
+  "no_inference": true,
+  "no_new_semantic_labels": true,
+  "schema_version": "review-preparation-v1",
+  "sources": [
+    {
+      "actual_user_task_available": 0,
+      "distinct_exact_system_policies": 840,
+      "flag_counts": {
+        "empty_upstream_submitted_user_prompt": 1,
+        "missing_separate_legitimate_user_task": 16012,
+        "not_indirect_tool_injection": 16012,
+        "requires_independent_semantic_review": 16012,
+        "synthetic_policy_relative_annotation": 16012
+      },
+      "independently_reviewed": 0,
+      "inference_eligible": 0,
+      "repository": "reshabhs/SPML_Chatbot_Prompt_Injection",
+      "review_bytes": 54001114,
+      "review_cache": "data/raw/source-discovery/spml-review-v1.jsonl",
+      "review_rows": 16012,
+      "review_sha256": "40aaec053b0f9b7afc9ca591d745ee8f9429cf861b345454007d3711e50de474",
+      "revision": "02ce8084e979bc7d4c24ee35d22ecb7f2db96ff5",
+      "semantic_gold_populated": 0,
+      "source_receipts": [
+        {
+          "bytes": 6091,
+          "local_cache": "data/raw/source-discovery/spml-02ce8084e979bc7d4c24ee35d22ecb7f2db96ff5-README.md",
+          "sha256": "8f583aa131c37be5e2a7f454bb63495bdba38c7011c75b8f8fca2151891e0327",
+          "url": "https://huggingface.co/datasets/reshabhs/SPML_Chatbot_Prompt_Injection/resolve/02ce8084e979bc7d4c24ee35d22ecb7f2db96ff5/README.md"
+        },
+        {
+          "bytes": 29051327,
+          "local_cache": "data/raw/source-discovery/spml-02ce8084e979bc7d4c24ee35d22ecb7f2db96ff5-data.csv",
+          "sha256": "4ca6590cd8ec10832fcebee5e243acb32be5c3e79b7a260f8638eed738c784f8",
+          "url": "https://huggingface.co/datasets/reshabhs/SPML_Chatbot_Prompt_Injection/resolve/02ce8084e979bc7d4c24ee35d22ecb7f2db96ff5/spml_prompt_injection.csv"
+        }
+      ],
+      "submitted_user_prompt_nonempty": 16011,
+      "trusted_policy_available": 16012,
+      "upstream_label_counts": {
+        "0": 3470,
+        "1": 12542
+      }
+    },
+    {
+      "actual_user_task_available": 182,
+      "distinct_exact_system_policies": 182,
+      "flag_counts": {
+        "assistant_reference_outputs_excluded": 182,
+        "multi_turn_requires_turn_level_review": 24,
+        "multiple_or_missing_tool_results_candidate_unit_unresolved": 19,
+        "noncanonical_conversation_order": 23,
+        "reference_tool_call_excluded": 1,
+        "requires_independent_semantic_review": 182,
+        "synthetic_upstream_fixture": 182,
+        "tool_catalog_trust_unadjudicated": 182
+      },
+      "independently_reviewed": 0,
+      "inference_eligible": 0,
+      "repository": "ppradyoth/AgentInjectionBench",
+      "review_bytes": 515408,
+      "review_cache": "data/raw/source-discovery/aib-review-v1.jsonl",
+      "review_rows": 182,
+      "review_sha256": "8c93f7a8c17131d0877e9e288868b236edfbb7d846cd5b1533857ae39bd51661",
+      "revision": "540669a836e98063278fb0586e5e178818a20d88",
+      "semantic_gold_populated": 0,
+      "source_receipts": [
+        {
+          "bytes": 314335,
+          "local_cache": "data/raw/source-discovery/aib-cases.jsonl",
+          "sha256": "606cb74f5ce874dba45d9cdf591af678d7c6bd8a92ff3189d0f522fb39fb941e",
+          "url": "https://raw.githubusercontent.com/ppradyoth/AgentInjectionBench/540669a836e98063278fb0586e5e178818a20d88/data/agent_injection_bench.jsonl"
+        }
+      ],
+      "submitted_user_prompt_nonempty": 0,
+      "trusted_policy_available": 182,
+      "upstream_label_counts": {
+        "safe": 40,
+        "unsafe": 142
+      }
+    }
+  ],
+  "training_evaluation_split": "not_assigned"
+}

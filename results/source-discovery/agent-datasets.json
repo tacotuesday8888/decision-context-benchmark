@@ -1,0 +1,201 @@
+{
+  "audit_date": "2026-10-30",
+  "scope": "Task-bearing agent-security artifacts beyond the current BIPIA/LLMail/TaskTracker/AgentDojo core; public artifacts were read as data and upstream code was not executed.",
+  "sources_reviewed": 24,
+  "sources_reviewed_definition": "Sum of requested Exa numResults: three searches requesting eight results each. This is a search-budget count, not 24 deeply inspected papers or 24 verified datasets.",
+  "searches": [
+    {"query": "category:research paper university prompt injection agent benchmark ASB WASP WAInjectBench data GitHub task tool output", "numResults": 8},
+    {"query": "category:research paper near target prompt injection benchmark NTBench benign instructions task related attack dataset release", "numResults": 8},
+    {"query": "category:research paper InjecAgent AgentDyn R-Judge AgentHarm dataset user task tool response benchmark GitHub", "numResults": 8}
+  ],
+  "methods": {
+    "primary_verification": "Read primary paper HTML, pinned README/license files and GitHub tree metadata; parse original JSON/JSONL to verify counts and schemas where stated.",
+    "no_new_inference": true,
+    "no_upstream_code_execution": true,
+    "raw_dataset_redistribution": false,
+    "selection_caveat": "These are source-audit recommendations, not approved semantic labels or a frozen confirmation set. Legitimate imperative content and subtle task-related attacks require record-level review. Source-construction labels, semantic annotation and observed attacker success are separate quantities."
+  },
+  "rows": [
+    {
+      "id": "injecagent",
+      "name": "InjecAgent",
+      "institution": {"status": "verified", "names": ["University of Illinois Urbana-Champaign"], "source": "https://arxiv.org/html/2403.02691v1"},
+      "primary_urls": ["https://aclanthology.org/2024.findings-acl.624/", "https://arxiv.org/html/2403.02691v1", "https://github.com/uiuc-kang-lab/InjecAgent"],
+      "revision": "f19c9f2c79a41046eb13c03c51a24c567a8ffa07",
+      "counts": [
+        {"value": 1054, "unit": "base constructed attack cases", "basis": "parsed 510 direct-harm plus 544 data-stealing records"},
+        {"value": 17, "unit": "original user task fixtures", "basis": "parsed data/user_cases.jsonl"},
+        {"value": 62, "unit": "attacker instruction/tool fixtures", "basis": "30 direct-harm plus 32 stealing fixtures; crossed with 17 user fixtures"}
+      ],
+      "fields": ["User Instruction", "User Tool", "Tool Parameters", "Tool Response Template", "Tool Response", "Attacker Instruction", "Expected Achievements", "Attack Type"],
+      "label_contract": "Cases are intended indirect attacks by construction. The benchmark separately evaluates valid agent continuations and direct-harm/data-stealing success. Case membership is not proof of successful exploitation, independent semantic adjudication, or a benign/malicious balanced detector dataset.",
+      "creation_method": {"description": "Published synthesis of user and attacker fixtures; enhanced setting prepends a fixed override wrapper. The two settings reuse the same task/instruction combinations. Paper describes LLM-assisted construction and human refinement.", "sources": ["https://github.com/uiuc-kang-lab/InjecAgent/blob/f19c9f2c79a41046eb13c03c51a24c567a8ffa07/README.md", "https://arxiv.org/html/2403.02691v1"]},
+      "license": {"status": "verified", "name": "MIT", "sources": ["https://github.com/uiuc-kang-lab/InjecAgent/blob/f19c9f2c79a41046eb13c03c51a24c567a8ffa07/LICENCE"]},
+      "availability": "Public JSON/JSONL fixtures available and parsed. README links historical model outputs separately.",
+      "task_control_suitability": "Original user instruction and actual constructed payload-bearing tool response support fixed-candidate task/no-task/reminder comparisons. Attack-only source cannot estimate false positives. Tool Response Template has a placeholder rather than a released clean counterpart.",
+      "novelty_exposure": "Not a fresh source for this project: v3 already exposed all 17 user fixtures and all 62 instruction families, using 272 attacks. Unselected cross-product strings are not independent unseen-task confirmation.",
+      "limitations": ["Only 17 user task fixtures despite 1,054 rows.", "Constructed and mostly overt attacker goals.", "Enhanced wrapper creates variants, not independent tasks.", "Related R-Judge records derive partly from InjecAgent and must be deduplicated/grouped across sources."],
+      "recommendation": "Retain as historical replication/development and explicit construction-label analysis; do not count it as a new confirmation dataset.",
+      "evidence_level": "primary_paper_and_pinned_records_inspected",
+      "inspected_urls": ["https://arxiv.org/html/2403.02691v1", "https://github.com/uiuc-kang-lab/InjecAgent/blob/f19c9f2c79a41046eb13c03c51a24c567a8ffa07/README.md", "https://raw.githubusercontent.com/uiuc-kang-lab/InjecAgent/f19c9f2c79a41046eb13c03c51a24c567a8ffa07/data/user_cases.jsonl", "https://raw.githubusercontent.com/uiuc-kang-lab/InjecAgent/f19c9f2c79a41046eb13c03c51a24c567a8ffa07/data/attacker_cases_dh.jsonl", "https://raw.githubusercontent.com/uiuc-kang-lab/InjecAgent/f19c9f2c79a41046eb13c03c51a24c567a8ffa07/data/attacker_cases_ds.jsonl", "https://raw.githubusercontent.com/uiuc-kang-lab/InjecAgent/f19c9f2c79a41046eb13c03c51a24c567a8ffa07/data/test_cases_dh_base.json", "https://raw.githubusercontent.com/uiuc-kang-lab/InjecAgent/f19c9f2c79a41046eb13c03c51a24c567a8ffa07/data/test_cases_ds_base.json", "https://api.github.com/repos/uiuc-kang-lab/InjecAgent/license"]
+    },
+    {
+      "id": "agentdyn",
+      "name": "AgentDyn",
+      "institution": {"status": "verified_for_paper_v1", "names": ["Washington University in St. Louis", "Johns Hopkins University"], "source": "https://arxiv.org/html/2602.03117v1"},
+      "primary_urls": ["https://arxiv.org/html/2602.03117v1", "https://github.com/SaFo-Lab/AgentDyn"],
+      "revision": "5353cf7615b135cace8d07c8f12dac53a16b6db3",
+      "counts": [
+        {"value": 60, "unit": "manually designed open-ended user tasks", "basis": "v1 paper and current README; 20 each shopping/GitHub/daily life"},
+        {"value": 28, "unit": "injection tasks", "basis": "paper table: 9 shopping, 9 GitHub, 10 daily life"},
+        {"value": 560, "unit": "task/injection combinations", "basis": "within-suite cross products, not 560 independent tasks"}
+      ],
+      "fields": ["suite_name", "pipeline_name", "user_task_id", "injection_task_id", "attack_type", "initial_trajectory", "messages", "benchmark_version", "utility", "security", "total_tokens", "duration"],
+      "label_contract": "The released clean/default and important_instructions runs identify an attack intervention and separate utility/security outcomes. An injected trajectory need not make every tool observation malicious; extract the verified payload-bearing observation and preserve message/tool-call alignment.",
+      "creation_method": {"description": "Manually designed dynamic sandbox benchmark built on AgentDojo; includes legitimate third-party procedural instructions. Released trajectories come from model execution in simulated environments, not production users.", "sources": ["https://arxiv.org/html/2602.03117v1", "https://github.com/SaFo-Lab/AgentDyn/blob/5353cf7615b135cace8d07c8f12dac53a16b6db3/README.md"]},
+      "license": {"status": "verified_repository_license", "name": "MIT", "sources": ["https://github.com/SaFo-Lab/AgentDyn/blob/5353cf7615b135cace8d07c8f12dac53a16b6db3/LICENSE"]},
+      "availability": "Public benchmark code and extensive runs/ JSON trajectories available. Sample clean and attacked daily-life trajectories parsed. Repository now redirects from the paper's leolee99 location to SaFo-Lab.",
+      "task_control_suitability": "Strong match for studying overdefense and original-task context because user messages, helpful external instructions and tool observations are retained. Full history may be necessary; opening-user-message-only extraction can omit constraints. One inspected clean/attacked pair also differs in recorded tool permissions, so do not assume the whole trajectories differ only by payload.",
+      "novelty_exposure": "Already used in project v3: 336 clean/attack pairs across the three new suites. Existing task/source exposure and repeated templates must be checked before adding additional trajectories. Current README revises paper title/authors relative to v1; preserve version distinctions.",
+      "limitations": ["Only 60 task units despite 560 cross-product attack cases and many model traces.", "Repeated important_instructions template limits attack diversity.", "Tool observations may repeat across trajectories and models.", "Helpful instructions and source-construction labels are not independent semantic gold."],
+      "recommendation": "Use for robustness diagnostics or separately versioned prevention replication; do not present further released traces as entirely fresh independent confirmation.",
+      "evidence_level": "primary_paper_pinned_readme_and_sample_trajectories_inspected",
+      "inspected_urls": ["https://arxiv.org/html/2602.03117v1", "https://github.com/SaFo-Lab/AgentDyn/blob/5353cf7615b135cace8d07c8f12dac53a16b6db3/README.md", "https://raw.githubusercontent.com/SaFo-Lab/AgentDyn/5353cf7615b135cace8d07c8f12dac53a16b6db3/runs/google_gemini-2.5-flash-drift/dailylife/user_task_0/important_instructions/injection_task_0.json", "https://raw.githubusercontent.com/SaFo-Lab/AgentDyn/5353cf7615b135cace8d07c8f12dac53a16b6db3/runs/google_gemini-2.5-flash-drift/dailylife/user_task_0/none/none.json", "https://raw.githubusercontent.com/SaFo-Lab/AgentDyn/5353cf7615b135cace8d07c8f12dac53a16b6db3/LICENSE"]
+    },
+    {
+      "id": "asb",
+      "name": "Agent Security Bench (ASB)",
+      "institution": {"status": "verified", "names": ["Zhejiang University", "Rutgers University"], "source": "https://arxiv.org/html/2410.02644v1"},
+      "primary_urls": ["https://arxiv.org/html/2410.02644v1", "https://openreview.net/forum?id=V4y0CpX4hK", "https://github.com/agiresearch/ASB"],
+      "revision": "544540ff0788998072f7df463056fd17e62cc9f4",
+      "counts": [
+        {"value": 10, "unit": "agent/scenario task groups", "basis": "parsed data/agent_task.jsonl"},
+        {"value": 51, "unit": "normal task strings in main task file", "basis": "sum of lengths of tasks arrays, not inferred from headline count"},
+        {"value": 400, "unit": "attack-tool/instruction records", "basis": "parsed data/all_attack_tools.jsonl"},
+        {"value": 20, "unit": "normal-tool records", "basis": "parsed data/all_normal_tools.jsonl"},
+        {"value": 90000, "unit": "approximately reported testing cases over model/attack/defense configurations", "basis": "v1 paper; not independent source examples"}
+      ],
+      "fields": {"normal_tasks": ["agent_name", "agent_path", "tasks"], "attack_tools": ["Attacker Tool", "Attacker Instruction", "Description", "Attack goal", "Attack Type", "Corresponding Agent", "Aggressive"], "normal_tools": ["Tool Name", "Description", "Expected Achievements", "Corresponding Agent"]},
+      "label_contract": "The suite includes direct user-prompt modification, observation injection, memory poisoning and system-prompt backdoors. Only verified observation-prompt-injection cases match our untrusted external-content detection question. Attack-tool membership, refusal of an aggressive request and semantic injection are different labels.",
+      "creation_method": {"description": "Designed AIOS agent scenarios, task lists and attacker tool catalog; phrase triggers can be LLM-generated. Main normal task prompts are broad authored requests. Full provenance of every attack-tool row is not established by this audit.", "sources": ["https://arxiv.org/html/2410.02644v1", "https://github.com/agiresearch/ASB/blob/544540ff0788998072f7df463056fd17e62cc9f4/README.md"]},
+      "license": {"status": "verified_repository_license", "name": "MIT", "sources": ["https://github.com/agiresearch/ASB/blob/544540ff0788998072f7df463056fd17e62cc9f4/LICENSE"]},
+      "availability": "Public task, normal-tool and attack-tool records available and parsed. Config files distinguish clean/OPI/DPI/memory/backdoor settings. Actual original observation text and trace alignment still require adapter/code inspection; catalog rows are not a ready-made task/observation dataset.",
+      "task_control_suitability": "Potential additional domain coverage after isolating the OPI path and exact original task/tool observation. Do not manufacture all 51-by-400 pairings and call them published cases. Scope would be designed/simulated tasks rather than real production tasks.",
+      "novelty_exposure": "Not selected in the inspected project's v2-v4 source records. Semantic attacks may overlap familiar instruction/exfiltration families; source-name difference is not proof of novelty or training independence.",
+      "limitations": ["Task lists are often generic and may need the agent profile and tool schema to be meaningful.", "Paper headline counts cover attacks/tools/configurations, not only normal task fixtures.", "Threat models include powers outside the target detection task.", "Legitimate imperative tool outputs and subtle corruption are not established by catalog metadata alone."],
+      "recommendation": "Prioritize a small offline OPI adapter feasibility audit; add only records whose complete original task, response placement and label basis can be verified. Secondary to sources already releasing exact task/observation pairs.",
+      "evidence_level": "primary_paper_pinned_readme_license_and_catalog_records_inspected; observation_adapter_not_yet_verified",
+      "inspected_urls": ["https://arxiv.org/html/2410.02644v1", "https://github.com/agiresearch/ASB/blob/544540ff0788998072f7df463056fd17e62cc9f4/README.md", "https://raw.githubusercontent.com/agiresearch/ASB/544540ff0788998072f7df463056fd17e62cc9f4/data/agent_task.jsonl", "https://raw.githubusercontent.com/agiresearch/ASB/544540ff0788998072f7df463056fd17e62cc9f4/data/all_attack_tools.jsonl", "https://raw.githubusercontent.com/agiresearch/ASB/544540ff0788998072f7df463056fd17e62cc9f4/data/all_normal_tools.jsonl", "https://raw.githubusercontent.com/agiresearch/ASB/544540ff0788998072f7df463056fd17e62cc9f4/LICENSE"]
+    },
+    {
+      "id": "wasp",
+      "name": "WASP: Benchmarking Web Agent Security Against Prompt Injection Attacks",
+      "institution": {"status": "verified", "names": ["FAIR at Meta"], "source": "https://arxiv.org/html/2504.18575v1", "note": "Paper lists FAIR affiliation/work done at Meta; do not label the whole benchmark a university dataset."},
+      "primary_urls": ["https://arxiv.org/html/2504.18575v1", "https://github.com/facebookresearch/wasp"],
+      "revision": "ffee6f41fde76acd14bd792db442479c506260c2",
+      "counts": [
+        {"value": 21, "unit": "attacker-goal configurations", "basis": "parsed prompt_injections_setup_config and released Croissant attack JSONL"},
+        {"value": 4, "unit": "benign user-goal templates", "basis": "static constants.py: two GitLab and two Reddit goals"},
+        {"value": 42, "unit": "attacker-goal/user-goal scenarios", "basis": "paper; each environment-specific attacker goal crossed with that environment's two user goals"},
+        {"value": 84, "unit": "scenarios with two injection-template variants", "basis": "paper URL versus plain text; not 84 independent tasks"},
+        {"value": 37, "unit": "released utility configuration records", "basis": "parsed Croissant utility_in_webarena_format.jsonl; distinct count unit from four attack-study goal templates"}
+      ],
+      "fields": ["free_form_name", "environment", "setup_fn", "parameters", "action_url", "instruction", "exfil", "eval", "cleanup_fn", "notes"],
+      "label_contract": "Configuration instruction is the attacker's goal, not the legitimate user task. User goals and injection templates live separately in constants.py. Evaluators measure end-to-end attack success, intermediate action and legitimate task utility in sandbox websites. These labels cannot simply be transferred to arbitrary extracted website strings.",
+      "creation_method": {"description": "Authored attack/user goals applied to GitLab and Reddit/Postmill sandbox websites populated from scraped original pages. Published task-related and generic injection templates explicitly permit controls on task references.", "sources": ["https://arxiv.org/html/2504.18575v1", "https://github.com/facebookresearch/wasp/blob/ffee6f41fde76acd14bd792db442479c506260c2/webarena_prompt_injections/constants.py"]},
+      "license": {"status": "verified_component_specific", "name": "CC BY-NC 4.0 for WASP data and majority of repository; VisualWebArena MIT and other bundled components retain separate notices", "sources": ["https://github.com/facebookresearch/wasp/blob/ffee6f41fde76acd14bd792db442479c506260c2/LICENSE", "https://github.com/facebookresearch/wasp/blob/ffee6f41fde76acd14bd792db442479c506260c2/README.md"]},
+      "availability": "Public experiment/utility configurations and code available and parsed; full end-to-end replay requires web environments, browser scaffolding, login state, reset/evaluators and separate API inference. This audit did not create those environments or establish a ready static trace release.",
+      "task_control_suitability": "Excellent conceptual match for task-related versus generic attack framing and a separate prevention/utility study. Potential fixed detector replay if exact rendered original observations can be obtained reproducibly; no arbitrary text extraction or synthetic clean replacements.",
+      "novelty_exposure": "Already reviewed but excluded from project static datasets because action-based labels would be lost. WAInjectBench reuses 84 WASP malicious segments, so these sources are not independent. Four user-goal templates are much narrower than a headline84-task count suggests.",
+      "limitations": ["Full web execution substantially increases environment and cost complexity.", "Only four benign goal templates in attack scenarios.", "Task-related requirement templates are explicit and may not test subtle factual corruption.", "Detection results alone would not reproduce the benchmark's prevention outcomes."],
+      "recommendation": "Best of these sources for a separately scoped end-to-end prevention extension; first build a small deterministic observation/label adapter. Do not bulk-download image assets or launch paid web-agent runs during source selection.",
+      "evidence_level": "primary_paper_pinned_configuration_records_constants_and_license_inspected",
+      "inspected_urls": ["https://arxiv.org/html/2504.18575v1", "https://github.com/facebookresearch/wasp/blob/ffee6f41fde76acd14bd792db442479c506260c2/README.md", "https://raw.githubusercontent.com/facebookresearch/wasp/ffee6f41fde76acd14bd792db442479c506260c2/webarena_prompt_injections/configs/experiment_config.raw.json", "https://raw.githubusercontent.com/facebookresearch/wasp/ffee6f41fde76acd14bd792db442479c506260c2/webarena_prompt_injections/configs/croissant/attacks_in_webarena_format.jsonl", "https://raw.githubusercontent.com/facebookresearch/wasp/ffee6f41fde76acd14bd792db442479c506260c2/webarena_prompt_injections/configs/croissant/utility_in_webarena_format.jsonl", "https://raw.githubusercontent.com/facebookresearch/wasp/ffee6f41fde76acd14bd792db442479c506260c2/webarena_prompt_injections/constants.py", "https://raw.githubusercontent.com/facebookresearch/wasp/ffee6f41fde76acd14bd792db442479c506260c2/LICENSE"]
+    },
+    {
+      "id": "wainjectbench",
+      "name": "WAInjectBench",
+      "institution": {"status": "verified", "names": ["Duke University"], "source": "https://arxiv.org/html/2510.01354v1"},
+      "primary_urls": ["https://arxiv.org/html/2510.01354v1", "https://github.com/Norrrrrrr-lyn/WAInjectBench"],
+      "revision": "ee55236860820b3639c9039a2aa367b2cb86d114",
+      "counts": [
+        {"value": 3698, "unit": "released text segments", "basis": "parsed all twelve data/text JSONL files"},
+        {"value": 991, "unit": "malicious-path text records", "basis": "62+186+31+114+94+204+216+84"},
+        {"value": 2707, "unit": "benign-path text records", "basis": "806 comments/issues, 173 emails/messages, 226 captions, 1502 interface/web texts"},
+        {"value": 2022, "unit": "malicious images reported", "basis": "paper; image files not independently enumerated or downloaded in this audit"},
+        {"value": 948, "unit": "benign images reported", "basis": "paper; image files not independently enumerated or downloaded in this audit"}
+      ],
+      "fields": ["id", "text"],
+      "text_file_counts": {"benign/comment_issue.jsonl": 806, "benign/email_msg.jsonl": 173, "benign/img_caption.jsonl": 226, "benign/web_text.jsonl": 1502, "malicious/EIA_w_EI.jsonl": 62, "malicious/EIA_wo_EI.jsonl": 186, "malicious/VPI_E_M.jsonl": 31, "malicious/VPI_web_text.jsonl": 114, "malicious/VWA_adv_w_EI.jsonl": 94, "malicious/VWA_adv_wo_EI.jsonl": 204, "malicious/popup.jsonl": 216, "malicious/wasp.jsonl": 84},
+      "label_contract": "Original text records contain only id/text. Benign/malicious labels are implicit in the source path; README training format separately defines 0/1 labels. No task query, original page ID, attack success, confidence or individual annotation record is retained in those text rows. Some attacks deliberately omit explicit instructions.",
+      "creation_method": {"description": "Collects malicious segments from multiple web-agent attack families and benign comments, messages, captions and interface text. Caption sources include generated captions. Derived sources include WASP, VWA, EIA, VPI and Mind2Web-related web content; do not call all text naturally occurring human annotations.", "sources": ["https://arxiv.org/html/2510.01354v1", "https://github.com/Norrrrrrr-lyn/WAInjectBench/blob/ee55236860820b3639c9039a2aa367b2cb86d114/README.md"]},
+      "license": {"status": "unresolved", "name": null, "sources": ["https://api.github.com/repos/Norrrrrrr-lyn/WAInjectBench/git/trees/ee55236860820b3639c9039a2aa367b2cb86d114?recursive=1", "https://api.github.com/repos/Norrrrrrr-lyn/WAInjectBench/license"], "note": "No repository LICENSE found in inspected tree; GitHub license endpoint404. An arXiv article license does not grant rights to all source datasets."},
+      "availability": "Public text records are immediately readable and parsed. They are not immediately eligible for authentic original-task controls because context is missing. Models/images/code are also present but were not downloaded/executed.",
+      "task_control_suitability": "Useful source for context-dependent label ambiguity and a candidate-only detector stress test after terms are resolved. To add task context, recover it from the exact original attack artifact, with a verifiable link; do not invent plausible tasks. Example attack-path text is not semantically distinguishable from a benign interface instruction in isolation.",
+      "novelty_exposure": "Known close related-work source: System One Security Evaluation uses selected WAInjectBench inputs. WASP segments overlap the original WASP benchmark. New source identity is not a new independent task collection.",
+      "limitations": ["Missing original tasks, page provenance and per-record construction metadata.", "Subset and source licenses unresolved.", "Attack-only benign-looking segments can be ambiguous outside their original environment.", "Repeated source families and generated captions complicate independence and interpretation."],
+      "recommendation": "Keep as a high-priority provenance-recovery lead, not the main task-context confirmation set. The 3,698 headline text count cannot solve the missing task-context problem by itself.",
+      "evidence_level": "primary_paper_pinned_readme_and_all_text_jsonl_records_inspected; original_task_links_and_license_unresolved",
+      "inspected_urls": ["https://arxiv.org/html/2510.01354v1", "https://github.com/Norrrrrrr-lyn/WAInjectBench/blob/ee55236860820b3639c9039a2aa367b2cb86d114/README.md", "https://github.com/Norrrrrrr-lyn/WAInjectBench/tree/ee55236860820b3639c9039a2aa367b2cb86d114/data/text", "https://raw.githubusercontent.com/Norrrrrrr-lyn/WAInjectBench/ee55236860820b3639c9039a2aa367b2cb86d114/data/text/malicious/EIA_wo_EI.jsonl", "https://raw.githubusercontent.com/Norrrrrrr-lyn/WAInjectBench/ee55236860820b3639c9039a2aa367b2cb86d114/data/text/malicious/wasp.jsonl", "https://api.github.com/repos/Norrrrrrr-lyn/WAInjectBench/license"]
+    },
+    {
+      "id": "rjudge",
+      "name": "R-Judge",
+      "institution": {"status": "verified", "names": ["Shanghai Jiao Tong University"], "source": "https://arxiv.org/html/2401.10019v3"},
+      "primary_urls": ["https://aclanthology.org/2024.findings-emnlp.79/", "https://arxiv.org/html/2401.10019v3", "https://github.com/Lordog/R-Judge"],
+      "revision": "83ce301da3ad50dd8b397e772863f5411c3d3dc2",
+      "counts": [
+        {"value": 569, "unit": "multi-turn interaction records reported in v3 paper/current README", "basis": "publisher reporting"},
+        {"value": 571, "unit": "actual unique record IDs in current pinned data tree", "basis": "parsed all27 JSON data files;571 unique IDs with no duplicated IDs"},
+        {"value": 270, "unit": "safe-labeled records in pinned tree", "basis": "actual label0 counts"},
+        {"value": 301, "unit": "unsafe-labeled records in pinned tree", "basis": "actual label1 counts"},
+        {"value": 414, "unit": "injection-origin records in pinned tree", "basis": "attack_type=injection; paper identifies InjecAgent contribution"},
+        {"value": 157, "unit": "unintended-risk records in pinned tree", "basis": "attack_type=unintended"}
+      ],
+      "fields": ["id", "scenario", "profile", "goal", "contents", "label", "risk_description", "attack_type"],
+      "label_contract": "Binary label is whether the observed agent operations create safety issues (0safe/1unsafe), not whether external content contains injection. attack_type identifies origin, not successful attack or semantic text label. goal is the evaluator's judgment instruction; legitimate user messages are inside nested contents, alongside agent actions/thoughts and environment responses.",
+      "creation_method": {"description": "Transforms records from InjecAgent, ToolEmu and AgentMonitor and adds expert constructions. Some unsafe ToolEmu cases were made safe by replacing risky actions. Annotators brainstormed cases polished with ChatGPT and checked validity. Human-consensus safety labels and risk descriptions are supplied.", "sources": ["https://arxiv.org/html/2401.10019v3", "https://github.com/Lordog/R-Judge/blob/83ce301da3ad50dd8b397e772863f5411c3d3dc2/README.md"]},
+      "license": {"status": "unresolved", "name": null, "sources": ["https://api.github.com/repos/Lordog/R-Judge/git/trees/83ce301da3ad50dd8b397e772863f5411c3d3dc2?recursive=1", "https://api.github.com/repos/Lordog/R-Judge/license"], "note": "No repository LICENSE in inspected tree; GitHub license endpoint404. Source-specific licenses would also need preservation."},
+      "availability": "Public JSON interaction records, schema and evaluation/results code available. Actual current records all parsed. The571-versus569 discrepancy is unresolved and must be recorded rather than silently repaired.",
+      "task_control_suitability": "Good for a separate whole-trajectory risk-judgment/context-ablation experiment. Not a drop-in injection detector source: slicing a tool response and inheriting whole-agent safety labels would mislabel the task, and including agent thoughts/actions/outcomes can leak post-decision information.",
+      "novelty_exposure": "414 injection-origin records derive from InjecAgent, already exposed in this project. Requires cross-source linkage and grouping. Related System One evaluation already studies R-Judge, limiting model-comparison novelty.",
+      "limitations": ["Safety risk is broader than prompt injection.", "Context includes post-action outcomes, unlike pre-action detection.", "Missing explicit repository license in inspected artifact.", "Reported569 differs from actual571; do not publish aggregate figures without version/count resolution."],
+      "recommendation": "Related work and separately scoped risk-awareness extension; do not pool with binary prompt-injection detection. Resolve count/version/license and remove prior InjecAgent overlap before any fresh-data claim.",
+      "evidence_level": "primary_paper_pinned_readme_schema_and_all_current_data_records_inspected",
+      "inspected_urls": ["https://arxiv.org/html/2401.10019v3", "https://github.com/Lordog/R-Judge/blob/83ce301da3ad50dd8b397e772863f5411c3d3dc2/README.md", "https://raw.githubusercontent.com/Lordog/R-Judge/83ce301da3ad50dd8b397e772863f5411c3d3dc2/config/data_schema.json", "https://github.com/Lordog/R-Judge/tree/83ce301da3ad50dd8b397e772863f5411c3d3dc2/data", "https://raw.githubusercontent.com/Lordog/R-Judge/83ce301da3ad50dd8b397e772863f5411c3d3dc2/data/Application/chatbot.json", "https://api.github.com/repos/Lordog/R-Judge/license"]
+    },
+    {
+      "id": "ntbench",
+      "name": "NTBench / On Task, Off Track: Benchmarking LLM and Agent Robustness to Near-Target Prompt Injection",
+      "institution": {"status": "verified", "names": ["Nanyang Technological University", "Wuhan University"], "source": "https://arxiv.org/html/2610.32531v1"},
+      "primary_urls": ["https://arxiv.org/abs/2610.32531", "https://arxiv.org/html/2610.32531v1"],
+      "revision": "arXiv:2610.32531v1 (2026-10-23)",
+      "counts": [
+        {"value": 7, "unit": "LLMs evaluated", "basis": "paper"},
+        {"value": 10, "unit": "language-task datasets", "basis": "paper"},
+        {"value": 2, "unit": "agent benchmarks", "basis": "paper"},
+        {"value": 600, "unit": "retained attack targets in human validity audit", "basis": "paper; audit sample, not released dataset size"},
+        {"value": 300, "unit": "language execution records in human ASR-judge audit", "basis": "paper; audit sample, not overall dataset size"}
+      ],
+      "fields": null,
+      "label_contract": "Paper separates legitimate reference outcomes from near-target incorrect/harmful deviations and checks attacker success against no-injection baselines. Targets/attack intention, human-validated deviation and successful induced behavior are separate labels. No downloadable record schema was verified.",
+      "creation_method": {"description": "Constructs target/instruction pairs using legitimate tasks and reference outcomes, then applies LLM-based checks and human validation; incorrect and harmful tracks can preserve much of legitimate task completion.", "sources": ["https://arxiv.org/html/2610.32531v1"]},
+      "license": {"status": "dataset_license_not_verified", "name": null, "sources": ["https://arxiv.org/html/2610.32531v1"], "note": "Article availability is not proof of dataset availability or reuse rights."},
+      "availability": "Primary preprint readable, but inspected HTML links contain no project GitHub/Hugging Face release beyond generic arXiv tooling links. Earlier project source audit likewise found no usable records. This bounded check cannot prove no artifact exists elsewhere; current state is unverified release, not an importable dataset.",
+      "task_control_suitability": "Very close to the current research gap: a task reminder may reject obvious unrelated attacks while still accepting subtle incorrect answers or unsafe actions. Actual released records with original tasks, source contexts, targets and no-injection outcomes would be valuable.",
+      "novelty_exposure": "Already identified as unavailable in project's v4 source audit. Current check does not establish a new available release. Paper's substantive overlap precludes claiming task-related attack evaluation itself is novel.",
+      "limitations": ["No verified downloadable records or data license.", "LLM construction/checking requires separate treatment from human expert validation.", "Paper totals for model/dataset/audit coverage are not independent task sample sizes.", "Do not reconstruct an illustrated example from a figure and present it as released data."],
+      "recommendation": "Highest-priority subtle-attack paper/release lead. Keep unavailable until a real artifact and terms are verified; do not hold all other work pending it or fabricate a replacement under the same dataset name.",
+      "evidence_level": "primary_paper_inspected; dataset_release_unverified",
+      "inspected_urls": ["https://arxiv.org/html/2610.32531v1", "https://arxiv.org/abs/2610.32531"]
+    }
+  ],
+  "priority_actions": [
+    "For new static detector evidence, prioritize other sources retaining exact legitimate tasks and response provenance; large isolated-string corpora alone do not fill this gap.",
+    "Audit ASB's OPI adapter offline before deciding whether its released task/tool catalogs provide usable original observation pairs.",
+    "Recover task/page links for a narrow WAInjectBench subset from its original source artifacts; no task invention or inherited whole-trajectory labels.",
+    "Use WASP for a separately scoped prevention-and-utility extension after a small environment/observation feasibility check.",
+    "Keep NTBench as a paper/release lead and transparently distinguish any newly authored near-target study from its data.",
+    "Resolve cross-source InjecAgent/R-Judge and WASP/WAInjectBench overlap; do not multiply apparent sample size with derived datasets or configuration variants."
+  ]
+}
