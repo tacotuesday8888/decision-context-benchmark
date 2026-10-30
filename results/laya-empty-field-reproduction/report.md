@@ -40,7 +40,7 @@ clean label is inherited from default fixture construction, not independent huma
 semantic adjudication. Original evidence is preserved unchanged and hash-checked.
 No hosted API requests or metered spending occurred.
 
-## Essay-safe statement (34 words)
+## Essay-safe statement (36 words)
 
 In my experiments, a decision model repeatedly changed its classification when I
 added an empty context field to an otherwise unchanged input. Reversing the order,
