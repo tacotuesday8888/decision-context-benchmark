@@ -1,0 +1,222 @@
+"""Frozen, resumable v3 inference with separate evidence and all-in provider caps."""
+import argparse
+from datetime import datetime, timezone
+import fcntl
+import json
+import math
+import os
+from pathlib import Path
+import sys
+import time
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).parent))
+import plan
+from integrity import verify as verify_completed
+from validate_collection import validate
+from source_audit import sha
+
+OUT = ROOT / 'results/extension-v3'
+RAW = ROOT / 'data/raw/extension-v3'
+ROUTES = json.loads((OUT / 'request-plan-v1.json').read_text())['routes']
+
+
+def save(path, value):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp = RAW / (path.name + '.' + str(os.getpid()) + '.tmp')
+    temp.write_text(json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + '\n')
+    os.replace(temp, path)
+
+
+def development_rows():
+    rows = [r for r in plan.read(ROOT / 'data/expanded-v2/collection.jsonl') if r['split'] == 'dev']
+    return [next(r for r in rows if r['dataset'] == source and r['gold'] == gold)
+            for source in ('bipia-email', 'bipia-table', 'bipia-code') for gold in (0, 1)]
+
+
+def jobs(split):
+    if split == 'development':
+        return [dict(id=row['id'], config=config, condition=condition)
+            for row in development_rows() for config in plan.preserved.PANEL if config != 'protectai_local'
+            for condition in ('format', 'reminder', 'scrambled')]
+    return plan.read(OUT / 'confirmation-jobs-v1.jsonl')
+
+
+def code_hashes():
+    names = ('run.py', 'plan.py', 'preserved_adapters.py', 'prepare.py', 'validate_collection.py',
+             'source_audit.py', 'injecagent_audit.py', 'replay_agentdojo.py', 'token_audit.py', 'integrity.py')
+    paths = [ROOT / 'scripts/extension_v3' / name for name in names]
+    paths += [ROOT / 'docs/extension-v3/PROTOCOL-v3.0.md']
+    paths += [OUT / name for name in ('request-plan-v1.json', 'prompts-v1.json', 'confirmation-jobs-v1.jsonl',
+        'collection-manifest-v1.jsonl', 'collection-summary-v1.json', 'collection-validation-v1.json',
+        'token-audit-v1.jsonl', 'token-audit-summary-v1.json')]
+    return {str(p.relative_to(ROOT)): sha(p.read_bytes()) for p in sorted(paths)}
+
+
+def freeze(split):
+    verify_completed()
+    validate()
+    frozen = {'version': 'extension-v3.0', 'split': split, 'hashes': code_hashes(), 'jobs': jobs(split)}
+    if split == 'confirmation':
+        frozen['development_freeze_sha256'] = sha((OUT / 'development-freeze-v1.json').read_bytes())
+        frozen['development_records'] = {str(p.relative_to(ROOT)): sha(p.read_bytes())
+            for p in sorted((OUT / 'development').glob('*/*.json'))}
+    path = OUT / (split + '-freeze-v1.json')
+    if path.exists() and json.loads(path.read_text()) != frozen:
+        raise ValueError('Freeze differs; preserve old evidence and version an amendment')
+    if not path.exists():
+        save(path, frozen)
+    return frozen
+
+
+def verify_freeze(split):
+    verify_completed()
+    frozen = json.loads((OUT / (split + '-freeze-v1.json')).read_text())
+    if frozen['hashes'] != code_hashes() or frozen['jobs'] != jobs(split):
+        raise ValueError('Frozen configuration/code differs')
+    raw = RAW / 'prepared-collection-v1.jsonl'
+    summary = json.loads((OUT / 'collection-summary-v1.json').read_text())
+    if sha(raw.read_bytes()) != summary['collection_sha256']:
+        raise ValueError('Prepared text changed')
+    if split == 'confirmation':
+        for name, digest in frozen['development_records'].items():
+            if sha((ROOT / name).read_bytes()) != digest:
+                raise ValueError('Development evidence changed')
+    return frozen
+
+
+def provider(config):
+    return 'typesafe' if config == 'jev_firstparty' else 'openai' if config == 'luna_decisions' else None
+
+
+def transact(key, config, amount=None, settled=None):
+    path = OUT / 'inference-ledger-v1.json'
+    with (RAW / 'inference-budget.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        ledger = json.loads(path.read_text()) if path.exists() else {'entries': []}
+        matched = [e for e in ledger['entries'] if e['key'] == key]
+        if amount is not None:
+            if matched or not math.isfinite(amount) or amount < 0:
+                raise ValueError('Duplicate or invalid reservation')
+            name = provider(config)
+            if name:
+                used = plan.preserved.provider_totals(ROOT / 'results/expanded-execution')[name]
+                used += sum(e['accounted_usd'] for e in ledger['entries'] if e['provider'] == name)
+                if used + amount > plan.preserved.provider_caps()[name] + 1e-12:
+                    raise PermissionError('All-in provider cap would be exceeded')
+            ledger['entries'].append({'key': key, 'provider': name, 'config': config,
+                'reserved_usd': amount, 'accounted_usd': amount, 'status': 'pending'})
+        else:
+            if len(matched) != 1:
+                raise ValueError('Missing reservation')
+            entry = matched[0]
+            if settled is not None and (not math.isfinite(settled) or not 0 <= settled <= entry['reserved_usd'] + 1e-12):
+                raise ValueError('Usage exceeds bound; stop and preserve reservation')
+            entry['accounted_usd'] = entry['reserved_usd'] if settled is None else settled
+            entry['status'] = 'unknown_usage' if settled is None else 'settled'
+        save(path, ledger)
+
+
+def run(config, split):
+    frozen = verify_freeze(split)
+    directory = OUT / split / config
+    directory.mkdir(parents=True, exist_ok=True)
+    if (directory / 'STOP.json').exists():
+        raise PermissionError('Saved route failure requires documented resolution; no automatic retry')
+    if split == 'confirmation' and config != 'protectai_local':
+        expected = [j for j in jobs('development') if j['config'] == config]
+        for job in expected:
+            key = sha(json.dumps(job, sort_keys=True))[:24]
+            record = json.loads((OUT / 'development' / config / (key + '.json')).read_text())
+            if record.get('status') != 'completed' or record['parsed']['status'] not in ('ok', 'tie'):
+                raise PermissionError('Development operational gate incomplete')
+    lookup = {r['id']: r for r in (development_rows() if split == 'development' else plan.read(RAW / 'prepared-collection-v1.jsonl'))}
+    with (RAW / ('run-' + config + '.lock')).open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        model = plan.preserved.LocalDecision() if config == 'laya_local' else plan.preserved.LocalDetector() if config == 'protectai_local' else None
+        metadata = plan.preserved.nimble.verify_model() if config == 'nimble_local' else plan.preserved.PANEL[config]
+        selected = [j for j in frozen['jobs'] if j['config'] == config]
+        for index, job in enumerate(selected):
+            key = sha(json.dumps(job, sort_keys=True))[:24]
+            path = directory / (key + '.json')
+            payload = plan.request(config, lookup[job['id']], job['condition'])
+            payload_hash = sha(plan.preserved.canonical(payload))
+            if path.exists():
+                old = json.loads(path.read_text())
+                if old['request_sha256'] != payload_hash or old['access_route'] != ROUTES[config]:
+                    raise ValueError('Existing request changed')
+                if old['status'] == 'reserved':
+                    raise PermissionError('Interrupted attempt retained; do not resend')
+                continue
+            amount = plan.preserved.reserve_usd(config, payload, ROUTES[config])
+            attempt_key = split + ':' + config + ':' + key
+            transact(attempt_key, config, amount=amount)
+            record = {'job': job, 'split': split, 'status': 'reserved', 'attempt': 0,
+                'access_route': ROUTES[config], 'paid_request': ROUTES[config] == 'api_key',
+                'request': payload, 'request_sha256': payload_hash, 'reserved_usd': amount,
+                'model_metadata': metadata, 'started_at': datetime.now(timezone.utc).isoformat(),
+                'freeze_sha256': sha((OUT / (split + '-freeze-v1.json')).read_bytes())}
+            save(path, record)
+            start = time.perf_counter()
+            cost = None
+            try:
+                if config == 'laya_local':
+                    raw, parsed, audit = model.predict(payload)
+                    record.update(raw_response=raw, token_audit=audit)
+                    cost = 0.0
+                elif config == 'nimble_local':
+                    status, body = plan.preserved.nimble.call('/v1/systemone', payload)
+                    record.update(raw_body=body, observation={'http_status': status})
+                    parsed = plan.preserved.nimble.parse(json.loads(body)) if status == 200 else {'status': 'http_error', 'valid': False}
+                    cost = 0.0
+                elif config == 'protectai_local':
+                    parsed = model.classify(lookup[job['id']]['candidate'])
+                    record['raw_response'] = parsed
+                    cost = 0.0
+                else:
+                    # Import operational helpers only here; old runner is never invoked.
+                    from execute import safe_parse, metered_cost
+                    from smoke_access import env_secret
+                    from provider_access import subscription_credentials
+                    from transport import post
+                    credential = env_secret(plan.preserved.PANEL[config]['credential']) if ROUTES[config] == 'api_key' else subscription_credentials()['access_token']
+                    observation, body = post(plan.preserved.PANEL[config]['endpoint'], payload, {'Authorization': 'Bearer ' + credential})
+                    body = (body or '').replace(credential, '[redacted]')
+                    record.update(raw_body=body, observation=observation)
+                    parsed = safe_parse(config, body) if observation['http_status'] == 200 else {'status': 'http_error', 'valid': False}
+                    cost = metered_cost(config, parsed, ROUTES[config])
+                record['parsed'] = parsed
+                record['status'] = 'completed' if parsed['status'] in ('ok', 'tie') else 'failed'
+                if record['paid_request'] and cost is None:
+                    record['status'] = 'failed'
+                    record['accounting_error'] = 'missing_usage'
+            except Exception as error:
+                record.update(status='failed', error_type=type(error).__name__)
+            record.update(elapsed_seconds=round(time.perf_counter() - start, 4), conservative_usage_cost_usd=cost)
+            save(path, record)
+            try:
+                transact(attempt_key, config, settled=cost)
+            except Exception as error:
+                save(directory / 'STOP.json', {'job': job, 'record': str(path.relative_to(ROOT)),
+                    'reason': 'Accounting settlement failed; reservation preserved',
+                    'error_type': type(error).__name__})
+                raise
+            print(json.dumps({'split': split, 'config': config, 'completed_index': index + 1,
+                              'planned': len(selected), 'status': record['status']}), flush=True)
+            if record['status'] != 'completed':
+                save(directory / 'STOP.json', {'job': job, 'record': str(path.relative_to(ROOT)),
+                    'reason': 'Preserved failure; no automatic retries or fallback'})
+                return
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('action', choices=['freeze-development', 'freeze-confirmation', 'development', 'confirmation'])
+    parser.add_argument('--config', choices=list(plan.preserved.PANEL))
+    args = parser.parse_args()
+    if args.action.startswith('freeze-'):
+        print(json.dumps({'frozen_jobs': len(freeze(args.action.split('-', 1)[1])['jobs'])}))
+    else:
+        if not args.config:
+            parser.error('--config required')
+        run(args.config, args.action)
