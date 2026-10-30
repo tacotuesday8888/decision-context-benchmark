@@ -14,11 +14,11 @@ python3 scripts/extension_v3/verify_analysis.py --config jev_firstparty
 .venv/bin/python scripts/extension_v3/reliability_figures.py
 ```
 
-Substitute `luna_decisions`, `laya_local` or `nimble_local` for other completed contextual arms.
+Substitute `luna_decisions`, `laya_local` `nimble_local` or `luna_chat` for other completed contextual arms.
 ProtectAI supports analysis and numerical verification, but has no context contrasts.
 The independent bootstrap verifier reconstructs primary and control intervals
-using explicit multiplicities and control membership from frozen jobs. For four
-completed contextual arms, all72 primary and288 control cases passed, including
+using explicit multiplicities and control membership from frozen jobs. For five
+completed contextual arms, all81 primary and324 control cases passed, including
 insufficient-group cases where an interval must be omitted. Numerical assertions
 use full precision; receipt endpoints round to12 decimals for portable serialization.
 
@@ -33,8 +33,8 @@ hashes, reruns all available completed-arm analyses and independent checks, redr
 figures, and requires compared artifacts to be byte-identical. It never exports
 `.env.local`, `.secrets` or weights. The receipt records the exact input tree,
 commands and artifact hashes. This tests an existing installed runtime, not a fresh
-package installation or a new inference run. The latest pass covered23 commands and
-47 artifacts for five completed arms, including raw-request/response audits. Later complete arms require a new receipt.
+package installation or a new inference run. The latest pass covered27 commands and
+53 artifacts for six completed arms, including raw-request/response audits. Later complete arms require a new receipt.
 
 Source reconstruction and model execution are different operations. Their pinned
 clones, dependency locks, provenance receipts, source adapters and freeze gates are

@@ -272,3 +272,37 @@ a hash-bound receipt under unchanged transient eligibility. Cooldown was already
 zero. Continued only unattempted jobs with handle78481. Do not reuse58329 as live.
 Total preserved transport failures now five (Luna3/Astra2). Luna31950 remains
 live, latest observed1427/1771. No request was retried or replaced.
+
+## Two additional transport stops; v3.0.4
+
+Luna31950 exited0 at1445 with failed `282dac5e77ed9db98cef36de`: HTTP0/curl28,
+empty body,60.0149s. Its base-policy receipt preserves the failure; after cooldown
+continued with handle99369 (observed1466/1771). Astra78481 exited0 at1090 with
+failed `21d74dd5ed29cfa05988e36c`: HTTP200/curl28,60.0313s, only SSE created and
+in_progress events, empty output, no usage/provider error/terminal event.
+
+Committed v3.0.4 before further Astra evaluation: one exact hash-bound exception
+plus unchanged base transient eligibility and prior receipt validation. New helper
+`continue_reviewed_v4.py` supports future eligible stops without replacing prior
+receipts. The exception checks structured errors; the echoed prompt's word
+unauthorized must not be mistaken for an authentication error. The conservative
+keyword guard remains for base HTTP failures. Four transport-only regression tests
+passed (34 total); helper rerun was idempotent. No model/prompt/output setting or
+failure changed. Astra continuation handle36506 is now live; poll it directly.
+
+Total preserved failures: Luna4, Astra3. Ten-stop-per-route limit remains. No
+failed cell has been retried. Handles31950/78481 are terminal; do not poll as live.
+
+## Luna Responses complete
+
+Handle99369 exited0 after1771 planned attempts:1767 valid,3 http_error,
+1 interrupted_stream. No retry. Analysis/raw-request/accounting checks and
+independent9 primary+36 control uncertainty checks passed. Six complete arms
+now9616 cells. Astra36506 is the sole live handle (last seen1267/1771).
+Updated effect plot inspected; Boolean probability panel hidden rather than
+invented values or irrelevant axes. Numeric/control interpretation saved,
+including high absolute direct-harm misses despite improvement.
+
+Six-arm isolated reproduction passed27 commands/53 byte-identical artifacts,
+including all independent control checks. Preserve completed raw Luna records.
+Remaining live Astra36506 was observed1299/1771; final closure/report/CI remain.

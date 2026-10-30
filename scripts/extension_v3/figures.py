@@ -29,6 +29,11 @@ def main():
         evidence[report['config']] = hashlib.sha256((DIRECTORY / (report['config'] + '.json')).read_bytes()).hexdigest()
         for j, metric in enumerate(['error', 'brier']):
             ax = axes[i, j]
+            if metric == 'brier' and report['config'] in ('luna_chat', 'astra_chat'):
+                ax.set_axis_off()
+                ax.text(.5, .5, LABELS[report['config']] + '\nBoolean output: no probability metrics',
+                        transform=ax.transAxes, ha='center', va='center', color='#777777')
+                continue
             ax.axvline(0, color='#9aa3ad', linewidth=1)
             labels = []
             for y, stratum in enumerate(report['strata']):
@@ -53,8 +58,9 @@ def main():
             ax.set_title(LABELS[report['config']] + (' — decision error' if metric == 'error' else ' — Brier loss'), loc='left', weight='bold')
             ax.set_xlabel('Task − candidate (percentage points)' if metric == 'error' else 'Task − candidate (Brier units)')
     for j in range(2):
-        limits = [ax.get_xlim() for ax in axes[:, j]]
-        for ax in axes[:, j]:
+        active_axes = [ax for ax in axes[:, j] if ax.axison]
+        limits = [ax.get_xlim() for ax in active_axes]
+        for ax in active_axes:
             ax.set_xlim(min(v[0] for v in limits), max(v[1] for v in limits))
     fig.suptitle('Authentic task context: source-specific paired effects\nCompleted contextual arms only; negative values favor task context', fontsize=16, y=.995)
     fig.text(.01, .006, 'Each task receives equal weight. Lines: conditional 95% crossed bootstrap intervals (5,000 draws). Diamonds: too few groups for an interval.\nLabels show complete/planned pairs. Intervals condition on the released fixtures/templates; no pooled winner or unseen-environment claim.', fontsize=10)
