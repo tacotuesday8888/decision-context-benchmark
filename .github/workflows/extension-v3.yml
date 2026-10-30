@@ -35,3 +35,7 @@ jobs:
           python scripts/extension_v3/audit_records.py --config laya_local
           python scripts/extension_v3/audit_records.py --config protectai_local
           git diff --exit-code -- results/extension-v3/analysis/*-record-audit.json
+      - name: Reproduce source-specific summary tables
+        run: |
+          python scripts/extension_v3/tables.py
+          git diff --exit-code -- results/extension-v3/analysis/primary-effects.csv results/extension-v3/analysis/control-effects.csv results/extension-v3/analysis/source-metrics.csv results/extension-v3/analysis/table-inputs.json

@@ -166,3 +166,22 @@ all old files/settings, and create a cooldown receipt for unattempted cells only
 Cooldown elapsed; a new Luna runner will be started after this checkpoint. Base
 runner and v3.0.1 remain unchanged; new raw records still identify the base runtime
 amendment, while the separate receipt identifies this additive resolution.
+
+Latest pushed code/results commit:e7127a1. Luna continuation is confirmed live on
+handle39721 (old78558 is terminal); Astra continuation58329 and Nimble54609 are
+also confirmed live. Latest observed loop positions:374 Luna (two failed retained),
+372 Astra (one failed retained),774 Nimble. Poll these same handles, not old ones.
+Check current disk/process evidence rather than treating these counts as final.
+
+All eight remote CI checks passed at e7127a1 after the receipt fix and raw audits.
+
+
+New source/control summary tables and CONTROL-RESULTS.md distinguish useful task
+information from format/reminder effects. Initial examples: Jev's selected InjecAgent
+direct-harm task benefit disappears against empty-field/reminder; Luna Decisions'
+selected stealing benefit remains with wide intervals; Laya can beat reminder but
+still worsen versus candidate alone. These are same-subset predeclared contrasts,
+not new labels or post-outcome prompt selection. All contrasts and denominators
+are saved, with no pooled winner. Completion-status audit explicitly keeps remaining
+three arms and final closure incomplete. tables.py now reproduces display CSVs;
+full staged reproduction will include it at the next/final checkpoint.

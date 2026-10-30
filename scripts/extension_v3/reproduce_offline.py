@@ -39,7 +39,8 @@ def main():
             commands.append([sys.executable, 'scripts/extension_v3/audit_records.py', '--config', config])
         if (directory / (config + '-bootstrap-verification.json')).exists():
             commands.append([sys.executable, 'scripts/extension_v3/verify_bootstrap.py', '--config', config])
-    commands += [[sys.executable, 'scripts/extension_v3/figures.py'],
+    commands += [[sys.executable, 'scripts/extension_v3/tables.py'],
+                 [sys.executable, 'scripts/extension_v3/figures.py'],
                  [sys.executable, 'scripts/extension_v3/reliability_figures.py']]
     completed = []
     for command in commands:
