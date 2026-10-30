@@ -63,3 +63,9 @@ The verified run used494 source files and reproduced all five outputs byte-for-b
 Original frozen files remain unchanged. This is a source-artifact reconstruction
 check, not a fresh download or new execution of upstream AgentDojo ground truth.
 The replay itself remains bound to its original environment/source receipt.
+
+The final report generator is `python3 scripts/extension_v3/report.py`. It refuses
+to run without terminal execution closure and matching analysis/raw-audit receipts
+for every frozen model configuration. No final report is generated while Astra
+remains incomplete. Once a final report exists, isolated reproduction also reruns
+terminal closure and the report, comparing both and their input receipt byte-for-byte.

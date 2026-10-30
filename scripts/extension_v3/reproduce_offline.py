@@ -30,6 +30,10 @@ def main():
     configs = sorted(p.name.removesuffix('-ledger.json') for p in directory.glob('*-ledger.json'))
     compared = [p for p in directory.glob('*') if p.suffix in ('.json', '.csv')]
     compared += list((destination / 'results/extension-v3/figures').glob('*'))
+    final_report = destination / 'results/extension-v3/report.md'
+    if final_report.exists():
+        compared += [final_report, final_report.with_name('report-inputs-v1.json'),
+                     final_report.with_name('execution-closure-v1.json')]
     before = {str(p.relative_to(destination)): sha(p) for p in compared}
     commands = [[sys.executable, 'scripts/extension_v3/integrity.py']]
     for config in configs:
@@ -42,6 +46,9 @@ def main():
     commands += [[sys.executable, 'scripts/extension_v3/tables.py'],
                  [sys.executable, 'scripts/extension_v3/figures.py'],
                  [sys.executable, 'scripts/extension_v3/reliability_figures.py']]
+    if final_report.exists():
+        commands += [[sys.executable, 'scripts/extension_v3/closure.py', '--require-terminal'],
+                     [sys.executable, 'scripts/extension_v3/report.py']]
     completed = []
     for command in commands:
         result = subprocess.run(command, cwd=destination, capture_output=True, text=True,

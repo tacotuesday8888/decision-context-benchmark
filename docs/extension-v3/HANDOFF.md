@@ -306,3 +306,14 @@ including high absolute direct-harm misses despite improvement.
 Six-arm isolated reproduction passed27 commands/53 byte-identical artifacts,
 including all independent control checks. Preserve completed raw Luna records.
 Remaining live Astra36506 was observed1299/1771; final closure/report/CI remain.
+
+## Final report preparation while Astra runs
+
+Added `report.py`: final markdown tables require terminal closure, matching ledger,
+all seven analyses/audit receipts, and unchanged raw record hashes. Missing closure
+correctly refuses output. Evidence-binding assumptions checked against all six
+complete arms; no final report yet. `reproduce_offline.py` conditionally reruns
+closure/report and compares their artifacts when report.md is present. Full final
+branch remains to be exercised after Astra completes. No claim of final validation.
+Astra36506 remains live; latest observed1421/1771, still three failures preserved.
+The six-arm CI checkpoint0644d48 passed all eight checks.
