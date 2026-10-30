@@ -45,3 +45,8 @@ Analysis uses a settled per-arm ledger snapshot when available; this is a partia
 accounting subset, not a final provider balance. Raw evidence remains immutable.
 The ongoing full ledger includes other configurations and is not replaced by these
 snapshots. A final all-provider closure audit remains required.
+
+Initial representative error review is in `ERROR-REVIEW.md`. It also documents
+that the narrow frozen credential-fixture regex does not remove prose/serialized
+mentions; no claim of universally credential-free source fixtures is justified.
+The source-construction labels remain unchanged.

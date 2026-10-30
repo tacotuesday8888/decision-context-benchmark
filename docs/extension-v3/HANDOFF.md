@@ -97,5 +97,8 @@ Our offline AgentDojo replay ran pinned source ground-truth calls with network
 blocked; community collection scripts were only inspected. One source task fails
 on `.isoformat()` called on string current_day, excluded without patching.
 
-Current analyzer syntax and21 tests pass; all8 remote CI checks passed at63a2209.
-New completed-arm analysis/verifier/figures/audit need the next reviewed commit.
+Completed-arm raw records, analysis, verifier, inspected figures and backend audit
+are pushed at2114e80; all8 remote CI checks passed there. The later representative
+error/fixture-keyword review is pending a follow-up commit. Read ERROR-REVIEW.md: the
+frozen narrow credential-like regex does not remove prose/serialized details in
+published fixtures. This is a documented limitation, not an outcome-based exclusion.
