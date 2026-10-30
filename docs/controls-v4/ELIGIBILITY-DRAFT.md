@@ -77,3 +77,13 @@ alignment, duplicate/template grouping, split boundaries and supplemental overla
 complete the precision/budget analysis and exact settings/prompts; perform bounded
 development checks before freezing confirmation. All five conditions must cover
 every included confirmation pair. The specialist remains candidate-only.
+
+## Scope of freshness
+
+The exposure checks establish separation of the selected source documents/questions,
+exact candidates and tested literal wrappers. They do not establish a new semantic
+attack taxonomy: generic override and authority-claim tactics already appeared in
+previous studies. A source-prefixed family identifier is not proof of an unseen tactic.
+Fresh confirmation here means new task/document units and published constructions under
+the already fixed detector policy, not novel attack mechanisms or model-pretraining
+independence. The source-wide TaskTracker family remains a fixed conditioning factor.

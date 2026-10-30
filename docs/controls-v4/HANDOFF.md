@@ -1,150 +1,97 @@
-# Controls v4 progress
+# Controls v4 handoff
 
-Active objective: attachment d06ed192-6f72-4221-8caa-7d589d046b11/goal-objective.md.
-Previous goal turn completed v3 and is classified as progress. This turn starts the
-separate stronger-control experiment on `codex/context-controls-v4`.
+Status: execution in progress. The active goal is attachment
+`d06ed192-6f72-4221-8caa-7d589d046b11/goal-objective.md`.
+The preceding goal turn made substantive progress: preparation, development, full
+confirmation launch, four completed configurations and independent verification.
+The latest continuation re-polled all three remaining handles and confirmed them live.
+Do not mark the goal complete or blocked while these authorized runs are progressing.
 
-Read SOURCE-AUDIT.md and results/controls-v4 receipts. Baseline PR4 is private/draft,
-eight checks successful at d929836; no need to repeat old numerical reproduction.
-The new source audit reads pinned tau-bench historical JSON, not private simulator
-instructions. Inventory is unapproved and semantic labels remain null. Existing
-InjecAgent task/family coverage is exhausted for freshness. BIPIA/AgentDyn and other
-published sources need deeper remaining-group and label audits, not arbitrary reuse.
+## Branch and preservation
 
-No model requests or new spending; no background inference. Do not run old freeze
-or model commands. Keep old records immutable. New adapter currently audits only;
-unit tests, independent record inspection, richer exposure grouping, review packet,
-eligibility/splits, protocol and experiment implementation remain. The whole goal
-remains active, not blocked merely because review may become necessary.
+Current branch: `codex/context-controls-v4`. Pushed checkpoint:
+`4937d5891102b1e5e9087598622abb5b6aade4c1`; private draft PR5 targets
+`codex/context-extension-v3`. All ten CI checks passed at this checkpoint.
+The completed v3 baseline is `d929836982347374695a0d38797623f8276a1cd5` / draft PR4.
+The 5,793 protected earlier files and v3 evidence remain unchanged. No merge, public
+publication, new PDF, purchases, new subscriptions or rented compute are authorized.
 
-## Further source progress
+## Live execution: re-poll these exact handles
 
-TaskTracker clone is pinned b4fabe25504dc1d3f7c6fdf5e50d4bb209a152b0. Audited
-notebook cells as text (temporary /tmp/dcb-tasktracker-*.py, never executed).
-SQuAD dev and CodeAlpaca downloaded; all 6,000 published QA/code attack normalized
-hashes match, but NC CodeAlpaca text remains ignored/not selected. Better path:
-3,120 published QA/AdvBench constructions verify (2,387 questions, 1,100 paragraphs,
-35 articles, 520 attack prompts). AdvBench MIT/SQuAD CC-BY-SA4/TaskTracker MIT.
-1,204 published clean QA records verify cumulative raw prompt-prefix hashes (different
-hash semantics from per-prompt whitespace-normalized attacks). Scripts preserve both.
+| Configuration | exec session | Last observed completed index (moving) |
+|---|---|---|
+| Luna chat | 85775 | 742 / 2,125 |
+| Astra chat | 28541 | 452 / 2,125 |
+| Nimble local | 65326 | 893 / 2,125 |
 
-Owner answered: proceed with defensible published labels; quarantine ambiguity.
-No human labels may be invented. Review packet has 24 existing records and blank
-reviewer fields; full text stays ignored. It is a policy-audit aid, not a completed
-annotation or selected evaluation set.
+All three returned fresh progress on the current continuation. Do not launch duplicate
+processes, change frozen order/settings, or infer termination from an observation timeout.
+No failures have been observed on these routes yet. Their sequential runs can take
+hours. Inspect new STOP records if present. `continue_transient.py` permits at most ten
+HTTP-transient continuations per route, after cooldown, preserving every failed cell.
+It never resends a failed confirmation cell. Other error classes require inspection.
 
-Next substantive actions: pin new download URLs/revisions/licenses; compare original
-paragraph/question/attack hashes and lexical templates with prior exposed material;
-choose article/document/attack grouping before splits; inspect ambiguous candidates
-against explicit source-construction policy; evaluate actual coverage and precision.
-Tau alone has large shared-document components even after removing generic tools.
-Retain full control experiment objective, both error directions and no new labels.
-No confirmation/protocol freeze or model use yet. Two grouping regression tests pass.
-Source reconstruction audits passed; no live process remains from those audits.
+## Completed work and evidence
 
-## Current draft scope and leak correction
+- Sources: actual tau-bench/BIB code audited; private simulator goals rejected as
+  assistant-visible requests. TaskTracker published reconstructions verified; AIB
+  synthetic fixtures disclosed. Related-work and provenance are in SOURCE-AUDIT.md.
+- Owner decision: use defensible published labels and quarantine ambiguity. No human
+  review was simulated. The 24-case review packet has blank judgments. Semantic labels
+  remain null; evaluation labels are published construction/control status.
+- Collection: 108 development rows; 425 confirmation rows (408 matched QA examples,
+  204 questions, 27 articles; 17 supplemental AIB fixtures with three benign controls).
+  Split/exposure validation passed. Generic attack tactics are not claimed novel.
+- Source preparation reproduced in isolation: six commands, 13 byte-identical outputs,
+  including the full ignored prepared collection. Receipt: preparation-reproduction-v1.json.
+- Exact protocol, prompts and jobs frozen. Every confirmation example gets all five
+  conditions for six contextual configurations; ProtectAI is candidate-only.
+- Development: 372 attempts, 371 valid responses and one preserved Decisions 503 with
+  full reservation. No chat truncation or prompt/threshold tuning. The development
+  amendment pins external Ollama update 0.40.13 with unchanged Nimble weights.
+- Laya token preflight: all 2,665 prepared payloads fit; maximum 3,671 tokens. Its initial
+  confirmation constructor failed before any reservation because analysis statistics.py
+  shadowed the standard library. Renamed to metrics.py, with receipt and regression test;
+  no frozen inference code/settings changed.
+- Jev, Laya, Luna Decisions and ProtectAI confirmation are complete and committed.
+  Raw request/parser/accounting audits, independent arithmetic/CSV checks and bootstrap
+  verification passed. Decisions retained three HTTP failures and four ties.
+- Tables and figures currently cover those four completed configurations. Earlier
+  control-error and absolute-error figures were visually inspected; final all-route
+  figures still need inspection. ERROR-REVIEW.md contains exploratory fixed-ID source
+  inspections and counterexamples, without relabeling or post-outcome exclusions.
+- Seventeen offline tests pass. Analysis helpers use metrics.py to avoid import shadowing.
 
-Private draft PR5 is open, base codex/context-extension-v3. Initial checkpoint
-`e69364c` passed all ten push/PR checks including the new controls workflow. Current
-uncommitted work adds overlap/selection/AIB adapters and updated source fields.
-TaskTracker trusted_task now preserves original sep_prompt + question (not just
-question); all reconstructions regenerated before inference. No freeze exists.
+## Accounting and files still moving
 
-Draft v1 is automatically rejected: 11 wrappers crossed splits. draft_selection_v2
-keeps all TaskTracker override wrappers in confirmation: 48 new clean dev examples
-from 8 articles plus 60 reused prior dev rows; 408 confirmation examples (204 matched
-QA questions/paragraphs) in 27 other articles. No exact/near prior document overlap;
-no full normalized selected-wrapper substring in prior candidate texts. The latter
-was manually inspected, still needs durable validator output. Independent split
-validation and clustering remain required; do not mistake draft counts for approval.
+All paid routes are finished. Cumulative conservative project totals:
+OpenAI **$0.4838404**, TypeSafe **$0.25877485200000006**, under $15 / $20 caps.
+These include prior studies and four unknown-usage reservations (one development,
+three confirmation); they are not provider balances or invoices. No further paid
+requests are planned. Remaining subscription/local routes have zero incremental API
+accounting, but calls/tokens are still reported.
 
-New bounded alternative search: NetInjectBench has no released artifacts in its
-paper (after acceptance promised); NTBench no usable release found, important
-near-target limitation. Community agent-injection-bench d75c8ad8d255d018b75258d22ea1c78a8c37428b
-has 24 fixtures, 17 potentially eligible static document/page/tool cases:14 intended
-attacks,3 controls incl legitimate runbook instructions. Seven rejected for extra
-trusted context or unsupported surfaces. MIT; source is authored synthetic fixtures,
-not historical production traces. All metadata/labels stay out of future requests.
-Potential supplementary source only; source-specific results and very wide FPR limits.
-Read ELIGIBILITY-DRAFT.md. No new inference, spending or live background processes.
+The live inference ledger and three unfinished route directories remain untracked to
+avoid committing inconsistent snapshots. MODEL-ROUTES.md and recent eligibility/handoff
+clarifications are uncommitted. Do not overwrite historical or frozen inputs.
 
-## Development started (v4.0 + documented v4.0.1 correction)
+## Finish the actual objective
 
-533 prepared rows validated; confirmation425 (408QA/17AIB), development108.
-Source/exposure validators pass, all8 initial tests plus2 cap-ledger tests pass.
-Laya2665payloadtokenchecks zero truncations, max3671tokens. Protocol/prompts and
-372development jobs frozen. No confirmation yet. Original changed runtime files
-are archived and byte-verified against original development freeze.
+1. Monitor the three live handles; retain failures and resolve only eligible continuations.
+2. For each finished route run analyze.py, verify_analysis.py, verify_bootstrap.py and
+   audit_records.py under scripts/controls_v4. Use .venv for numpy; no new inference.
+3. Rebuild tables and figures for all seven configurations. Inspect final images and
+   extend the exploratory error review with both beneficial and adverse transitions.
+4. Run closure.py --require-terminal, then report.py. The report refuses incomplete
+   closure or missing per-route checks. Do not claim success from a live snapshot.
+5. Inspect/scan intended changes, stage final evidence, then run reproduce_offline.py.
+   It exports the Git index and runs 32 offline commands, requiring byte-identical
+   analyses, checks, tables, figures, closure and report. It has not run yet.
+6. Resolve genuine issues, run relevant checks, inspect final diffs/secrets, commit/push,
+   update private draft PR5, and obtain green CI. Verify preservation and remote state.
+7. Audit every requirement in the goal against actual evidence before marking complete.
 
-Development live handles: Luna chat98450, Astra97819, Nimble54027; Luna Decisions
-62998 restarted untouched jobs after reviewed503. Laya49812 and ProtectAI57922
-likely finished; poll exact handles or inspect records, never restart blindly.
-Jev50134finished60. Nimble initially made zero calls: external Ollama updated to
-0.40.13. Separate nimble_runtime.py pins actual version, unchanged model digest.
-Official release checked. Development amendment v4.0.1 binds five changed files,
-original source archive and one Decisions503 (no usage; full reservation retained).
-That one failed dev cell may remain missing; other cells must pass. Never overwrite
-failed record. Existing running processes retain original loaded code and freeze.
-
-Current run.py requires original+amended development hashes, fresh confirmation
-freeze binds amendment. All-in budgets use v3 closure, never legacy expanded-only
-spending. New analysis/statistics draft source-specific estimators, not run yet.
-Need finish development report and gate, confirmationfreeze, full execution,
-continuation policy tool/tests, analysis/independentverifiers/figures/repro/commitCI.
-Current changes mostly uncommitted. Do not stop after development.
-
-## Confirmation live
-
-Development ended372attempts:371valid,onepreservedDecisions503. No chat truncation;
-Laya weak positive bias and Nimble all-negative outputs retained, no prompt/threshold
-change. development-report-v1.json verifies all request hashes and ledger records.
-Confirmationfreeze-v1.json created and all7routes started. Exact live handles:
-Jev10591, Decisions42194, Luna85775, Astra28541, Laya9426, Nimble65326, ProtectAI15441.
-Poll those handles; never restart a live process. No confirm failures observed yet.
-Continue_transient.py supports bounded reviewed HTTP transients only, preserving all
-failed cells and unknown-cost reservations; unsupported failures require inspection.
-Analysis/audit draft copied and adapted;14tests pass with numpy. Analysis not run.
-Full confirmation is13,175calls (2125/contextualroute,425specialist).
-
-## Checkpoint2411ed0 pushed; all10CIgreen
-
-Jev and ProtectAI confirmation complete. Analysis/rawaudit/independentarithmetic
-passed both; Jev bootstrapverified all32comparisons inclsubsets. Firstfigures
-rendered and controlserrorimage visuallyinspected; finalallroutefigures stillneeded.
-Isolatedsourceprep sixcommands13byteidenticaloutputs passed. Testsnow17pass.
-
-Laya initialconfirmationconstructor failed before any reservation because new
-analysis statistics.py shadowedstdlibstatistics in torch. Renamed metrics.py;
-startup-correctionreceipt and regressiontestsaved. No frozenruntimefilechanged.
-Laya now33292running. Decisions first504 andlater503 preserved withfullunknown
-reservations; two continuationreceipts. Current Decisions58813running (old75504
-finished). Other livehandles: Luna85775,Astra28541,Nimble65326. Jev10591 and
-ProtectAI15441finished; Laya9426failedstartup. Never restart blindly.
-
-New unanalyzedcode: closure.py, verify_analysis.py, verify_bootstrap.py, figures.py,
-reproduce_preparation.py, reproduce_offline.py. Last requiresallterminal/stagedtree;
-not run yet. analyze uses metrics.py now. Never mutate frozenfiles.
-Rawliveconfirmation andinferenceledger deliberatelyexcludedfrom2411ed0commit.
-Nextcommit must include onlycompletedroutefiles untilfinalclosure.
-
-## Four completed routes / current progress
-
-Jev,Laya,LunaDecisions,ProtectAI complete and independently analyzed/audited.
-LunaDecisions2125 attempts:2118ok,4ties,3HTTPfailures(fullreserves). No retries.
-AllrawCSVrows additionally verified against rawrecord+ledger; fourverification
-receipts updated. Bootstrap andrawrequestaudits passed. Tables/figures rebuilt
-for4completedroutes, earlier3routeabsoluteerrorimage visuallyinspected.
-
-Stilllive: Luna85775,Astra28541,Nimble65326. Lastcounts roughly470/274/572;
-these are moving. Decisions16285finished, Laya33292finished. No pending paid
-route. Currenttotalcaps farbelow limits. Never launchduplicate liveprocesses.
-17offline tests pass. Sourceprep13identicaloutputs verified. Checkpoint60a7fdb
-pushed andall10CIgreen. New report.py refusesnonterminalclosure; notrunyet.
-coverage.py generatedcoveragev1; reproduce_offline.py nowincludes tablesandfinal
-report commands andrequiresfinalstagedtree. Finalfullclosure/repro/figinspection
-are outstanding. Do not claimgoalcomplete.
-
-ERROR-REVIEW.md includes original-source inspection of fixed Jev/LunaDecisions
-transitions and Laya high-FPR tradeoff; no relabeling orposthoc exclusions.
-Currentnewchanges awaitcheckpointcommit; activeledger/unfinishedroutefiles remain
-untracked untilterminal toavoidcommitting inconsistent live snapshots.
+Read REPRODUCE.md for exact offline commands. Do not rerun successful inference or
+old frozen commands as a reproduction step. Source-specific conclusions and the limits
+of construction labels, tiny benign supplement, lexical controls and fixed attack
+family must remain explicit in the final answer.
