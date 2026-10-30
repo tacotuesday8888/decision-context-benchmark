@@ -15,3 +15,10 @@ jobs:
       - run: python -m unittest discover -s tests/extension_v3 -v
       - run: python scripts/extension_v3/analyze_diagnostic.py
       - run: git diff --exit-code -- results/extension-v3/local-diagnostic-v1/summary.json
+      - name: Independently verify completed confirmation analyses
+        run: |
+          python scripts/extension_v3/verify_analysis.py --config jev_firstparty
+          python scripts/extension_v3/verify_analysis.py --config luna_decisions
+          python scripts/extension_v3/verify_analysis.py --config laya_local
+          python scripts/extension_v3/verify_analysis.py --config protectai_local
+          git diff --exit-code -- results/extension-v3/analysis/*-verification.json

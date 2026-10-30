@@ -19,14 +19,17 @@ local pinned artifacts where stated, not model request counts.
   paper version. Current code has versioned task overrides; counting every class
   declaration inflates counts. MIT repository inspected. The official
   [results page](https://agentdojo.spylab.ai/results/) links execution traces.
-  Further trace acquisition and version alignment remain unfinished.
+  The extension subsequently replayed the pinned v1.2 clean ground-truth fixtures
+  offline: 96 of97 tasks succeeded; one upstream date-type error was excluded.
+  This uses the current JSON formatter, not the older paper's YAML representation.
 - [AgentDyn v1 preprint](https://arxiv.org/html/2602.03117v1): dynamic tasks and
   useful external instructions overlap directly with the benign-example concern.
   Current [repository](https://github.com/leolee99/AgentDyn) README has a revised
   title/author list relative to v1; do not silently conflate paper versions.
   Actual released traces and code were inspected. The v3 provenance audit separates
-  task IDs, text duplicates, payload repetitions and trajectory occurrences. It
-  does not yet certify binary labels. One shared template greatly limits attack
+  task IDs, text duplicates, payload repetitions and trajectory occurrences. Final eligibility now inherits explicit clean/default versus intended-injected
+  construction labels; these are not independently adjudicated semantic gold or
+  measured attack-success labels. One shared template greatly limits attack
   diversity even where user task coverage is broader.
 - [RAG-PIBench v1, October 2026 preprint](https://arxiv.org/html/2610.08571v1):
   4,876 rendered examples; reported train/validation/test sizes 2,936/962/978.
@@ -55,13 +58,15 @@ formatting and training overlap. This is much closer than a generic agent attack
 benchmark. Its task-aware results are mixed; adding context is not a new claim.
 The v1 judge truncates at 6,000 characters. Native decision probability quality
 and coverage-preserving controlled task ablations remain possible distinctions,
-pending the updated repository audit; no novelty claim is established.
+with the following verified overlap; no novelty claim is established.
 
 The [released repository](https://github.com/lzwhehe/benign-instruction-bench),
 revision `5d0ae7c438a7b01be2ac0a2e8bc943e45c8f851f`, is MIT for its code/results.
 Its current README revises numerical findings relative to arXiv v1 and describes
-task-clustered intervals. It also includes no-request judge score files: inspect
-these before asserting a missing task ablation. Third-party datasets retain their
+task-clustered intervals. Its `analysis/compute_v4.py` section12 computes request/no-request judge
+comparisons from released score files. A task-information ablation is therefore
+not missing from that work. `scripts/hf_judge.py` uses NF4 Qwen2.5-7B/Llama-3.1-8B
+and first-token Yes/No scores, with a 6,000-character tool-text cutoff. Third-party datasets retain their
 own terms; its shorthand description of BIPIA as MIT does not override BIPIA's
 component-specific licenses already verified in this project.
 
@@ -85,4 +90,6 @@ repository at `073d1de361ea1c6f45641c129ccf12401110edf2` is MIT. Its actual
 `bench/datasets/__init__.py` rotates injection-vector defaults over task prompts,
 then appends attacks. That pairing is not an authentic original task/document
 relationship. Exclude it from our authentic-context evaluation; retain as related
-work about formatting. No upstream scripts have been executed.
+work about formatting. These community collection scripts were inspected, not executed. Our separate
+network-disabled adapter did execute pinned AgentDojo ground-truth calls, as
+documented in the replay receipt; that later replay supersedes earlier status notes.

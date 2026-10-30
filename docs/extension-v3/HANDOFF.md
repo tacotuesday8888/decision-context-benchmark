@@ -1,221 +1,101 @@
-# Extension v3: active work, not completed confirmation
+# Extension v3 handoff — confirmation still running
 
-Branch `codex/context-extension-v3`, based on completed-study commit
-`ab3fff2623177327d5fe58eb19a974af7d5dc7e8`. The goal objective is the owner's
-`d0567430-d8c8-4dfb-ab3f-e853b591f9ec/goal-objective.md` attachment. Read that
-objective before continuing. It authorizes broader empirical work under existing
-independent all-in OpenAI $15 / TypeSafe $20 caps. No purchases or new subscriptions.
-No paid calls have been made by v3. Prior all-in accounted spending remains
-$0.0964428 OpenAI and $0.051170784 TypeSafe, including preserved historical records.
+Read the active goal objective first:
+`/Users/langqi/.codex/attachments/d0567430-d8c8-4dfb-ab3f-e853b591f9ec/goal-objective.md`.
+It authorizes broader empirical execution under all-in OpenAI $15 /TypeSafe $20
+caps, including earlier spending/reservations. No purchases, recharge, new accounts,
+resellers, public publication or merge. Do not rerun the completed pilot/study.
 
-All 5,793 previously tracked files are hash-protected in
-`results/extension-v3/completed-study-freeze.json`; integrity verification passed.
-Do not modify old outputs, protocols, source code, paper or PDF. The completed
-study had 5,274 terminal cells; it is not an unfinished run to resume.
+Branch `codex/context-extension-v3`; private draft PR4, stacked on
+`codex/expanded-execution`. Prior complete study commit
+`ab3fff2623177327d5fe58eb19a974af7d5dc7e8`; 5,793 files remain hash-protected by
+`completed-study-freeze.json`. Integrity and21 offline tests passed. Old study had
+5,274 terminal cells. No old outputs/protocol/PDF are changed.
 
-## Completed new work
+## Frozen experiment
 
-- Reproducible AgentDyn trace audit and provenance inventory, pinned source revision.
-  648 trace files in one published pipeline, 28 attacker-goal baselines excluded.
-  1,152 tool-message occurrences, 739 distinct byte strings, 1,077 distinct
-  task/text pairs, 60 distinct task IDs. **None approved for evaluation yet.**
-  454 unique attacked texts and 285 no-attack texts. Shared normalized candidates
-  link 59 tasks; one task is isolated. One task ID has different user wording
-  between its baseline and attacked trace. Preserve trace-specific wording.
-- Six offline source-parser regression tests passed. No upstream code executed.
-- Frozen development-only local diagnostic: 42 new requests on seven previously
-  used development candidates, all completed. Original baseline responses reused.
-  Nimble statement variant errors 8→6 /14; Laya statement and explicit-criteria
-  variants both 7→8 /14. Brier changes: Nimble −0.0330222, Laya statement +0.0393370,
-  Laya criteria −0.000195125. These pooled diagnostic counts are descriptive,
-  not population estimates; source/condition results and every score are saved.
-  No supported claim of a corrected implementation or general improvement.
-- Laya SDK inspection: noul is P(true), false/true option order, output p[1].
-  Its model card accepts question syntax. No probability-direction bug found.
-  Both existing adapters enforce identity and input coverage. Diagnostics retain
-  backend, quantization, tokenizer, thresholds and calibration unchanged.
+Commit70cfa0c saved collection, protocol,108 successful control development calls,
+request/token plans and confirmation freeze before evaluation started. Do not
+regenerate freezes or alter prompts/settings/data based on interim outcomes.
 
-## Source investigation
+-761 task/text pairs;582 distinct texts;138 tasks;9 strata. These are different counts.
+- AgentDojo clean offline replay:153 pairs in four domains, no attacks.
+- AgentDyn:336 pairs across daily life/GitHub/shopping; inherited clean/injected
+  construction labels, actual trace task wording, one common attack template.
+- InjecAgent:272 attack-only cases,17 original task fixtures, all62 instructions
+  covered via16 published cases/task. No invented clean response or context.
+-91 texts cross tasks, max12 tasks/text; no exact/5-gram Jaccard≥0.8 overlap with
+ 482 older examples. All new sources are confirmation only; old dev data reused.
+- Authentic task and candidate comparison plus format/reminder/scrambled controls
+ on83 preselected pairs. Constructed controls are not historical alternate tasks.
+-11,387 confirmation requests:1,771 each of six contextual configs +761 detector.
+- Laya preflight max1,702 input/113head tokens; no truncation in any planned payload.
+- Source-specific paired task-weighted error/Brier, text-weighted sensitivity,
+ 5,000-draw crossed bootstrap; no CI for <5groups. See frozen PROTOCOL-v3.0.md.
 
-Local clones are ignored under `data/raw/extension-v3/`; do not commit whole clones.
+Model routes: Jev1.14.0 first-party API; Luna Decisions first-party API;
+Luna/Astra Responses separately authorized subscription; pinned local Nimble
+Q4_K_M/Ollama0.40.11, Laya multilingual/SDK0.4.17 CPU/eager, ProtectAI v2 CPU.
+42 local wording diagnostics were mixed; original question kept. See BACKEND-AUDIT.
+No fitted calibration or changed thresholds. Native scores are not assumed calibrated.
 
-| Source | Pinned revision | Evidence / disposition |
-|---|---|---|
-| InjecAgent | `f19c9f2c79a41046eb13c03c51a24c567a8ffa07` | MIT in LICENCE; 1,054 base cases are 17 user fixtures crossed with 62 attacker instructions. Enhanced variants repeat these. No clean filled user response released in inspected user fixtures; do not invent benign fills. |
-| AgentDojo | `357c80dea9af34323f709c3505d9e6d224654c7e` | MIT; inspect version overrides before counting tasks. Official result explorer linked, raw runs not found in inspected clone. |
-| AgentDyn | `5353cf7615b135cace8d07c8f12dac53a16b6db3` | MIT root license read; source has 60 new task fixtures and 560 task/attack cases across GitHub, shopping, daily life. Released runs repeat models/defenses. Audit uses only gpt-4o-mini-2024-07-18. |
+## Processes and immutable failures
 
-AgentDyn `important_instructions_attacks.py` constructs one common impersonation
-template. The default injection-vector YAML contains ordinary messages/reviews/ads.
-Some tool outputs are action acknowledgments, not useful difficult benign documents.
-Inspect semantic eligibility and first injected encounter before selecting examples.
-Never use attack-success `security` or utility as detector gold. Source inspection
-also found an apparently copied `send_money` ground-truth stub for a GitHub starring
-attack; this does not invalidate the saved text but matters for prevention replay.
-Do not launch the environments until execution semantics are independently audited.
+Four completed arms have terminal exit0:
+- Jev handle31554:1,771.
+- Luna Decisions handle2746:1,771.
+- Laya handle85932:1,771.
+- ProtectAI handle84027:761.
+Do not rerun them. Analysis and independent raw-record numerical checks passed for
+all four; per-arm settled ledger snapshots allow offline reproduction without the
+moving global ledger. Figure inspected; remaining analysis is not complete.
 
-## Next required work
+Live at last direct polling (counts are snapshots, not current truth):
+- Astra handle3156, PID55566:128 completed.
+- Nimble handle54609, PID55626:432 completed.
+- Luna Responses continuation handle78558, PID61547:144 loop position;
+  one preserved failed cell means positions and completed counts differ.
+Use write_stdin on the same handles. Observation timeouts do not mean failure.
+Check process and raw/ledger state before any restart.
 
-1. Finish source-specific eligibility, license exceptions, duplicate/related-group
-   checks. AgentDyn likely belongs wholly in fresh confirmation, not a random
-   task split; consider first encountered injection and content-bearing clean tools.
-   Preserve original text and actual user task, exclude downstream attack effects.
-2. Inspect remaining authentic new sources / AgentDojo traces, and implement
-   InjecAgent extraction without fabricating clean context. Distinct task coverage
-   matters more than reaching thousands by cross products.
-3. Finish current literature comparison and audit backend/default calibration.
-   Do not select prompt variants solely from the seven-candidate operational check.
-4. Define development policy, paired controls, clustering-aware precision, exact
-   requests/token estimates and provider accounting including all earlier ledgers.
-   Freeze confirmation before any held-out calls. No v3 confirmation authorized by
-   a frozen protocol yet; the owner has authorized designing and running one.
-5. Execute justified extension, source-specific analysis and inspected figures;
-   retain failures. No new manuscript/PDF before core work finishes.
-6. Commit/push and maintain a new private draft PR stacked on expanded-execution;
-   do not merge/publicly publish. Goal remains active.
-
-Reproduce current checks:
+Original Luna Responses handle52857 terminated on HTTP0/curl28 at60.031seconds;
+cell a30c6762565ebe6625c11b0a remains failed, empty body, and STOP.json retained.
+Runtime amendment-v3.0.1 binds runner+continue_transient.py hashes and permits
+only unattempted jobs after>=60seconds or longer numeric Retry-After. No failed
+cell retry/replacement; max10 eligible isolated stops per hosted route.
+Auth/billing/quota/semantic/accounting errors cannot bypass this rule. Old live
+processes loaded original code; fresh ones record amendment hash. A later eligible
+terminal stop can be reviewed with:
 
 ```sh
-python3 scripts/extension_v3/source_audit.py
-python3 -m unittest discover -s tests/extension_v3 -v
-python3 scripts/extension_v3/analyze_diagnostic.py
-python3 scripts/extension_v3/integrity.py
+python3 scripts/extension_v3/continue_transient.py --config CONFIG
+# honor printed cooldown, then only after old process is terminal:
+.venv/bin/python scripts/extension_v3/run.py confirmation --config CONFIG
 ```
 
-Both local diagnostic processes have exited successfully. Do not repeat requests.
-Their runners skip completed records and reject failed/interrupted reservations.
+Do not run freeze-development/freeze-confirmation again. Amendment-aware freeze
+verification is intentional. Never stage the moving global ledger as final closure.
+Earlier all-in accounted cost was OpenAI0.0964428/TypeSafe0.051170784; add all v3
+entries and outstanding reservations for current totals. Full planned conservative
+reserve bounded at OpenAI2.0485926/TypeSafe0.85847496, not expected actual cost.
 
-## Latest checkpoint
+## Remaining work
 
-Private draft PR #4 is open, stacked on `codex/expanded-execution`:
-https://github.com/tacotuesday8888/decision-context-benchmark/pull/4
-Commit `6b21aca` pushed; all six inherited CI checks passed. The new six tests ran
-locally (existing workflows do not yet discover the separate v3 test directory).
+1. Monitor three live arms, retain any failures; complete frozen list within policy.
+2. Analyze each newly completed arm, independent verification, regenerate figures.
+3. Finish source-specific control/reliability interpretation and representative error
+   review, keeping labels unchanged. No pooled winner or invented probability.
+4. Final request/accounting closure, all-provider totals, source limitations,
+   reproduction checks and completion audit against the full goal.
+5. Commit/push reviewed raw/results/code, obtain green CI, update private draft PR4.
+   No merge or new paper PDF. Goal remains active, not blocked or complete.
 
-After that checkpoint, added reproducible InjecAgent inventory: 1,054 distinct
-published base texts, 17 tasks/templates, 62 attack instructions; still no final
-eligibility/gold assignments. Its original prompted-agent evaluator interpolates
-`Tool Response` verbatim; retain serialization quotes, do not prettify it.
+Research notes include verified close overlap: benign-instruction-bench already
+has request/no-request comparisons, task-clustered analysis and6,000-char judge
+truncation. Do not claim a missing ablation or establish novelty from this extension.
+Our offline AgentDojo replay ran pinned source ground-truth calls with network
+blocked; community collection scripts were only inspected. One source task fails
+on `.isoformat()` called on string current_day, excluded without patching.
 
-Important new related-work/source lead: `benign-instruction-bench`, pinned revision
-`5d0ae7c438a7b01be2ac0a2e8bc943e45c8f851f`, under ignored raw directory. Read the new
-research-notes section before proceeding. It already includes task-aware and
-no-request judge variants, replayed AgentDojo/tau-bench, and updated clustered
-analyses. Its clean AgentDojo replay may provide 97 additional authentic task
-fixtures without LLM generation. No upstream code has run. Review network/tool
-side effects before a bounded offline replay; pin dependencies in a new ignored
-environment under `data/raw/extension-v3/` so old environments remain unchanged.
-
-Reject `buried-injections` as a source of authentic task/document pairs: actual
-loader rotates default documents arbitrarily across tasks. Preserve its relevance
-to related work, not its advertised counts as eligible data.
-
-AgentDyn content-tool/first-matched-attack exploratory filter yielded 542
-occurrences /359 distinct texts (422 first attacked responses and120 clean
-content-bearing responses). This is not frozen selection. Some read_file outputs
-are published synthetic account fixtures; avoid printing their contents again.
-No secrets from this workspace were read. A proper final adapter still needs
-first-encounter checks, licensed extraction, exclusions and label review.
-
-## Offline AgentDojo replay completed after the source review
-
-`scripts/extension_v3/replay_agentdojo.py` now runs the pinned official clone's
-ground-truth user calls, in memory, with socket connections/DNS disabled and
-credential-like environment variables removed before importing SDKs. No LLM or
-real service used. Environment created only inside the ignored clone with
-`uv sync --frozen --no-dev --project data/raw/extension-v3/agentdojo --python 3.12`.
-It uses the upstream frozen lock; package versions and lock hash are in the receipt.
-
-Observed 337 outputs /150 distinct texts from96 of97 tasks. Suite occurrences:
-workspace82, travel124, banking33, slack98. Original data and arguments remain in
-ignored `data/raw/extension-v3/agentdojo-clean-replay.jsonl`; tracked inventory
-contains only provenance/hashes. No gold labels assigned yet. Content eligibility,
-grouping, and frozen selection remain required. Current upstream default formatter
-is JSON, unlike the older paper's YAML representation: record this difference.
-
-Preserved failure: workspace:user_task_10 ground_truth raises AttributeError.
-Cause established in source: calendar.current_day is declared str, but task calls
-`.isoformat()` on it. Do not silently fix the upstream fixture or invent outputs.
-No downstream calls for that task were attempted. This is a one-task exclusion,
-not a blocker for all other source preparation.
-
-Current branch includes a dedicated new v3 CI workflow. At commit0bc267c, all eight
-push/PR checks passed, including both v3 integrity/test/reproduction jobs. No
-inference process is live. The v3 goal remains active and confirmation remains
-unfinished; continue extraction/validation and design, not another paper build.
-
-## Confirmation running — latest authoritative stage
-
-Commit `70cfa0c` pushed the validated collection, exact prompts, protocol,108
-successful control-development calls, token audit and confirmation freeze **before
-any confirmation calls**. Prepared collection:761 task/text pairs,582 distinct
-texts,138 task groups across nine source strata. All62 InjecAgent attack instructions
-covered by16 published base cases per17 tasks. All new data is confirmation-only;
-development uses only the old dev split. No generated gold labels or invented task
-contexts. Source-construction labels are inherited explicitly;582 texts were checked
-against482 prior examples with no5-gram Jaccard≥0.8 overlap. Ninety-one texts occur
-in multiple tasks; max12 tasks/text. Full unchanged text stays in ignored
-`data/raw/extension-v3/prepared-collection-v1.jsonl`; committed manifest carries
-provenance, hashes and inherited label basis. This is now prepared/validated data,
-not just the earlier candidate inventory.
-
-`PROTOCOL-v3.0.md` is frozen and must not be edited. It specifies primary candidate/
-task comparisons and three constructed controls on83 preselected pairs;11,387
-confirmation requests (1,771 each contextual arm;761 specialist scans). Original
-question/threshold/output settings retained after mixed diagnostic results. All1,771
-Laya payloads fit (max1,702 tokens/113 head tokens); no dropped state or forward
-passes in that audit. Development108/108 completed with usage and no truncation;
-incremental cost$0.0019606 OpenAI/$0.001047228 TypeSafe. Separate caps remain$15/$20,
-including all old and new ledger entries. No paid subscription fallback or purchases.
-
-New runner `scripts/extension_v3/run.py` uses separate ledger/output paths and exact
-freeze gates. Native adapters reused read-only. The frozen old study still verifies
-5,793 unchanged files.15 offline tests passed before confirmation;21 now pass in
-`.venv` including numerical estimator tests (system Python skips NumPy tests).
-The new v3 CI workflow now installs pinned numpy2.4.4; that edit is not committed yet.
-
-The first Luna subscription confirmation process (handle52857) terminated after
-three completed cells and one HTTP0/curl28 timeout with empty response. Failure
-`a30c6762565ebe6625c11b0a` and original STOP are retained. Runtime amendment
-`runtime-amendment-v3.0.1.json` binds the changed runner and continuation tool.
-Only unattempted jobs may continue after≥60 seconds or longer numeric Retry-After;
-no retries/replacement, no prompt/data/model/threshold changes. Up to10 isolated
-HTTP/transport stops per hosted route can be documented; auth/billing/quota,
-semantic and accounting failures cannot be bypassed. All old processes already in
-memory retain the original implementation; fresh processes record amendment hash.
-The development-to-confirmation amendment had separately added persistent STOP on
-accounting-settlement exceptions; the108 development records were unchanged.
-
-### Live process handles at last polling (do not restart blindly)
-
-- Jev31554: **exit0**, all1,771 completed.
-- ProtectAI84027: **exit0**, all761 completed.
-- Luna Decisions2746: still live at last direct poll; later disk snapshot1,580 cells.
-- Astra3156: **live**,40 completed plus one reservation at last snapshot.
-- Nimble54609: **live**,163 completed plus one reservation.
-- Laya85932: **live**,778 completed plus one reservation.
-- Luna Responses continuation78558: **live**,15 completed +one failed +one reservation.
-
-Poll these same handles via write_stdin; an observation timeout is not failure.
-Only resume after a terminal handle/process and reviewed stop. To resolve an
-eligible isolated transport stop, run `python3 scripts/extension_v3/continue_transient.py
---config CONFIG`, honor returned cooldown, then `.venv/bin/python
-scripts/extension_v3/run.py confirmation --config CONFIG`. Keep both raw failure
-and STOP. Do not run freeze-development/freeze-confirmation again: existing freezes
-are immutable and amendment-aware verification handles the new runner. Do not
-regenerate source selection or request plans while inference runs.
-
-Current raw confirmation records and live ledger changes are **not committed yet**;
-they are being written atomically. Avoid staging a moving ledger snapshot as a final
-accounting report. New runtime amendment, continuation receipt/tool, statistics
-implementation/tests and CI edit also need a reviewed commit. Model probabilities
-have not been inspected to choose analysis behavior. `statistics.py` implements the
-already frozen proper scores, task/text weighting, crossed bootstrap and small-group
-exclusions. Next implement the final aggregate analyzer/independent verifier and
-figures from the frozen protocol, while monitoring the live inference.
-
-`benign-instruction-bench/analysis/compute_v4.py` actually computes request/no-request
-judge comparisons, and `scripts/hf_judge.py` truncates tool text to6,000 characters.
-Do not claim those ablations are absent. The extension's native decision probability
-and bounded full-input controls remain its focus; no novelty guarantee.
+Current analyzer syntax and21 tests pass; all8 remote CI checks passed at63a2209.
+New completed-arm analysis/verifier/figures/audit need the next reviewed commit.
