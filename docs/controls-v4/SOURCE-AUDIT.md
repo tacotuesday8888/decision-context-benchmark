@@ -1,4 +1,9 @@
-# Stronger-control source audit — work in progress
+# Stronger-control source audit — chronological research notes
+
+Status note: the dated-stage statements below preserve the audit history. Preparation
+and inference subsequently completed; final scope and findings are in PROTOCOL-v4.0.md
+and RESULTS.md. Early zero-approval counts and prior accounting totals are not the
+final experiment state. See execution-closure-v1.json for final accounting.
 
 This new experiment starts from preserved v3 commit
 `d929836982347374695a0d38797623f8276a1cd5`. All eight PR4 checks were observed
