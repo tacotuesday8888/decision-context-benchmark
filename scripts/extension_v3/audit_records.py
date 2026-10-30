@@ -116,6 +116,10 @@ def audit(config):
             assert raw['returned_model'] == settings['model'] and raw['revision'] == settings['revision']
             assert raw['windows'] == len(raw['window_scores']) and raw['windows'] > 0
             assert all(type(p) in (int, float) and 0 <= p <= 1 for p in raw['window_scores'])
+            assert type(raw['input_tokens']) is int and raw['input_tokens'] > 0
+            width, overlap = settings['window_tokens'], settings['overlap_tokens']
+            expected_windows = 1 + math.ceil(max(0, raw['input_tokens'] - width) / (width - overlap))
+            assert raw['windows'] == expected_windows, 'Detector window coverage mismatch'
             assert raw['score'] == max(raw['window_scores'])
             recomputed = dict(raw, **probability(raw['score']))
             window_count += raw['windows']
@@ -135,6 +139,8 @@ def audit(config):
             usage = parsed['usage']
             assert type(usage['input_tokens']) is int and usage['input_tokens'] > 0
             assert not usage.get('truncated') and not usage.get('state_tokens_dropped', 0)
+            if config == 'nimble_local':
+                assert usage['input_tokens'] <= settings['context_tokens'], 'Native input exceeds declared bound'
             used_tokens.append(usage['input_tokens'])
         entry = entries['confirmation:' + config + ':' + key]
         assert entry['status'] == 'settled' and entry['config'] == config

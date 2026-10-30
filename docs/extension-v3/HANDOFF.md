@@ -221,3 +221,15 @@ unchanged. No new model calls, upstream code/replay or downloads. New utility an
 preparation-reproduction-v1.json record hashes and exact scope.
 Latest polled loop positions:618Luna/591Astra/1065Nimble; same handles31950/58329/54609,
 all live with no new failures in that observed interval.
+
+Raw-record audit tightened without inference changes: detector windows must equal
+1+ceil(max(0,input_tokens-window_tokens)/(window_tokens-overlap_tokens)); all761
+scans/831windows pass. Nimble reported token usage must fit declared8194 bound,
+without claiming per-call observed allocation. All four completed raw audits pass
+with updated verifier hashes. Regenerate final isolated reproduction after these
+verification/display-table changes before claiming current artifact identity.
+
+Current isolated reproduction now PASSED19 commands /39 byte-identical artifacts,
+including updated coverage audit and source/control display tables. Latest observed
+loop positions859Luna/745Astra/1425Nimble, same three live handles. No new failures
+in these checks. Complete-arm analyses remain four configurations, not final study.
