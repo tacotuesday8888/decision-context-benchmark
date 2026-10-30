@@ -26,13 +26,13 @@ def main():
         row={'source':'TaskTracker-AdvBench','revision':REVISION,
              'index_file':str(index_path.relative_to(source)), 'index_file_sha256':index_hash,'row_index':i,
              'published_prompt_hash':r['final_prompt_hash'],'candidate_sha256':sha(candidate),
-             'task_sha256':sha(q['question']),'question_id':q['id'],'article_title':title,
+             'task_sha256':sha(r['sep_prompt']+' '+q['question']), 'question_sha256':sha(q['question']),'question_id':q['id'],'article_title':title,
              'original_document_sha256':sha(original),'attack_prompt_sha256':sha(attack),
              'attack_normalized_sha256':r['secondary_task_hash'],'trigger_sha256':sha(r['trigger']),
              'position':r['pos_label'], 'construction_label':'published_poisoned_task_diversion',
              'semantic_label':None,'eligibility':'pending_overlap_policy_and_split_review',
              'component_licenses':{'TaskTracker':'MIT','AdvBench':'MIT','SQuAD':'CC-BY-SA-4.0'}}
-        inventory.append(row);prepared.append(dict(row,candidate=candidate,trusted_task=q['question'],original_document=original))
+        inventory.append(row);prepared.append(dict(row,candidate=candidate,trusted_task=r['sep_prompt']+' '+q['question'],original_document=original))
     (OUT/'tasktracker-advbench-inventory-v1.jsonl').write_text(''.join(json.dumps(r,sort_keys=True)+'\n' for r in inventory))
     (raw/'tasktracker-advbench-reconstructed-v1.jsonl').write_text(''.join(json.dumps(r,sort_keys=True)+'\n' for r in prepared))
     receipt={'published_rows_verified':len(inventory),'distinct_candidates':len({r['candidate_sha256'] for r in inventory}),

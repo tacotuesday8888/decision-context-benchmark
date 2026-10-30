@@ -54,7 +54,7 @@ def main():
         item = {'source':'TaskTracker', 'revision':REVISION, 'index_file':str(indices_path.relative_to(source)),
                 'index_file_sha256':index_file_hash, 'row_index':i,
                 'published_prompt_hash':r['final_prompt_hash'],
-                'candidate_sha256':sha(candidate), 'task_sha256':sha(question['question']),
+                'candidate_sha256':sha(candidate), 'task_sha256':sha(r['sep_prompt']+' '+question['question']), 'question_sha256':sha(question['question']),
                 'original_document_sha256':sha(original), 'article_title':title,
                 'question_id':question['id'], 'trigger_sha256':sha(r['trigger']),
                 'secondary_prompt_sha256':sha(attack), 'position':r['pos_label'],
@@ -63,7 +63,7 @@ def main():
                 'hash_semantics':'Publisher SHA256 removes all whitespace; not a byte-identical source-text guarantee',
                 'source_data_provenance':'Published synthetic attack using generated trigger/code instruction and original crowdworker QA context'}
         records.append(item)
-        prepared.append(dict(item,candidate=candidate,trusted_task=question['question'],original_document=original))
+        prepared.append(dict(item,candidate=candidate,trusted_task=r['sep_prompt']+' '+question['question'],original_document=original))
     (OUT/'tasktracker-inventory-v1.jsonl').write_text(''.join(json.dumps(r,sort_keys=True)+'\n' for r in records))
     (raw/'tasktracker-reconstructed-v1.jsonl').write_text(''.join(json.dumps(r,sort_keys=True)+'\n' for r in prepared))
     receipt = {'source_revision':REVISION,'published_rows_verified':len(records),

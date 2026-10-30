@@ -41,3 +41,67 @@ Tau alone has large shared-document components even after removing generic tools
 Retain full control experiment objective, both error directions and no new labels.
 No confirmation/protocol freeze or model use yet. Two grouping regression tests pass.
 Source reconstruction audits passed; no live process remains from those audits.
+
+## Current draft scope and leak correction
+
+Private draft PR5 is open, base codex/context-extension-v3. Initial checkpoint
+`e69364c` passed all ten push/PR checks including the new controls workflow. Current
+uncommitted work adds overlap/selection/AIB adapters and updated source fields.
+TaskTracker trusted_task now preserves original sep_prompt + question (not just
+question); all reconstructions regenerated before inference. No freeze exists.
+
+Draft v1 is automatically rejected: 11 wrappers crossed splits. draft_selection_v2
+keeps all TaskTracker override wrappers in confirmation: 48 new clean dev examples
+from 8 articles plus 60 reused prior dev rows; 408 confirmation examples (204 matched
+QA questions/paragraphs) in 27 other articles. No exact/near prior document overlap;
+no full normalized selected-wrapper substring in prior candidate texts. The latter
+was manually inspected, still needs durable validator output. Independent split
+validation and clustering remain required; do not mistake draft counts for approval.
+
+New bounded alternative search: NetInjectBench has no released artifacts in its
+paper (after acceptance promised); NTBench no usable release found, important
+near-target limitation. Community agent-injection-bench d75c8ad8d255d018b75258d22ea1c78a8c37428b
+has 24 fixtures, 17 potentially eligible static document/page/tool cases:14 intended
+attacks,3 controls incl legitimate runbook instructions. Seven rejected for extra
+trusted context or unsupported surfaces. MIT; source is authored synthetic fixtures,
+not historical production traces. All metadata/labels stay out of future requests.
+Potential supplementary source only; source-specific results and very wide FPR limits.
+Read ELIGIBILITY-DRAFT.md. No new inference, spending or live background processes.
+
+## Development started (v4.0 + documented v4.0.1 correction)
+
+533 prepared rows validated; confirmation425 (408QA/17AIB), development108.
+Source/exposure validators pass, all8 initial tests plus2 cap-ledger tests pass.
+Laya2665payloadtokenchecks zero truncations, max3671tokens. Protocol/prompts and
+372development jobs frozen. No confirmation yet. Original changed runtime files
+are archived and byte-verified against original development freeze.
+
+Development live handles: Luna chat98450, Astra97819, Nimble54027; Luna Decisions
+62998 restarted untouched jobs after reviewed503. Laya49812 and ProtectAI57922
+likely finished; poll exact handles or inspect records, never restart blindly.
+Jev50134finished60. Nimble initially made zero calls: external Ollama updated to
+0.40.13. Separate nimble_runtime.py pins actual version, unchanged model digest.
+Official release checked. Development amendment v4.0.1 binds five changed files,
+original source archive and one Decisions503 (no usage; full reservation retained).
+That one failed dev cell may remain missing; other cells must pass. Never overwrite
+failed record. Existing running processes retain original loaded code and freeze.
+
+Current run.py requires original+amended development hashes, fresh confirmation
+freeze binds amendment. All-in budgets use v3 closure, never legacy expanded-only
+spending. New analysis/statistics draft source-specific estimators, not run yet.
+Need finish development report and gate, confirmationfreeze, full execution,
+continuation policy tool/tests, analysis/independentverifiers/figures/repro/commitCI.
+Current changes mostly uncommitted. Do not stop after development.
+
+## Confirmation live
+
+Development ended372attempts:371valid,onepreservedDecisions503. No chat truncation;
+Laya weak positive bias and Nimble all-negative outputs retained, no prompt/threshold
+change. development-report-v1.json verifies all request hashes and ledger records.
+Confirmationfreeze-v1.json created and all7routes started. Exact live handles:
+Jev10591, Decisions42194, Luna85775, Astra28541, Laya9426, Nimble65326, ProtectAI15441.
+Poll those handles; never restart a live process. No confirm failures observed yet.
+Continue_transient.py supports bounded reviewed HTTP transients only, preserving all
+failed cells and unknown-cost reservations; unsupported failures require inspection.
+Analysis/audit draft copied and adapted;14tests pass with numpy. Analysis not run.
+Full confirmation is13,175calls (2125/contextualroute,425specialist).

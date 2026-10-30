@@ -22,10 +22,10 @@ def main():
         assert cumulative.hexdigest() == r['final_prompt_hash']
         row = {'source':'TaskTracker', 'revision':REVISION, 'index_file':str(path.relative_to(raw/'TaskTracker')),
                'index_file_sha256':file_hash, 'row_index':i,'candidate_sha256':sha(candidate),
-               'task_sha256':sha(q['question']), 'question_id':q['id'], 'article_title':title,
+               'task_sha256':sha(r['sep_prompt']+' '+q['question']), 'question_sha256':sha(q['question']), 'question_id':q['id'], 'article_title':title,
                'published_prompt_hash':r['final_prompt_hash'], 'hash_semantics':'cumulative raw UTF-8 prompt prefix per published clean reconstruction code', 'construction_label':'published_clean_qa',
                'semantic_label':None,'eligibility':'pending_content_license_and_group_review'}
-        rows.append(row);prepared.append(dict(row,candidate=candidate,trusted_task=q['question']))
+        rows.append(row);prepared.append(dict(row,candidate=candidate,trusted_task=r['sep_prompt']+' '+q['question']))
     (OUT/'tasktracker-clean-inventory-v1.jsonl').write_text(''.join(json.dumps(r,sort_keys=True)+'\n' for r in rows))
     (raw/'tasktracker-clean-reconstructed-v1.jsonl').write_text(''.join(json.dumps(r,sort_keys=True)+'\n' for r in prepared))
     receipt={'published_clean_rows_verified':len(rows),'distinct_candidates':len({r['candidate_sha256'] for r in rows}),
