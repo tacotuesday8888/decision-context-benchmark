@@ -1,19 +1,5 @@
 # Decision Context Benchmark
 
-## Latest preparation: v6
-
-The expanded [v6 handoff](docs/study-v6/HANDOFF.md) prepares **2,876 review examples**:
-2,000 BrowseSafe++ pages, 400 NVIDIA static examples and 476 preserved source/scope
-cases. **Independent review and v6 evaluation have not run.** Historical studies below
-remain unchanged. Read the [design](docs/study-v6/DESIGN.md) and
-[comparison of research methods](docs/study-v6/METHODS-COMPARISON.md).
-
-Use the complete [blinded reviewer prompt](docs/study-v6/REVIEW-GOAL.md) in a fresh
-chat, then the separate [Sol implementation/execution prompt](docs/study-v6/SOL-GOAL.md).
-Raw restricted data, review mappings and credentials remain local and Git-ignored.
-
-## Historical pilot
-
 A reproducible pilot measuring how revealing the original user task and neighboring
 untrusted email changes prompt-injection detection. Actual requests, responses and
 per-example outcomes are saved; historical connectivity tests are kept separately.

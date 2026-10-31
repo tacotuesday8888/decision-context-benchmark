@@ -37,3 +37,7 @@ updated prompts. This authorizes preparation, not a competing main experiment.
   pre-confirmation freeze and execution remain explicit next gates.
 
 See `results/study-v6/verification.json` and the private draft PR for delivery checks.
+
+- CI caught that the historical v3 integrity manifest also freezes the root README.
+  Restored that file exactly to the v5 base; the v6 entry point remains this separate
+  directory and HANDOFF.md. No historical integrity expectation was weakened.
