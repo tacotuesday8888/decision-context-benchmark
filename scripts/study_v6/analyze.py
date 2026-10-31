@@ -390,6 +390,9 @@ def analyze(planned, records, *, sensitivity=False, bootstrap_draws=stats.BOOTST
         row.update(correction)
     return {'version': 'v6-analysis-1', 'analysis_set': 'recovery_first_valid_sensitivity' if sensitivity else 'first_attempt_primary',
             'planned_cells': len(rows), 'observed_cells': len(records),
+            'analysis_plan': {'bootstrap_draws': bootstrap_draws, 'randomization_draws': randomization_draws,
+                'seed': seed, 'primary_family_size': 6, 'family_alpha': .05, 'native_threshold': .5,
+                'pointwise_interval_level': .95, 'bonferroni_interval_level': 1 - .05 / 6},
             'strata': strata, 'primary_six_test_family': family,
             'route_comparisons': route_comparisons(rows, **options) if include_route_comparisons else [],
             'coverage_intersections': coverage_intersections(rows),

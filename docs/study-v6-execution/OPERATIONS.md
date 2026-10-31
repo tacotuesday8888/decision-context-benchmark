@@ -76,13 +76,18 @@ ledgers; raw export copies and derived analysis ledgers are never summed again.
 Four historical unknown-usage reservations remain accounted. These are accounting
 limits, not provider balances or permission to spend to the cap.
 
-Current official snapshots are in `price-verification-v1.json`. OpenAI Decisions
+Current official snapshots are in `price-verification-v2.json`; v1 is preserved.
+OpenAI Decisions
 base input is $0.10/M, cache read $0.01/M, 30m write $0.125/M and 12h write $0.25/M;
 output is free. TypeSafe input is $0.042/M; output is free. Requests retain global
 native endpoints/default processing and activate no premium/long-context tier.
-The reservation proxy preserves serialized UTF-8 bytes + 4096, with $0.25/M for
-OpenAI and $0.084/M for TypeSafe. This revises the older OpenAI 2x proxy to cover
-the documented 2.5x cache-write rate. It does not tighten the tokenizer assumption.
+The reservation proxy preserves serialized UTF-8 bytes + 4096, with $0.50/M for
+OpenAI and $0.084/M for TypeSafe. The OpenAI model card applies a 2x input/cache
+multiplier above 272,000 input tokens. Reserving the maximum long-input cache-write
+rate covers that contingency without pretending the byte proxy certifies the
+short tier. Unexpected measured long-input usage is correctly priced and stops
+further dispatch. Ordinary short-tier upper pricing remains $0.25/M. This widens
+the earlier rate envelope; it does not tighten the tokenizer assumption.
 Settle TypeSafe from measured input; OpenAI cache details yield a conservative
 usage-priced upper/range. Without invoice evidence, never call those exact billed
 charges. Unknown usage retains the full original reservation. Input/cache counts

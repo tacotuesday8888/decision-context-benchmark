@@ -201,5 +201,35 @@ class JournalPrefixTests(unittest.TestCase):
         self.history_check.assert_not_called()
 
 
+class SetupTests(unittest.TestCase):
+    def inputs(self):
+        access = {'inference_calls': 0, 'providers': {p: {'authentication_verified': True,
+            'luna_catalog_seen': True, 'astra_catalog_seen': True}
+            for p in ('openai_api', 'typesafe_api', 'openai_subscription')}}
+        local = {'runtime': '0.40.13', 'model': {'digest': freeze.routes.PANEL['nimble_local']['revision']}}
+        return access, local
+
+    def test_metadata_and_authentication_are_not_inference_access(self):
+        access, local = self.inputs()
+        with patch.object(freeze, 'load', side_effect=[access, local]):
+            result = freeze.setup_gate()
+        self.assertTrue(result['authentication_verified_without_inference'])
+        self.assertTrue(result['native_decision_access_requires_development'])
+
+    def test_missing_authentication_blocks_freeze(self):
+        access, _ = self.inputs()
+        access['providers']['openai_api']['authentication_verified'] = False
+        with patch.object(freeze, 'load', return_value=access):
+            with self.assertRaises(PermissionError):
+                freeze.setup_gate()
+
+    def test_changed_native_weights_block_freeze(self):
+        access, local = self.inputs()
+        local['model']['digest'] = 'changed'
+        with patch.object(freeze, 'load', side_effect=[access, local]):
+            with self.assertRaises(PermissionError):
+                freeze.setup_gate()
+
+
 if __name__ == '__main__':
     unittest.main()

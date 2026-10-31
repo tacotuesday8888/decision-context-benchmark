@@ -161,7 +161,7 @@ class Accounting(unittest.TestCase):
     def test_usage_upper_is_separate_from_base_and_invoice(self):
         parsed = {'usage': {'input_tokens': 1000000, 'input_tokens_details': {'cache_write_tokens': 200000}}}
         result = routes.metered_cost('luna_decisions', parsed)
-        self.assertEqual(result['conservative_usage_cost_usd'], .25)
+        self.assertEqual(result['conservative_usage_cost_usd'], .50)
         self.assertEqual(result['uncached_base_usage_cost_usd'], .1)
         self.assertIsNone(result['exact_usage_cost_usd'])
         self.assertEqual(result['usage'], parsed['usage'])

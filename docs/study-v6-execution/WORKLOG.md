@@ -42,3 +42,20 @@ finish integrated verification and private draft PR; prepare final exact request
 commit development freeze, bounded operational checks, commit confirmation freeze;
 bounded execution, independent raw/accounting verification, analysis and checked
 paper/PDF. No new inference costs as of this record.
+
+- Private dependent draft PR #11 is open at
+  https://github.com/tacotuesday8888/decision-context-benchmark/pull/11. Initial
+  offline commit `8b5bbf37` passed all 20 CI checks. No historical PR was merged.
+- Added the gated five-page paper builder and checked numerical/literal claim
+  references. Schema tests create no empirical narrative or paper. Primary paper,
+  release-card and license readings are recorded in SOURCE-CHECK.md.
+- A further official model-page check identified the automatic 2x input/cache
+  multiplier above 272,000 input tokens. Preserved price v1 and recorded v2;
+  reserves now use the maximum $0.50/M long-input cache-write rate, while known
+  ordinary usage retains short-tier prices. Unexpected long-tier usage is priced
+  correctly and blocks subsequent dispatch. Spending allocations are unchanged.
+- Started the existing pinned Ollama 0.40.13 local server without model inference
+  and verified the exact Nimble tag/digest/capability through metadata endpoints.
+  Existing API and subscription catalogues authenticated without inference;
+  neither catalogue access nor local metadata is counted as native model access
+  or experiment results. Their receipts remain local and are frozen as setup input.

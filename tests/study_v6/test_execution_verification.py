@@ -1,4 +1,5 @@
 import copy
+from decimal import Decimal
 import json
 from pathlib import Path
 import tempfile
@@ -220,8 +221,10 @@ class ExecutionVerificationTests(unittest.TestCase):
         self.frozen['confirmation']['schedules']['main'].append({'batch':'main:g2', 'group':'g2',
             'request_keys':[r['key'] for r in second], 'all_requests_supported':True})
         self.path.unlink()
+        bounds = {p: str(sum(Decimal(r['reserved_usd']) for r in first if r['provider'] == p) * Decimal('1.5'))
+                  for p in ('openai', 'typesafe')}
         self.ledger = BudgetLedger(self.path, {'prior_accounted_usd': {'openai':'0','typesafe':'0'}},
-            allocations={a:{p:'.0015' if a == 'main' else '0' for p in ('openai','typesafe')}
+            allocations={a:{p:bounds[p] if a == 'main' else '0' for p in ('openai','typesafe')}
                          for a in ('main','supporting','development','recovery')})
         self.ledger.register_schedule('main', [{'group':'main:g1','requests':[self.spec(r) for r in first]},
                                              {'group':'main:g2','requests':[self.spec(r) for r in second]}])

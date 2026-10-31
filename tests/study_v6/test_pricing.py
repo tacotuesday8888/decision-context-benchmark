@@ -20,6 +20,15 @@ class PricingTests(unittest.TestCase):
         self.assertGreater(Decimal(reserve({'input': 'complete'}, 'openai')), Decimal('.001024'))
         self.assertEqual(usage_cost('typesafe', {'input_tokens': 1000})['accounted_usd'], '0.000042')
 
+    def test_unexpected_long_input_multiplier_is_accounted_and_flagged(self):
+        short = usage_cost('openai', {'input_tokens': 272000})
+        long = usage_cost('openai', {'input_tokens': 272001})
+        self.assertEqual(short['long_input_multiplier'], 1)
+        self.assertFalse(short['unexpected_pricing_tier'])
+        self.assertEqual(long['long_input_multiplier'], 2)
+        self.assertTrue(long['unexpected_pricing_tier'])
+        self.assertEqual(Decimal(long['accounted_usd']), Decimal('272001') * Decimal('.50') / 1000000)
+
 
 if __name__ == '__main__':
     unittest.main()

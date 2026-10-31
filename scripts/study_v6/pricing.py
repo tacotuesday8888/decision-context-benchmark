@@ -3,9 +3,11 @@ from decimal import Decimal
 import json
 
 BASE_RATES = {'openai': Decimal('0.10'), 'typesafe': Decimal('0.042')}
-# Decisions can charge 12h cache writes at 2.5x the base input rate. No discount,
-# regional endpoint, long-context tier or faster processing tier is assumed.
-RESERVATION_RATES = {'openai': Decimal('0.25'), 'typesafe': Decimal('0.084')}
+# Cover the maximum documented 12h cache write, including the 2x long-input
+# multiplier, without assuming a byte proxy certifies native token capacity.
+# Actual long-input usage is an unexpected pricing tier and stops further calls.
+RESERVATION_RATES = {'openai': Decimal('0.50'), 'typesafe': Decimal('0.084')}
+OPENAI_SHORT_INPUT_MAX = 272000
 
 
 def reserve(payload, provider):
@@ -27,6 +29,7 @@ def usage_cost(provider, usage):
                 'actual_billed_usd': None, 'basis': 'returned input usage at frozen base rate; output free'}
     if provider != 'openai':
         raise ValueError('Unknown paid provider')
+    multiplier = 2 if n > OPENAI_SHORT_INPUT_MAX else 1
     details = usage.get('input_tokens_details') or {}
     reads, writes = details.get('cached_tokens', 0), details.get('cache_write_tokens', 0)
     if any(type(x) is not int or x < 0 for x in (reads, writes)) or reads + writes > n:
@@ -40,5 +43,9 @@ def usage_cost(provider, usage):
                  + Decimal(writes) * Decimal('.25')) / Decimal(1000000)
     else:
         lower, upper = Decimal(n) * Decimal('.01') / Decimal(1000000), Decimal(n) * Decimal('.25') / Decimal(1000000)
+    lower *= multiplier
+    upper *= multiplier
     return {'accounted_usd': format(upper, 'f'), 'metered_price_estimate_range_usd': [format(lower, 'f'), format(upper, 'f')],
-            'actual_billed_usd': None, 'basis': 'cache counts inclusive in input; conservative 12h write upper; output free'}
+            'actual_billed_usd': None, 'long_input_multiplier': multiplier,
+            'unexpected_pricing_tier': multiplier != 1,
+            'basis': 'cache counts inclusive in input; conservative 12h write upper and documented long-input multiplier; output free'}

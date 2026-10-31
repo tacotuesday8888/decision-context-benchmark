@@ -403,7 +403,8 @@ def verify_bundle(frozen_by_split, ledger_path, directory, terminal_receipts=Non
     dispatch_order = [e['data']['key'] for e in (json.loads(line) for line in Path(ledger_path).read_text().splitlines())
                       if e['kind'] == 'dispatch' and not records.get(e['data']['key'], {}).get('result', {}).get('reserved_raw_conflict_retained')]
     for i, key in enumerate(dispatch_order):
-        if key in records and records[key]['result']['stop_required']:
+        if key in records and (records[key]['result']['stop_required'] or
+                               records[key]['costs'].get('unexpected_pricing_tier')):
             require(i == len(dispatch_order)-1, 'Another native first attempt was dispatched after a systemic failure')
     # Every scheduled allocation/config must finish, cost-stop, or have an exact
     # STOP-linked unrun receipt. Absence of an attempted route is never completion.

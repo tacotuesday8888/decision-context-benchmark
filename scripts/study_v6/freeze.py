@@ -44,6 +44,7 @@ def scientific_hashes():
         'docs/study-v6/DESIGN.md', 'docs/study-v6/SOURCES.md', 'docs/study-v6/METHODS-COMPARISON.md',
         'docs/study-v6/REVIEW.md', 'docs/study-v6-review-resolution/POLICY.json',
         'docs/study-v6-execution/ANALYSIS-PLAN.md', 'docs/study-v6-execution/OPERATIONS.md',
+        'docs/study-v6-execution/SOURCE-CHECK.md',
         'docs/controls-v4/MODEL-ROUTES.md', '.github/workflows/study-v6.yml'))
     return {str(p.relative_to(ROOT)): sha256(p.read_bytes()) for p in sorted(paths)}
 
@@ -57,10 +58,10 @@ def committed(hashes):
 
 
 def price_gate():
-    receipt = load(plan.RESULTS / 'price-verification-v1.json')
+    receipt = load(plan.RESULTS / 'price-verification-v2.json')
     if receipt['base_input_usd_per_million'] != {'openai': '.10', 'typesafe': '.042'}:
         raise PermissionError('Price mismatch requires a new bounded plan')
-    if receipt['reservation_input_usd_per_million'] != {'openai': '.25', 'typesafe': '.084'}:
+    if receipt['reservation_input_usd_per_million'] != {'openai': '.50', 'typesafe': '.084'}:
         raise PermissionError('Reservation price mismatch')
     for source in receipt['official_evidence'].values():
         if sha256((ROOT / source['path']).read_bytes()) != source['sha256']:
@@ -69,10 +70,27 @@ def price_gate():
 
 
 def offline_gate(hashes):
-    receipt = load(plan.RESULTS / 'offline-verification-v1.json')
+    receipt = load(plan.RESULTS / 'offline-verification-v2.json')
     if receipt.get('checks_passed') is not True or receipt.get('scientific_hashes') != hashes:
         raise PermissionError('Offline verification is missing or stale')
     return receipt
+
+
+def setup_gate():
+    access = load(plan.DEST / 'noninference-access-v1.json')
+    expected = {'openai_api', 'typesafe_api', 'openai_subscription'}
+    if set(access['providers']) != expected or access['inference_calls'] != 0:
+        raise PermissionError('Non-inference access receipt is missing or inconsistent')
+    if any(p.get('authentication_verified') is not True for p in access['providers'].values()):
+        raise PermissionError('Required existing authentication is unavailable')
+    sub = access['providers']['openai_subscription']
+    if not (sub['luna_catalog_seen'] and sub['astra_catalog_seen']):
+        raise PermissionError('Authorized subscription catalogue lacks a retained model')
+    local = load(plan.DEST / 'nimble-local-metadata.json')
+    if local['runtime'] != '0.40.13' or local['model'].get('digest') != routes.PANEL['nimble_local']['revision']:
+        raise PermissionError('Pinned local Nimble metadata changed')
+    return {'authentication_verified_without_inference': True,
+            'native_decision_access_requires_development': True, 'nimble_identity_verified': True}
 
 
 def prepare(*, protectai_tokenizer=None):
@@ -147,6 +165,7 @@ def freeze(split):
         raise ValueError('Unknown split')
     admission()
     price_gate()
+    setup = setup_gate()
     hashes = scientific_hashes()
     offline_gate(hashes)
     head = committed(hashes)
@@ -154,9 +173,10 @@ def freeze(split):
     current_history = reconcile_history(ROOT)
     if current_history != load(plan.DEST / 'inherited-accounting.json'):
         raise PermissionError('Spending changed after planning')
-    refs = [plan.RESULTS / 'request-plan-v1.json', plan.RESULTS / 'price-verification-v1.json',
-            plan.RESULTS / 'offline-verification-v1.json',
+    refs = [plan.RESULTS / 'request-plan-v1.json', plan.RESULTS / 'price-verification-v2.json',
+            plan.RESULTS / 'offline-verification-v2.json',
             plan.RESULTS / 'runtime-versions-v1.json',
+            plan.DEST / 'noninference-access-v1.json', plan.DEST / 'nimble-local-metadata.json',
             plan.DEST / 'intended-plan.json', plan.DEST / 'coverage.json', plan.DEST / 'inherited-accounting.json',
             ROOT / 'results/study-v6-review-resolution/resolution-final.json',
             ROOT / 'results/study-v6-review-resolution/planning-final.json']
@@ -184,6 +204,7 @@ def freeze(split):
         'operational_limits_usd': {'main': 9, 'supporting': 2, 'development': .5, 'recovery': .5, 'total_per_provider': 12},
         'global_provider_caps_usd': {'openai': 15, 'typesafe': 20}, 'automatic_retries': 0,
         'paid_fallback': False, 'created_at_utc': datetime.now(timezone.utc).isoformat()}
+    output['setup'] = setup
     if split == 'confirmation':
         output['development'] = development_operational_gate(intended)
         dev = plan.RESULTS / 'development-freeze-v1.json'

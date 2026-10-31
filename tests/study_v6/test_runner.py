@@ -154,6 +154,27 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(state['entries']['a']['accounted_usd'], '0.01')
         self.assertEqual(self.calls, 0)
 
+    def test_unexpected_pricing_tier_stops_and_cannot_resume_past_settlement(self):
+        req = request(config='luna_decisions', provider='openai')
+        req['reserved_usd'] = '.5'
+        self.ledger.reserve_batch('dev', 'development', [spec(req)])
+        def long_input(config, payload, raw, key, runtime=None):
+            result = self.fake(config, payload, raw, key)
+            result['parsed']['usage'] = {'input_tokens': 272001}
+            return result
+        executor = self.executor([req], long_input)
+        with self.assertRaises(PermissionError):
+            executor.dispatch('a')
+        record = load(self.root / 'attempts/a/execution-record.json')
+        self.assertTrue(record['costs']['unexpected_pricing_tier'])
+        self.assertEqual(self.ledger.snapshot()['entries']['a']['status'], 'settled')
+        # Simulate loss of the stop entry after durable settlement. The terminal
+        # evidence gate independently refuses advancement, without another call.
+        (self.root / 'STOP.json').unlink()
+        with self.assertRaises(PermissionError):
+            self.executor([req], long_input).dispatch('a')
+        self.assertEqual(self.calls, 1)
+
 
 if __name__ == '__main__':
     unittest.main()

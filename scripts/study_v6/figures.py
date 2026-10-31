@@ -255,6 +255,9 @@ def build_tables(analysis, *, resolution=None, verification=None):
         intersections.append(safe)
     return {'version': 'v6-aggregate-tables-1', 'analysis_sha256': analysis_hash,
             'analysis_set': analysis['analysis_set'], 'empirical_checks_complete': ready,
+            'analysis_plan': {key: numeric(analysis['analysis_plan'][key], 0) for key in (
+                'bootstrap_draws', 'randomization_draws', 'seed', 'primary_family_size', 'family_alpha',
+                'native_threshold', 'pointwise_interval_level', 'bonferroni_interval_level')},
             'planned_cells': planned, 'observed_cells': observed,
             'review_resolution_complete': resolution_complete,
             'primary_contrasts': primary, 'condition_support': condition_rows,

@@ -137,6 +137,12 @@ class Executor:
         except (OSError, TypeError, ValueError):
             self.stop('Retained raw execution evidence is missing or unreadable', key)
 
+    def _terminal_gate(self, record, key):
+        if record['result']['stop_required']:
+            self.stop('Preserved first-attempt route failure', key)
+        if record['costs'].get('unexpected_pricing_tier'):
+            self.stop('Unexpected long-input pricing tier; actual multiplier accounted', key)
+
     def dispatch(self, key):
         self.check_stop()
         request = self.requests[key]
@@ -160,6 +166,7 @@ class Executor:
                 self.stop('Terminal accounting lacks identical raw execution evidence', key)
             record = self._load_evidence(record_path, key)
             self._verify_result(request, record['result'])
+            self._terminal_gate(record, key)
             return record
         if entry['status'] == 'cancelled_unsent':
             self.stop('Cancelled systemic-failure cohort cannot advance', key)
@@ -169,8 +176,7 @@ class Executor:
                 result = self._load_evidence(completed, key)
                 self._verify_result(request, result)
                 record = self._record(request, result)
-                if result['stop_required']:
-                    self.stop('Preserved first-attempt route failure', key)
+                self._terminal_gate(record, key)
                 return record
             # A crash could occur even before opening a socket. Absence of a
             # terminal raw response cannot prove zero provider usage.
@@ -204,8 +210,7 @@ class Executor:
         print(json.dumps({'config': config, 'split': request['split'], 'allocation': request['allocation'],
                           'first_attempts_this_process': self.executed,
                           'disposition': result['parsed']['status']}), flush=True)
-        if result['stop_required']:
-            self.stop('Preserved first-attempt route failure', key)
+        self._terminal_gate(record, key)
         return record
 
     def _verify_result(self, request, result):
