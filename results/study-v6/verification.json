@@ -1,0 +1,68 @@
+{
+  "ci": "Separate private PR checks verify tracked artifacts only; do not claim raw-cache verification from CI.",
+  "commands_passed": [
+    {
+      "command": "python3 -m unittest discover -s tests/study_v6 -v",
+      "tests": 16
+    },
+    {
+      "command": "python3 -m unittest discover -s tests/study_v5 -v",
+      "tests": 21
+    },
+    {
+      "command": "python3 scripts/study_v6/verify.py --require-cache",
+      "status": "passed"
+    },
+    {
+      "command": ".venv/bin/python scripts/study_v6/exposure.py",
+      "status": "passed; zero project lexical exposure hits"
+    },
+    {
+      "command": ".venv-laya/bin/python scripts/study_v6/token_audit.py",
+      "status": "completed; 559 rows unsupported for Laya; zero forward passes"
+    },
+    {
+      "command": ".venv/bin/python scripts/study_v6/precision.py",
+      "status": "completed; planning simulation only"
+    }
+  ],
+  "independent_reviews_completed": 0,
+  "inference_ready": false,
+  "new_inference_spend_usd": 0,
+  "new_model_calls": 0,
+  "prepared_rows": 2876,
+  "remaining_gates": [
+    "independent label review",
+    "semantic grouping and adjudication",
+    "final eligibility/split/coverage",
+    "tested execution runner and cost-only schedule",
+    "pre-confirmation freeze",
+    "main inference and checked analysis"
+  ],
+  "source_and_docs_sha256": {
+    ".github/workflows/study-v6.yml": "1f8a8ec575968eabc96863cc635958b1488e46e8d03e6782287e8a97e177a67a",
+    "README.md": "941467276b7d2d6e8460f92ff34b826013eaf2728aaaff54068bb15f072c8dcb",
+    "docs/study-v6/DESIGN.md": "bab97bd8f150f2c0ea3bc4ceef2d088bf117fd4922a80c44b5defb6d79dfc248",
+    "docs/study-v6/HANDOFF.md": "2ea74e708ca49838c06873f731ca31e6a182046ca4a8cf4061a8617aa9df36d1",
+    "docs/study-v6/METHODS-COMPARISON.md": "1da8e61a55569b3dd3dd42a858bf0f99f1434aaf0f558bd08a207df7db416088",
+    "docs/study-v6/REVIEW-GOAL.md": "1d61ee160717bea8051bc780ee2c6defb7915dd71654fde53be76d3e9b0ed25b",
+    "docs/study-v6/REVIEW.md": "2727c38808fbd0ecc0d9ff184ced69da1f3b1f0564fcea7043b98177117de3d8",
+    "docs/study-v6/SOL-GOAL.md": "54e5b1e6e5235979e832cb28954d2475f6fce9daa85ba3f69d160266a546fc83",
+    "docs/study-v6/SOURCES.md": "e2588b64bd215cb9050831c79f71876e43c130d26049bfa72ae5599e115bbc97",
+    "docs/study-v6/WORKLOG.md": "c8e2ea994f2b0e5685fceb586de8dde674118a2a8ef2dd9bf40049ed08f14e95",
+    "scripts/study_v6/common.py": "c9e118e45439198aae51300dd8165ec229eb298dc1f8eb525d09525d27c1db48",
+    "scripts/study_v6/exposure.py": "2d7bbcd6489f85b31b763db83c33c7147ebda5dc5d9009faa8cae0f79d1bbd2c",
+    "scripts/study_v6/feasibility.py": "b7bc11be5dfd58550ad8f2186c561c2efa08cc1fa30ad00effe9e84feeeac937",
+    "scripts/study_v6/fetch_browse.py": "1669e48b5e1ac5c2bf8b89a83b23e3482bb89129c1d358c9535eaf326504b9e3",
+    "scripts/study_v6/precision.py": "02299fd11e06f40f12d066779cc6c49bf2173172e121d28ae642c5ee970615de",
+    "scripts/study_v6/prepare.py": "6ff2eeca462dc9b0a12b84a7e5afeccfd1a7bfa8b737beb561bbdc892fe28a97",
+    "scripts/study_v6/reviews.py": "9fa969f21372b0360d55d2fb6697b7ec7ca54ea993106ae9faa75c42d455aa7d",
+    "scripts/study_v6/token_audit.py": "9acfab91c74fb9fe40f79cf6ae8556d2ffe793463f0f22a6411c5355066adc2c",
+    "scripts/study_v6/verify.py": "ab2215417809a9798295f2642c903f15832c00eb41520bb8c94a896649a2a53f",
+    "tests/study_v6/test_preparation.py": "f20fc25808e982757155bf0fcc5cfffd5869616b9c1a5532689a2cb63ae7888e",
+    "tests/study_v6/test_reviews_budget.py": "5a71a36badfacf9462af02990fab0cde07dd8ac65d1e2fdac274eb0491150262"
+  },
+  "staged_secret_and_raw_path_check": "passed; staged text and path checks, no credential values printed",
+  "verified_on": "2026-10-30 America/New_York",
+  "version": "v6-preparation-verification-1"
+}
