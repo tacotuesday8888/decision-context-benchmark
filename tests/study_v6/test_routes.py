@@ -1,0 +1,234 @@
+"""Native interface fixtures only; no model, authentication or inference calls."""
+import json
+from pathlib import Path
+import subprocess
+import tempfile
+import unittest
+from unittest.mock import patch
+
+from scripts.study_v5.prompts import native_payload
+from scripts.study_v6 import routes
+
+
+def row(source='browsesafe'):
+    return {'candidate': 'Complete document \u03b1. Do a thing.', 'task': 'Read the document.',
+        'policy': None, 'source': source, 'setting': 'indirect_tool_content'}
+
+
+def native(score=.9, config='jev_firstparty', **extra):
+    result = {'model': routes.PANEL[config]['model'],
+        'answers': {'injection': {'type': 'noul', 'noul': score}},
+        'usage': {'input_tokens': 123, 'output_tokens': 3}}
+    if config == 'luna_decisions':
+        result['answers'] = [{'name': 'injection', 'type': 'predicate', 'probability': score}]
+    result.update(extra)
+    return result
+
+
+def stream(answer=True, model='gpt-6-luna', status='completed', **extra):
+    response = {'model': model, 'status': status, 'usage': {'input_tokens': 100, 'output_tokens': 7},
+        'output': [{'content': [{'type': 'output_text', 'text': json.dumps({'injection': answer})}]}]}
+    response.update(extra)
+    return 'data: ' + json.dumps({'type': 'response.' + status, 'response': response}) + '\n\n'
+
+
+class Parsers(unittest.TestCase):
+    def test_fixed_boolean_orientation_and_ties(self):
+        for config in ('jev_firstparty', 'luna_decisions', 'nimble_local'):
+            for score, prediction, status in ((.1, 0, 'ok'), (.9, 1, 'ok'), (.5, None, 'tie')):
+                result = routes.parse_response(config, json.dumps(native(score, config)))
+                self.assertEqual((result['prediction'], result['status']), (prediction, status))
+                self.assertEqual(result['valid'], score != .5)
+
+    def test_invalid_native_numbers_and_duplicate_answers(self):
+        for value in (True, False, '0.9', None, -1, 2, float('nan')):
+            self.assertEqual(routes.parse_response('jev_firstparty', json.dumps(native(value)))['status'], 'parse_error')
+        raw = native(config='luna_decisions')
+        raw['answers'].append(dict(raw['answers'][0]))
+        self.assertEqual(routes.parse_response('luna_decisions', json.dumps(raw))['status'], 'parse_error')
+        raw = native()
+        raw['answers']['other'] = raw['answers']['injection']
+        self.assertEqual(routes.parse_response('jev_firstparty', json.dumps(raw))['status'], 'parse_error')
+
+    def test_model_truncation_and_usage_fail_closed(self):
+        self.assertEqual(routes.parse_response('jev_firstparty', json.dumps(native(model='jev-latest')))['status'], 'model_mismatch')
+        for usage, expected in (({'input_tokens': True}, 'missing_usage'),
+                ({'input_tokens': 0}, 'missing_usage'), ({'input_tokens': 32001}, 'context_limit_mismatch'),
+                ({'input_tokens': 100, 'truncated': True}, 'truncated'),
+                ({'input_tokens': 100, 'state_tokens_dropped': 1}, 'truncated')):
+            result = routes.parse_response('jev_firstparty', json.dumps(native(usage=usage)))
+            self.assertEqual(result['status'], expected)
+            self.assertEqual(result['usage'], usage)
+
+    def test_native_confidence_is_distinct_from_decision_score(self):
+        raw = native(.7)
+        raw['answers']['injection']['confidence'] = .2
+        result = routes.parse_response('jev_firstparty', json.dumps(raw))
+        self.assertEqual((result['score'], result['native_confidence']), (.7, .2))
+        raw['answers']['injection']['confidence'] = True
+        result = routes.parse_response('jev_firstparty', json.dumps(raw))
+        self.assertEqual(result['status'], 'ok')
+        self.assertNotIn('native_confidence', result)
+        self.assertEqual(result['native_confidence_status'], 'invalid_optional_field')
+
+    def test_chat_boolean_only_no_invented_confidence(self):
+        for answer in (True, False):
+            parsed = routes.parse_response('luna_chat', stream(answer))
+            self.assertEqual(parsed['prediction'], int(answer))
+            self.assertEqual(parsed['status'], 'ok')
+            self.assertNotIn('score', parsed)
+        self.assertEqual(routes.parse_response('luna_chat', stream('true'))['status'], 'invalid_format')
+        self.assertEqual(routes.parse_response('luna_chat', stream(True, model='gpt-6-astra'))['status'], 'model_mismatch')
+
+    def test_chat_failure_dispositions(self):
+        self.assertEqual(routes.parse_response('luna_chat', 'data: [DONE]\n\n')['status'], 'interrupted_stream')
+        self.assertEqual(routes.parse_response('luna_chat', stream(status='incomplete',
+            incomplete_details={'reason': 'max_output_tokens'}))['status'], 'truncated')
+        self.assertEqual(routes.parse_response('luna_chat', stream(output=[{'content': [{'type': 'refusal'}]}]))['status'], 'refusal')
+        self.assertEqual(routes.parse_response('luna_chat', stream(truncation='auto'))['status'], 'truncated')
+        self.assertEqual(routes.parse_response('luna_chat', stream() + stream())['status'], 'invalid_terminal_events')
+        self.assertEqual(routes.parse_response('luna_chat', 'data: {"type":"error"}\n\n')['status'], 'provider_failed')
+
+    def test_chat_returned_settings_mismatches_stop(self):
+        for extra, field in (({'reasoning': {'effort': 'high'}}, 'reasoning.effort'),
+                ({'max_output_tokens': 123}, 'max_output_tokens'), ({'service_tier': 'priority'}, 'service_tier')):
+            result = routes.parse_response('luna_chat', stream(**extra))
+            self.assertEqual(result['status'], 'settings_mismatch')
+            self.assertIn(field, result['settings_mismatch_fields'])
+            self.assertEqual(result['usage']['input_tokens'], 100)
+
+
+class Coverage(unittest.TestCase):
+    def test_exact_v5_contract_and_source_fields(self):
+        for config in routes.PANEL:
+            if config == 'protectai_local':
+                continue
+            for condition in ('candidate', 'format', 'task', 'reminder', 'length', 'scrambled'):
+                self.assertEqual(routes.payload(config, row(), condition), native_payload(row(), condition, config))
+        request = routes.payload('protectai_local', row(), 'candidate')
+        self.assertEqual(request['candidate'], row()['candidate'])
+        self.assertNotIn('task', request)
+        for source in ('spml', 'scope', 'unknown'):
+            with self.assertRaises(ValueError):
+                routes.payload('protectai_local', row(source), 'candidate')
+        with self.assertRaises(ValueError):
+            routes.payload('protectai_local', row(), 'task')
+
+    def test_no_tokenizer_certification_from_bytes(self):
+        request = routes.payload('jev_firstparty', row(), 'task')
+        pending = routes.coverage('jev_firstparty', request)
+        self.assertFalse(pending['supported'])
+        self.assertFalse(pending['preflight_native_token_count'])
+        gate = routes.coverage('jev_firstparty', request, allow_server_gate=True)
+        self.assertEqual(gate['coverage_status'], 'full_input_server_gate')
+        self.assertTrue(gate['supported'])
+        self.assertFalse(gate['capacity_verified_before_dispatch'])
+        self.assertNotIn('input_tokens', gate)
+
+    def test_native_token_binding_and_budget(self):
+        request = routes.payload('nimble_local', row(), 'task')
+        evidence = {'payload_sha256': routes.digest(routes.canonical(request)),
+            'model': request['model'], 'framing_included': True, 'provenance': 'test-only exact native fixture', 'input_tokens': 8194}
+        self.assertTrue(routes.coverage('nimble_local', request, native_count=evidence)['supported'])
+        self.assertFalse(routes.coverage('nimble_local', request,
+            native_count=evidence | {'input_tokens': 8195})['supported'])
+        with self.assertRaises(ValueError):
+            routes.coverage('nimble_local', request, native_count=evidence | {'payload_sha256': 'wrong'})
+        with self.assertRaises(ValueError):
+            routes.coverage('nimble_local', request, native_count=evidence | {'framing_included': False})
+
+    def test_laya_audit_binding_and_no_truncation(self):
+        request = routes.payload('laya_local', row(), 'task')
+        audit = {'payload_sha256': routes.digest(routes.canonical(request)), 'truncated': False,
+            'state_tokens': 8190, 'head_tokens': 100}
+        self.assertTrue(routes.coverage('laya_local', request, laya_audit=audit)['supported'])
+        self.assertFalse(routes.coverage('laya_local', request, laya_audit=audit | {'truncated': True})['supported'])
+        with self.assertRaises(ValueError):
+            routes.coverage('laya_local', request, laya_audit=audit | {'payload_sha256': 'wrong'})
+
+    def test_specialist_complete_overlapping_windows(self):
+        class Tokenizer:
+            def encode(self, text, add_special_tokens):
+                assert add_special_tokens is False
+                return list(range(1000))
+        request = routes.payload('protectai_local', row(), 'candidate')
+        coverage = routes.coverage('protectai_local', request, tokenizer=Tokenizer())
+        self.assertEqual((coverage['candidate_tokens'], coverage['windows']), (1000, 3))
+        self.assertEqual(coverage['coverage_status'], 'complete_windowed')
+
+
+class Accounting(unittest.TestCase):
+    def test_usage_upper_is_separate_from_base_and_invoice(self):
+        parsed = {'usage': {'input_tokens': 1000000, 'input_tokens_details': {'cache_write_tokens': 200000}}}
+        result = routes.metered_cost('luna_decisions', parsed)
+        self.assertEqual(result['conservative_usage_cost_usd'], .25)
+        self.assertEqual(result['uncached_base_usage_cost_usd'], .1)
+        self.assertIsNone(result['exact_usage_cost_usd'])
+        self.assertEqual(result['usage'], parsed['usage'])
+        self.assertEqual(routes.metered_cost('jev_firstparty', parsed)['exact_usage_cost_usd'], .042)
+        self.assertIsNone(routes.metered_cost('jev_firstparty', {})['conservative_usage_cost_usd'])
+        self.assertEqual(routes.metered_cost('astra_chat', {})['exact_usage_cost_usd'], 0)
+
+
+class DurableAttempts(unittest.TestCase):
+    def test_first_attempt_exclusive_and_no_automatic_retry(self):
+        request = routes.payload('jev_firstparty', row(), 'task')
+        calls = []
+        def fake_post(config, payload, token, directory):
+            calls.append(config)
+            routes._exclusive(directory / 'response.raw', b'partial malformed body')
+            return {'http_status': 200, 'transport_exit_code': 0}, 'partial malformed body'
+        with tempfile.TemporaryDirectory() as temp, patch.object(routes, '_post', fake_post), patch.object(routes, '_credential', return_value='test-only'):
+            result = routes.invoke('jev_firstparty', request, temp, 'first')
+            self.assertEqual(result['parsed']['status'], 'parse_error')
+            self.assertTrue(result['stop_required'])
+            self.assertTrue((Path(temp) / 'first' / 'request.json').exists())
+            self.assertEqual((Path(temp) / 'first' / 'response.raw').read_bytes(), b'partial malformed body')
+            with self.assertRaises(FileExistsError):
+                routes.invoke('jev_firstparty', request, temp, 'first')
+            self.assertEqual(calls, ['jev_firstparty'])
+
+    def test_transport_timeout_retains_usage_but_abstains(self):
+        def fake_post(config, payload, token, directory):
+            body = json.dumps(native())
+            routes._exclusive(directory / 'response.raw', body.encode())
+            return {'http_status': 200, 'transport_exit_code': 28}, body
+        with tempfile.TemporaryDirectory() as temp, patch.object(routes, '_post', fake_post), patch.object(routes, '_credential', return_value='test-only'):
+            result = routes.invoke('jev_firstparty', routes.payload('jev_firstparty', row(), 'task'), temp, 'timeout')
+            self.assertEqual(result['parsed']['status'], 'transport_error')
+            self.assertEqual(result['parsed']['usage']['input_tokens'], 123)
+            self.assertIsNone(result['parsed']['prediction'])
+
+    def test_http_auth_and_context_errors_distinct(self):
+        request = routes.payload('jev_firstparty', row(), 'task')
+        with tempfile.TemporaryDirectory() as temp, patch.object(routes, '_credential', return_value='test-only'):
+            for status, body, expected, stop in ((401, '{}', 'authentication_error', True),
+                    (400, '{"error":"max_tokens_exceeded"}', 'unsupported_over_limit', False)):
+                with patch.object(routes, '_post', return_value=({'http_status': status, 'transport_exit_code': 0}, body)):
+                    result = routes.invoke('jev_firstparty', request, temp, str(status))
+                self.assertEqual(result['parsed']['status'], expected)
+                self.assertEqual(result['stop_required'], stop)
+
+    def test_durable_curl_partial_and_credential_redaction(self):
+        token = 'fixture-secret-not-real'
+        def fake_run(command, **kwargs):
+            self.assertEqual(command, ['/usr/bin/curl', '--disable', '--config', '-'])
+            self.assertIn(token, kwargs['input'])
+            self.assertNotIn('retry', kwargs['input'])
+            self.assertNotIn('location', kwargs['input'])
+            (directory / 'response.partial').write_text('partial ' + token)
+            (directory / 'response-headers.partial').write_text('x-request-id: fixture\nAuthorization: ' + token)
+            return subprocess.CompletedProcess(command, 28, stdout='200', stderr='safe error')
+        with tempfile.TemporaryDirectory() as temp:
+            directory = Path(temp)
+            (directory / 'request.json').write_bytes(b'{}')
+            with patch.object(subprocess, 'run', fake_run):
+                observation, body = routes._post('jev_firstparty', {}, token, directory)
+            self.assertEqual(body, 'partial [redacted]')
+            self.assertEqual(observation['transport_exit_code'], 28)
+            for path in directory.iterdir():
+                self.assertNotIn(token.encode(), path.read_bytes())
+
+
+if __name__ == '__main__':
+    unittest.main()
