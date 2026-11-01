@@ -180,3 +180,7 @@ Root checked journal prefix index 79930: 38,635 dispatches and 38,634 settlement
 ### Native main collection complete
 
 Root independently joined all 48,000 frozen main_native confirmation keys to their completion files: 47,840 OK, 157 ties, three HTTP failures, zero missing completion files. Receipt: `main-native-completion-check.json`. This is operational completion, not an accuracy claim. Worker cursor547 confirms transition to fixed general-model/local comparisons; analysis still deferred. PR13 revision21fc3cb3 passed20/20CI checks.
+
+### OpenAI balance exhausted after native main completion
+
+Root inspected stop-confirmation-v7.0.7.json (recorded 11:00:44 UTC) and two failed main_general completions, keys `0e1b049e41456243617b5e7e1ed8383b57620e1f9ad581a3723a9f5783b12584` and `69be6db12677592a217a355fcdd118427029ad9c9d33aafc259d0b2199b3e3af`. Both raw SSE streams have error and response.failed events with insufficient_quota / credit_balance_exhausted; HTTP200 alone does not imply success. Usage absent, first failures and holds retained. Root notified sole executor: no retry/probe/recharge, defer remaining paid OpenAI routes through versioned hash-bound operational amendment, preserve planned denominators, continue eligible Jev/local work. Codex reset cannot replenish API credits. Await worker continuation receipt before verifying and resuming eligible work. No accuracy inspected.
