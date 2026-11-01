@@ -1,40 +1,32 @@
-# 写作前的结果包
+# Results and paper preparation
 
-2026-11-01。已准备图表和提纲，没有写论文正文，没有启动新实验。
+[Research notes](TEACHER-MEETING-SUMMARY.md) · [Paper outline](PAPER-OUTLINE.md) · [Review corrections](REVIEW-RESOLUTION.md)
 
-## 核对后的主要结果
+## Main results
 
-以下都是在BrowseSafe++上，从“空任务栏”改为“真实任务”的变化。
+Arrows show **empty task field → actual user task** on BrowseSafe++, using publisher labels.
 
-| 模型配置 | 正常页面被错判为攻击 | 发布者标为攻击的页面被漏掉 | 两类错误平均值 |
+| Model | False alarms | Missed attacks | Average of both error rates |
 |---|---:|---:|---:|
 | Jev | 12.88% → 6.63% | 8.11% → 11.79% | 10.49% → 9.21% |
-| Luna Decisions | 13.47% → 14.49% | 9.33% → 11.12% | 11.40% → 12.81% |
+| GPT-6 Luna (Decisions) | 13.47% → 14.49% | 9.33% → 11.12% | 11.40% → 12.81% |
 | GPT-6.1 Sol | 20.68% → 22.69% | 0.80% → 1.00% | 10.74% → 11.85% |
 
-Jev和Luna共享2,850组完整结果；Sol为500组子集中的498完整组。每组有正常、攻击页面各一份。样本不同，这不是模型排名。
+Jev and GPT-6 Luna share 2,850 complete normal/attack pairs. GPT-6.1 Sol uses 498 complete pairs from a 500-pair subset. This is not a matched model ranking. Average error means (false-alarm rate + missed-attack rate) / 2.
 
-**发现：告诉检测器用户要做什么，会改变它犯错的方式，并不总能改善检测。** Jev平均错误减少，但漏报增加。小型DTap检查中，Sol相对空任务反而改善；与等字符数填充相比，优势并不明确。因此不能写“任务总会让Sol变差”。
+**Task information changes mistakes, but does not always help.** Jev made fewer false alarms but missed more attacks. The smaller DTap test gave different results for Sol, so the main finding should not be generalized to every source.
 
-## 已完成
+## Figures
 
-- 既有独立离线复核通过：主要结果、保存区间、缺失结果处理和原始记录抽查一致。
-- 8项审查测试通过；早期v3的5,793个保护文件完整性检查通过。
-- 生成3张主要图、1张补充图、12行错误率、15行效果数据，逐张查看图片。
-- 保存绘图脚本、输入散列和核对收据。
+- [Experiment design](../../results/paper-preparation/figure-1-design.png)
+- [False alarms and missed attacks](../../results/paper-preparation/figure-2-error-tradeoff.png)
+- [Task versus three controls](../../results/paper-preparation/figure-3-context-effects.png)
+- [Second-source comparison](../../results/paper-preparation/supplement-second-source.png)
 
-## 还缺什么
+[CSV, PDF and SVG files](../../results/paper-preparation/) · [Offline reproduction](../../REPRODUCING.md)
 
-- 最终排版模板。本提纲暂按参考文献也算在五页内安排。
-- 写作时准确交代版本、调用方式、数据来源和限制；已有冻结协议是依据。
-- 老师的四个简化例子可以以后看，不阻塞准备，也不能当作全库人工验证。Claude审阅仍须称为AI审阅。
-- 当前没有必要仅为扩大数量而重跑；要声称适用于各种网站或实际保护助手，才需要更广泛实验。
+## Status
 
-## 文件
+Results have been checked. GPT-6.1 Sol on Medium reviewed the preparation; its corrections are recorded. Teacher feedback covers only the examples actually read, not the whole dataset. The current paper is not written; no new experiment is required merely to increase the sample count.
 
-- [五页提纲](FIVE-PAGE-OUTLINE.md)
-- [证据边界、图注和核对范围](EVIDENCE-AND-CAPTIONS.md)
-- [图表与CSV](../../results/paper-preparation/)
-- [绘图脚本](../../scripts/paper_preparation.py)
-
-图采用英文以便以后排版，说明采用中文。PDF/SVG仅是独立图片，不是论文。
+Older reviews and page-budget drafts remain as dated records. Use the outline linked above for the current plan. Frozen data, labels and statistical outputs are unchanged.

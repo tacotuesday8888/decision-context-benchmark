@@ -8,17 +8,17 @@ Does knowing the user’s task help AI spot prompt injection—text that tries t
 
 ## Tests
 
-• Earlier: 761 task–text combinations from AgentDojo, AgentDyn and InjecAgent (582 texts, 138 tasks).
+- Earlier: 761 task–text combinations from AgentDojo, AgentDyn and InjecAgent (582 texts, 138 tasks).
 
-• Larger: 3,000 BrowseSafe++ normal/attack pairs, or 6,000 page versions. Jev and GPT-6 Luna shared 2,850 complete pairs.
+- Larger: 3,000 BrowseSafe++ normal/attack pairs, or 6,000 page versions. Jev and GPT-6 Luna (Decisions) shared 2,850 complete pairs.
 
-• GPT-6.1 Sol: 500 pairs from that same collection; 498 complete.
+- GPT-6.1 Sol: 500 pairs from that same collection; 498 complete.
 
-• Extra checks: 4,000 PromptShield texts, 66 DTap pairs (62 complete), and 12 invented agent tasks.
+- Extra checks: 4,000 PromptShield texts, 66 DTap pairs (62 complete), and 12 invented agent tasks.
 
 Models across studies: Jev, GPT-6 Luna, GPT-6 Astra, GPT-6.1 Sol, Nimble, Laya and ProtectAI v2. Not every model ran on every dataset.
 
-Main comparison: same page, with no task, the real task, a warning, or same-length filler. No models were trained.
+Main comparison: same page, with no task, the real task, a warning, or filler matched by character count. No models were trained.
 
 ## Findings
 
