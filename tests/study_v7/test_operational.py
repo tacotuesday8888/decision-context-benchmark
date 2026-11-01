@@ -21,6 +21,8 @@ def write_attempt(root, request, body, *, audit=None):
     (directory/"request.json").write_bytes(request_bytes)
     (directory/"response.raw").write_text("Synthetic retained response")
     parsed={"status":"ok","valid":True,"returned_model":PANEL[request["config"]]["model"],"usage":USAGE}
+    if request.get("configuration_revision") is not None:
+        parsed["configuration_revision"]=request["configuration_revision"]
     if request["config"] == "protectai_local":
         parsed["revision"]=PANEL["protectai_local"]["revision"]
     if PANEL[request["config"]]["kind"] == "responses":
@@ -28,6 +30,7 @@ def write_attempt(root, request, body, *, audit=None):
     if audit is not None:
         parsed["audit"]=audit
     result={"parsed":parsed,"request_sha256":digest(request_bytes),"namespace":request["namespace"],
+            "configuration_revision":request.get("configuration_revision"),
             "first_attempt_primary":request["namespace"]=="first","elapsed_seconds":.01,
             "raw_hashes":{"request.json":digest(request_bytes),"response.raw":digest((directory/"response.raw").read_bytes())}}
     (directory/"completed.json").write_bytes(canonical(result))
@@ -61,24 +64,93 @@ def write_journal(path,plan,attempts):
     path.write_bytes(b"".join(canonical(e)+b"\n" for e in events))
 
 
-def development_plan():
-    plan={"requests":{},"active_configurations":list(CONFIGS),"model_configurations":{c:PANEL[c] for c in CONFIGS}}
+def development_plan(sol_revision=None):
+    from scripts.study_v7.requests import model_configuration
+    plan={"requests":{},"active_configurations":list(CONFIGS),"model_configurations":{
+        c:model_configuration(c,sol_revision if c=="sol_subscription" else None) for c in CONFIGS}}
     bodies={}
     for config in CONFIGS:
         for source,n in (("browsesafe",100),("promptshield",100)):
             for i in range(n):
                 row={"source":source,"candidate":f"Synthetic page {source} {i}","task":f"Synthetic task {i//2}"}
                 for condition in (("candidate",) if config=="protectai_local" else CONDITIONS) if source=="browsesafe" else ("external",):
-                    body=payload(config,row,condition); sha=digest(canonical(body))
+                    revision=sol_revision if config=="sol_subscription" else None
+                    body=payload(config,row,condition,configuration_revision=revision); sha=digest(canonical(body))
                     key=digest(f"{config}/{source}/{i}/{condition}".encode())
                     request={"key":key,"source":source,"config":config,"split":"development","namespace":"first",
                         "id":f"{source}:{i}","group_id":f"{source}:{i//2 if source=='browsesafe' else i}",
                         "condition":condition,"payload_sha256":sha,"allocation":"development_"+source}
+                    if revision is not None:request["configuration_revision"]=revision
                     plan["requests"][key]=request;bodies[key]=body
     return plan,bodies
 
 
 class OperationalTests(unittest.TestCase):
+    def test_one_bounded_service_recovery_keeps_failed_first_attempt_invalid(self):
+        plan,bodies=development_plan("v7.0.2")
+        sol=[r for r in plan["requests"].values() if r["config"]=="sol_subscription"]
+        failed,unsent=sol[-9],sol[-8:];unsent_keys={r["key"] for r in unsent}
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);attempts=root/"attempts"
+            for r in plan["requests"].values():
+                if r["key"] not in unsent_keys:write_attempt(attempts,r,bodies[r["key"]])
+            directory=attempts/failed["key"]
+            result=json.loads((directory/"completed.json").read_text())
+            raw=canonical({"error":{"code":"subscription_sharing_user_unavailable","message":"ChatGPT user temporarily unavailable"}})
+            (directory/"response.raw").write_bytes(raw)
+            result.update(parsed={"status":"http_error","valid":False,"prediction":None},
+                observation={"http_status":503,"transport_exit_code":0})
+            result["raw_hashes"]["response.raw"]=digest(raw)
+            (directory/"completed.json").write_bytes(canonical(result))
+            failure_bytes=(directory/"completed.json").read_bytes()
+            journal=root/"journal.jsonl";write_journal(journal,plan,attempts)
+            before=journal.read_bytes();pause=root/"raw/pause.json";pause.parent.mkdir()
+            pause.write_bytes(canonical({"configuration":"sol_subscription","request_key":failed["key"]}))
+            recovery={"version":"study-v7-sol-service-recovery-1","configuration":"sol_subscription", "configuration_revision":"v7.0.2",
+                "plan_sha256":"a"*64,"failed_request_key":failed["key"],"failed_completed_sha256":digest(failure_bytes),
+                "failed_response_raw_sha256":digest(raw),"pause_record_path":str(pause),"pause_record_sha256":digest(pause.read_bytes()),
+                "http_status":503,"error_code":"subscription_sharing_user_unavailable","maximum_continuations":1,"retry_failed_request":False,
+                "expected_unsent_request_keys":sorted(unsent_keys),"pre_continuation_journal_sha256":digest(before),
+                "pre_continuation_journal_size_bytes":len(before)}
+            receipt=root/"recovery.json";receipt.write_bytes(canonical(recovery))
+            with patch.object(op,"RAW",root/"raw"):
+                pending=op.development_receipt(plan,attempts,plan_sha256="a"*64,journal_path=journal,service_recovery=receipt)
+                self.assertEqual(pending["service_recovery"]["disposition"],"operationally_deferred")
+                self.assertTrue(pending["core_readiness"]["completed"])
+                for r in unsent:write_attempt(attempts,r,bodies[r["key"]])
+                # Append new reservations/dispatches/settlements while preserving
+                # the exact old prefix that proves these8keys were never sent.
+                events=[json.loads(line) for line in before.splitlines()]
+                def append(kind,data):
+                    event=dict(index=len(events),previous_sha256=events[-1]["sha256"],kind=kind,data=data)
+                    event["sha256"]=digest(canonical(event));events.append(event)
+                allocation=unsent[0]["allocation"]
+                append("reserve",{"batch_id":"availability-continuation","allocation":allocation,"new_requests":[
+                    {"key":r["key"],"provider":None,"reserved_usd":"0","request_sha256":r["payload_sha256"],
+                     "config":"sol_subscription","split":"development"} for r in unsent]})
+                for r in unsent:
+                    append("dispatch",{"key":r["key"]})
+                    append("settle",{"key":r["key"],"actual_usd":"0","evidence_sha256":digest((attempts/r["key"]/"completed.json").read_bytes())})
+                journal.write_bytes(b"".join(canonical(e)+b"\n" for e in events))
+                self.assertEqual(journal.read_bytes()[:len(before)],before)
+                final=op.development_receipt(plan,attempts,plan_sha256="a"*64,journal_path=journal,service_recovery=receipt)
+                self.assertTrue(final["completed"])
+                self.assertIn("sol_subscription",final["validated_configurations"])
+                self.assertNotIn("sol_subscription",final["unsupported_configurations"])
+                self.assertEqual(final["service_recovery"]["new_valid_responses"],8)
+                self.assertEqual(final["service_recovery"]["preserved_invalid_first_attempts"],1)
+                self.assertEqual(sum(p["status_counts"].get("http_error",0) for p in final["source_config_coverage"] if p["config"]=="sol_subscription"),1)
+                self.assertEqual((directory/"completed.json").read_bytes(),failure_bytes)
+                state,accounting=op.read_journal(journal,plan,plan_sha256="a"*64)
+                retained={r["key"]:op.retained_attempt(r,attempts,state) for r in sol}
+                retained[unsent[0]["key"]]=dict(retained[unsent[0]["key"]],status="http_error",valid=False)
+                repeated=op.validate_service_recovery(receipt,plan,attempts,state,accounting,plan_sha256="a"*64,journal_path=journal,retained_records=retained)
+                self.assertFalse(repeated["completed"])
+                self.assertEqual(repeated["disposition"],"operationally_deferred")
+                recovery["pre_continuation_journal_sha256"]="f"*64;receipt.write_bytes(canonical(recovery))
+                with self.assertRaisesRegex(ValueError,"journal prefix changed"):
+                    op.development_receipt(plan,attempts,plan_sha256="a"*64,journal_path=journal,service_recovery=receipt)
+
     def test_development_receipt_complete_counts_costs_and_no_accuracy(self):
         plan,bodies=development_plan()
         with tempfile.TemporaryDirectory() as temp:

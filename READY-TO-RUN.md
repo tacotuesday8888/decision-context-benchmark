@@ -32,11 +32,12 @@ training-data separation, or paths through unacquired non-English pages.
 | Jev | `jev-1.14.0`, first-party `/v1/systemone`, native noul, default limits/no long-context header |
 | Luna Decisions | `gpt-6-luna`, OpenAI `/v1/decisions`, native predicate |
 | Luna Responses | `gpt-6-luna`, paid `/v1/responses`, reasoning `none`, output cap256, strict Boolean JSON |
-| Sol subscription | `gpt-6.1-sol`, existing project OAuth/public Responses, reasoning `low`, strict structured output; requested output cap explicitly unsupported/provider default |
+| Sol subscription v7.0.2 | `gpt-6.1-sol`, existing project OAuth/public Responses, reasoning `low`, strict structured output; output cap and cache control unsupported/provider default |
 | ProtectAI | `90c9989b1a342275dd0d1a95aad283c04e075671`, complete candidate-only 510-token windows/64 overlap, maximum score |
 
-Responses are stateless, `store:false`, `stream:true`, default service tier,
-explicit-only caching with no breakpoints. Sol's separately named route must pass
+Responses are stateless, `store:false`, `stream:true`, default service tier.
+Paid Luna uses explicit-only caching with no breakpoints; subscription Sol's cache
+control is provider default/uncontrolled. Sol's separately named route must pass
 development as requested or be reported unsupported. **Paid Sol and paid authoring
 are disabled.** Engineering uses Sol Ultra; the experimental Sol setting is low.
 See [route amendment](docs/study-v7/ROUTE-AMENDMENT.md).
@@ -49,7 +50,7 @@ terminal marker beyond512 and checks maximum aggregation over every window.
 
 ## Cost and limits
 
-The [corrected measured forecast](results/study-v7/forecast-v2.json) gives
+The [current measured forecast](results/study-v7/forecast-v3.json) gives
 **$21.41 ordinary /$41.32 with all native Luna inputs priced as12h cache writes**;
 the doubled-input/maximum-paid-output scenario is **$83.31**. Sol uses subscription
 allowance, not API dollars. Optional API authoring allocation is zero.
@@ -94,14 +95,14 @@ Default inspection stays offline:
 
 ```sh
 cd '/Users/langqi/Developer/Projects/Decision Context Benchmark Plan'
-'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest-development-v7.0.1.json
+'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest-development-v7.0.3.json
 ```
 
 The complete bounded development instruction is:
 
 ```sh
 cd '/Users/langqi/Developer/Projects/Decision Context Benchmark Plan'
-'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest-development-v7.0.1.json --authorization results/study-v7/development-authorization-v7.0.1.json --phase development --execute
+'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest-development-v7.0.3.json --authorization results/study-v7/development-authorization-v7.0.3.json --phase development --execute
 ```
 
 It is inert until its owner receipt matches the exact frozen plan/manifest/code,
@@ -126,7 +127,15 @@ exposed an overly strict metadata parser; [v7.0.1](docs/study-v7/AMENDMENT-v7.0.
 documents the correction and an exact-hash continuation without resending those
 requests. The original preparation manifest/authorization and stop remain
 preserved; [active-run.json](results/study-v7/active-run.json) identifies the current
-amendment. No confirmation request has run at this checkpoint.
+amendment. [V7.0.2](docs/study-v7/AMENDMENT-v7.0.2.md) separately records subscription
+Sol's unsupported cache-control parameter, preserves its four rejected requests,
+and changes only Sol payloads. All69,700non-Sol requests remain identical. Revised
+Sol development has finished:499valid classifications and one preserved temporary503.
+[V7.0.3](docs/study-v7/AMENDMENT-v7.0.3.md) records a single continuation of the
+eight never-sent requests, all successful. The failed first attempt was not retried.
+The final [operational receipt](results/study-v7/development-validation-v7.0.3-final.json)
+validates all five configurations. The locked100-pair audit is running; no
+confirmation request has run at this checkpoint.
 
 The Scientific Agent Skills procedural assistance is cited in the
 [software provenance outline](docs/study-v7/PAPER-OUTLINE.md); it does not certify

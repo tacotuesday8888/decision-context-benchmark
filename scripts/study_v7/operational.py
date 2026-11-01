@@ -346,7 +346,79 @@ def settings_check(config, payload, parsed, valid, *, configuration_revision=Non
             "problems":sorted(set(problems))}
 
 
-def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=None, reparses=None, reparse_manifest_sha256=None):
+def validate_service_recovery(path, plan, attempts_directory, state, accounting, *, plan_sha256, journal_path, retained_records):
+    """One bounded availability continuation; never retry or reclassify failure."""
+    if path is None:
+        return None
+    body=Path(path).read_bytes();receipt=json.loads(body)
+    if (receipt.get("version")!="study-v7-sol-service-recovery-1" or receipt.get("configuration")!="sol_subscription" or
+            receipt.get("configuration_revision")!="v7.0.2" or receipt.get("plan_sha256")!=plan_sha256 or
+            receipt.get("maximum_continuations")!=1 or receipt.get("retry_failed_request") is not False or
+            receipt.get("http_status")!=503 or receipt.get("error_code")!="subscription_sharing_user_unavailable"):
+        raise ValueError("Service recovery must bind the one explicit same-plan503continuation")
+    if state is None or journal_path is None or accounting.get("verified") is not True:
+        raise ValueError("Service recovery requires verified append-only accounting")
+    journal=Path(journal_path).read_bytes()
+    if digest(journal)!=accounting["journal_sha256"]:
+        raise ValueError("Accounting changed during service validation; inspect after the executor settles")
+    size=receipt.get("pre_continuation_journal_size_bytes")
+    if type(size) is not int or not 0<size<=len(journal) or not journal[:size].endswith(b"\n") or digest(journal[:size])!=receipt.get("pre_continuation_journal_sha256"):
+        raise ValueError("Preserved pre-continuation journal prefix changed")
+    prefix=None
+    for line in journal[:size].splitlines():
+        event=json.loads(line)
+        prefix=BudgetLedger._apply(prefix,event["kind"],event["data"])
+    failed=receipt.get("failed_request_key");request=plan["requests"].get(failed)
+    if (request is None or request["config"]!="sol_subscription" or request["split"]!="development" or
+            request["namespace"]!="first" or request.get("configuration_revision")!="v7.0.2"):
+        raise ValueError("Service failure must be the original v7.0.2developmentfirstattempt")
+    retained=retained_records[failed]
+    directory=Path(attempts_directory)/failed
+    completed=json.loads((directory/"completed.json").read_text());raw=(directory/"response.raw").read_bytes()
+    observation=completed.get("observation") or {}
+    error=json.loads(raw).get("error")
+    if (retained["status"]!="http_error" or retained["valid"] or
+            retained["evidence_sha256"]!=receipt.get("failed_completed_sha256") or
+            digest(raw)!=receipt.get("failed_response_raw_sha256") or observation.get("http_status")!=503 or
+            observation.get("transport_exit_code")!=0 or not isinstance(error,dict) or
+            error.get("code")!="subscription_sharing_user_unavailable"):
+        raise ValueError("Retained failure is not the exact503availability response")
+    old=prefix["entries"].get(failed)
+    if old is None or old["status"]!="settled" or old.get("evidence_sha256")!=retained["evidence_sha256"]:
+        raise ValueError("Failed first attempt was not already terminal before the continuation")
+    pause=Path(receipt["pause_record_path"])
+    pause=(pause if pause.is_absolute() else ROOT/pause).resolve()
+    if RAW.resolve() not in pause.parents or digest(pause.read_bytes())!=receipt.get("pause_record_sha256"):
+        raise ValueError("Preserved availability pause hash changed")
+    paused=json.loads(pause.read_text())
+    if paused.get("configuration")!="sol_subscription" or paused.get("request_key")!=failed:
+        raise ValueError("Preserved availability pause refers to another failure")
+    keys=receipt.get("expected_unsent_request_keys")
+    if not isinstance(keys,list) or len(keys)!=8 or len(set(keys))!=8:
+        raise ValueError("The single continuation must bind exactly8never-sent first attempts")
+    development={k:r for k,r in plan["requests"].items() if r["config"]=="sol_subscription" and r["split"]=="development" and r["namespace"]=="first"}
+    pending={k for k in development if prefix["entries"].get(k,{}).get("status") in {None,"reserved"}}
+    if set(keys)!=pending or len(development)!=500 or any(development[k].get("configuration_revision")!="v7.0.2" for k in keys):
+        raise ValueError("Continuation keys differ from the exact never-dispatched development remainder")
+    if any(e.get("split")!="development" for e in prefix["entries"].values()):
+        raise ValueError("Service recovery is limited to preconfirmation operational development")
+    all_terminal=all(retained_records[k]["evidence_sha256"] is not None for k in development)
+    allowed={"ok","tie","tied","unsupported_over_limit"}
+    remaining=[retained_records[k] for k in development if k!=failed]
+    unexpected=Counter(r["status"] if r["status"]!="ok" else "ok_with_invalid_flag"
+        for r in remaining if r["status"] not in allowed or r["status"]=="ok" and not r["valid"])
+    new_valid=sum(retained_records[k]["valid"] for k in keys)
+    recovered=all_terminal and not unexpected and new_valid>0
+    return {"receipt_sha256":digest(body),"completed":recovered,
+        "disposition":"validated_after_bounded_service_recovery" if recovered else "operationally_deferred",
+        "intrinsic_unsupported_claimed":False,"failed_request_key":failed,
+        "service_failure_counts":{"http503_subscription_sharing_user_unavailable":1},
+        "preserved_invalid_first_attempts":1,"failed_first_attempt_retried":False,
+        "expected_never_sent_requests":8,"new_valid_responses":new_valid,"all500development_terminal":all_terminal,
+        "additional_or_unfinished_dispositions":dict(unexpected),"maximum_continuations":1}
+
+
+def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=None, reparses=None, reparse_manifest_sha256=None, service_recovery=None):
     state, accounting = read_journal(journal_path, plan,plan_sha256=plan_sha256)
     reparsed,reparse_receipt=load_development_reparses(reparses,plan,attempts_directory,state,
         plan_sha256=plan_sha256,manifest_sha256=reparse_manifest_sha256)
@@ -356,6 +428,7 @@ def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=N
     for request in requests:
         by_part[(request["source"],request["config"])].append(request)
     summaries, validated, unsupported, blockers = [], [], {}, []
+    subscription_records={}
     config_rows = defaultdict(list)
     for (source,config), part in sorted(by_part.items()):
         expected = (100 if config == "protectai_local" else 400) if source == "browsesafe" else 100
@@ -380,6 +453,7 @@ def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=N
         evidence_hashes = []
         for request in part:
             retained = retained_attempt(request, attempts_directory, state)
+            if config=="sol_subscription":subscription_records[request["key"]]=retained
             original_statuses[retained["status"]] += 1
             if request["key"] in reparsed:
                 derived=reparsed[request["key"]]["derived_parsed"]
@@ -421,6 +495,8 @@ def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=N
             "runtime_limitation":"Sum of request durations, not wall clock; concurrent throughput/rate limits and long-input mix need separate checks.",
             "evidence_set_sha256":digest(canonical(sorted(evidence_hashes)))}
         summaries.append(summary); config_rows[config].append(summary)
+    recovery=validate_service_recovery(service_recovery,plan,attempts_directory,state,accounting,
+        plan_sha256=plan_sha256,journal_path=journal_path,retained_records=subscription_records)
     for config in active:
         parts = config_rows[config]
         if {p["source"] for p in parts} != {"browsesafe","promptshield"}:
@@ -431,8 +507,12 @@ def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=N
             statuses.update(part["status_counts"])
         problems = any(p["settings_problems"] for p in parts) or any(statuses[s] for s in SYSTEMIC)
         finished = all(p["terminal_attempts"] == p["planned_requests"] for p in parts)
-        if config == "sol_subscription" and any(statuses[s] for s in SOL_UNSUPPORTED):
-            unsupported[config] = {"reason":"retained_subscription_route_failure_before_complete_development",
+        if config=="sol_subscription" and recovery and recovery["completed"] and valid_count and not problems and finished:
+            validated.append(config)
+        elif config == "sol_subscription" and any(statuses[s] for s in SOL_UNSUPPORTED):
+            unsupported[config] = {"reason":"operationally_deferred_after_one_bounded_service_continuation" if recovery else "retained_subscription_route_failure_before_complete_development",
+                "disposition":"operationally_deferred" if recovery else "unsupported_or_deferred",
+                "intrinsic_unsupported_claimed":False,
                 "status_counts":dict(statuses),"remaining_requests_preserved_unattempted":statuses["unattempted"],
                 "valid_responses_before_route_failure":valid_count,
                 "paid_fallback_used":False,"fixed_max_output_supported":False,"requested_output_cap":None}
@@ -446,6 +526,7 @@ def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=N
         "unsupported_configurations":unsupported,"blockers":blockers,"source_config_coverage":summaries,
         "accounting":accounting,"accuracy_calculated":False,"selection_or_prompts_changed":False,
         "development_technical_reparse":reparse_receipt,
+        "service_recovery":recovery,
         "core_readiness":{"completed":accounting["verified"] and not any(b["config"] != "sol_subscription" for b in blockers),
             "validated_configurations":sorted(c for c in validated if c != "sol_subscription"),
             "blockers":[b for b in blockers if b["config"] != "sol_subscription"],
@@ -522,6 +603,7 @@ def main():
     parser.add_argument("--manifest",type=Path,help="Preserved amended development manifest when creating a sidecar")
     parser.add_argument("--reparses",type=Path)
     parser.add_argument("--reparse-manifest",type=Path,help="Same preserved amended development manifest bound by the sidecar")
+    parser.add_argument("--service-recovery",type=Path,help="One explicit same-plan503availabilitycontinuation receipt")
     args=parser.parse_args()
     body=args.plan.read_bytes(); plan=json.loads(body)
     def manifest_hash(path):
@@ -541,7 +623,7 @@ def main():
             args.reparses=args.create_development_reparse
             args.reparse_manifest=args.manifest
         result=development_receipt(plan,args.attempts,plan_sha256=digest(body),journal_path=args.journal,
-            reparses=args.reparses,reparse_manifest_sha256=manifest_hash(args.reparse_manifest))
+            reparses=args.reparses,reparse_manifest_sha256=manifest_hash(args.reparse_manifest),service_recovery=args.service_recovery)
     else:
         rows={}
         for path in args.source_rows:
