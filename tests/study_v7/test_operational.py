@@ -127,6 +127,49 @@ class OperationalTests(unittest.TestCase):
         checked=op.settings_check("sol_subscription",subscription,{},False)
         self.assertIn("subscription_unsupported_output_cap_requested",checked["problems"])
 
+    def test_scoped_development_reparse_preserves_originals_and_rejects_tampering(self):
+        from scripts.study_v7 import routes
+        plan,bodies=development_plan()
+        request=next(r for r in plan['requests'].values() if r['config']=='luna_responses')
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);attempts=root/'attempts';body=bodies[request['key']]
+            result=write_attempt(attempts,request,body)
+            response=dict(model='gpt-6-luna',id='synthetic-response',status='completed',usage=USAGE,
+                reasoning={'effort':'none'},max_output_tokens=256,service_tier='default',store=False,
+                prompt_cache_options={'mode':'explicit','ttl':'30m'},
+                output=[{'content':[{'type':'output_text','text':'{"injection":true}'}]}])
+            raw='data: '+json.dumps({'type':'response.completed','response':response})+'\n\n'
+            directory=attempts/request['key'];(directory/'response.raw').write_text(raw)
+            derived=routes.parse_response('luna_responses',raw)
+            self.assertEqual(derived['status'],'ok')
+            original=dict(derived,status='settings_mismatch',valid=False,prediction=None,settings_mismatch_fields=['prompt_cache_options'])
+            result.update(parsed=original,parser_version='study-v7-routes-1',observation={'http_status':200,'transport_exit_code':0})
+            result['raw_hashes']['response.raw']=digest(raw.encode())
+            (directory/'completed.json').write_bytes(canonical(result))
+            journal=root/'journal.jsonl';write_journal(journal,plan,attempts)
+            original_bytes=(directory/'completed.json').read_bytes()
+            with patch.object(op,'RAW',root/'raw'):
+                sidecar=root/'raw/development-reparse-v7.0.1.jsonl'
+                records=op.create_development_reparses(plan,attempts,plan_sha256='a'*64,manifest_sha256='b'*64,output=sidecar,journal_path=journal)
+                self.assertEqual(len(records),1)
+                self.assertFalse(records[0]['retransmitted'])
+                receipt=op.development_receipt(plan,attempts,plan_sha256='a'*64,journal_path=journal,reparses=sidecar,reparse_manifest_sha256='b'*64)
+                part=next(p for p in receipt['source_config_coverage'] if p['config']=='luna_responses' and p['source']=='browsesafe')
+                self.assertEqual(part['original_status_counts']['settings_mismatch'],1)
+                self.assertEqual(part['status_counts']['ok'],1)
+                self.assertEqual(part['derived_technical_resolutions'],1)
+                self.assertEqual(part['settings_problems'],{})
+                self.assertFalse(receipt['accuracy_calculated'])
+                self.assertEqual((directory/'completed.json').read_bytes(),original_bytes)
+                # A changed derived answer/status, manifest binding or scope cannot
+                # bypass re-computation from exact retained source bytes.
+                altered=json.loads(sidecar.read_text());altered['derived_parsed']['prediction']=0
+                sidecar.write_bytes(canonical(altered)+b'\n')
+                with self.assertRaisesRegex(ValueError,'exact original/parser/manifest'):
+                    op.development_receipt(plan,attempts,plan_sha256='a'*64,journal_path=journal,reparses=sidecar,reparse_manifest_sha256='b'*64)
+                with self.assertRaisesRegex(ValueError,'Luna Responses development'):
+                    op._development_reparse_record(dict(request,split='confirmation'),{'parsed':original},attempts,plan_sha256='a'*64,manifest_sha256='b'*64)
+
     def test_audit_checks_literal_quotes_without_changing_labels(self):
         rows={};requests={};groups=[]
         with tempfile.TemporaryDirectory() as temp:

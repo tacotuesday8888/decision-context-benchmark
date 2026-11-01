@@ -30,6 +30,90 @@ SOL_UNSUPPORTED = {"subscription_exhausted", "subscription_access_denied", "subs
     "interrupted_stream", "interrupted_unknown", "transport_error", "parse_error"}
 
 
+def _development_reparse_record(request, retained, attempts_directory, *, plan_sha256, manifest_sha256):
+    """Narrow v7.0.1 technical resolution, never a new request or relabeling."""
+    from scripts.study_v7 import routes
+    if (request["config"] != "luna_responses" or request["split"] != "development" or
+            request["namespace"] != "first" or request["source"] not in {"browsesafe","promptshield"}):
+        raise ValueError("Technical reparse is limited to original Luna Responses development first attempts")
+    original=retained["parsed"]
+    if (retained["status"] != "settings_mismatch" or original.get("settings_mismatch_fields") != ["prompt_cache_options"] or
+            original.get("valid") is not False or
+            (original.get("returned_settings") or {}).get("prompt_cache_options") != {"mode":"explicit","ttl":"30m"}):
+        raise ValueError("Original failure is outside the fixed default-TTL parser amendment")
+    directory=Path(attempts_directory)/request["key"]
+    completed=json.loads((directory/"completed.json").read_text())
+    if completed.get("parser_version") != "study-v7-routes-1" or routes.PARSER_VERSION != "study-v7-routes-2":
+        raise ValueError("Development technical resolution requires the exact v7.0.1 parser versions")
+    observation=completed.get("observation")
+    if not isinstance(observation,dict):
+        raise ValueError("Original technical transport observation is missing")
+    response=(directory/"response.raw").read_bytes()
+    derived=routes.parse_transport(request["config"],observation,response.decode())
+    if derived.get("status") != "ok" or derived.get("valid") is not True:
+        raise ValueError("Amended parser did not resolve the retained technical failure")
+    if derived.get("usage") != original.get("usage") or derived.get("returned_model") != original.get("returned_model"):
+        raise ValueError("Technical reparse changed retained usage/model evidence")
+    return {"version":"study-v7-development-reparse-v7.0.1","request_key":request["key"],
+        "config":request["config"],"source":request["source"],"split":"development","namespace":"first",
+        "plan_sha256":plan_sha256,"amendment_manifest_sha256":manifest_sha256,
+        "original_completed_sha256":retained["evidence_sha256"],"original_status":retained["status"],
+        "original_parsed_sha256":digest(canonical(original)),"response_raw_sha256":digest(response),
+        "request_payload_sha256":request["payload_sha256"],"observation_sha256":digest(canonical(observation)),
+        "parser_version":routes.PARSER_VERSION,"parser_code_sha256":digest(Path(routes.__file__).read_bytes()),
+        "derived_parsed":derived,"technical_resolution":"unchanged explicit mode; additive provider-default30mTTL",
+        "retransmitted":False,"original_records_unchanged":True,"accuracy_calculated":False}
+
+
+def create_development_reparses(plan, attempts_directory, *, plan_sha256, manifest_sha256, output, journal_path=None):
+    """Exclusively create an ignored sidecar from retained raw development bytes."""
+    path=Path(output).resolve()
+    if RAW.resolve() not in path.parents:
+        raise ValueError("Development reparse sidecar must stay in ignored data/raw/study-v7")
+    state,_=read_journal(journal_path,plan)
+    records=[]
+    for request in plan["requests"].values():
+        if request["config"] != "luna_responses" or request["split"] != "development" or request["namespace"] != "first":
+            continue
+        retained=retained_attempt(request,attempts_directory,state)
+        if retained["status"] == "settings_mismatch" and retained["parsed"].get("settings_mismatch_fields") == ["prompt_cache_options"]:
+            records.append(_development_reparse_record(request,retained,attempts_directory,
+                plan_sha256=plan_sha256,manifest_sha256=manifest_sha256))
+    if not records:
+        raise ValueError("No eligible original development failures to reparse")
+    path.parent.mkdir(parents=True,exist_ok=True)
+    with path.open("xb") as handle:
+        handle.write(b"".join(canonical(r)+b"\n" for r in sorted(records,key=lambda r:r["request_key"])))
+    return records
+
+
+def load_development_reparses(path, plan, attempts_directory, state, *, plan_sha256, manifest_sha256):
+    """Recompute every derived parse and verify all original/hash/scope bindings."""
+    if path is None:
+        return {},None
+    if not manifest_sha256:
+        raise ValueError("An explicit preserved amendment-manifest hash is required for reparses")
+    path=Path(path).resolve()
+    if RAW.resolve() not in path.parents:
+        raise ValueError("Development reparse sidecar must remain in ignored data/raw/study-v7")
+    body=path.read_bytes();result={}
+    for line in body.splitlines():
+        record=json.loads(line);key=record["request_key"]
+        if key in result or key not in plan["requests"]:
+            raise ValueError("Duplicate or unplanned technical reparse")
+        request=plan["requests"][key]
+        retained=retained_attempt(request,attempts_directory,state)
+        expected=_development_reparse_record(request,retained,attempts_directory,
+            plan_sha256=plan_sha256,manifest_sha256=manifest_sha256)
+        if canonical(record) != canonical(expected):
+            raise ValueError("Development reparse differs from exact original/parser/manifest evidence")
+        result[key]=record
+    return result,{"sidecar_sha256":digest(body),"amendment_manifest_sha256":manifest_sha256,
+        "resolved_original_first_attempts":len(result),"original_status_counts":dict(Counter(r["original_status"] for r in result.values())),
+        "parser_versions":sorted({r["parser_version"] for r in result.values()}),
+        "parser_code_sha256":sorted({r["parser_code_sha256"] for r in result.values()}),"retransmissions":0}
+
+
 def read_journal(path, plan):
     """Replay a stable byte snapshot through the pure state machine; never lock."""
     if path is None or not Path(path).exists():
@@ -177,6 +261,11 @@ def settings_check(config, payload, parsed, valid):
                     continue
                 if returned.get(field) is None:
                     not_echoed.append(field)
+                elif field == "prompt_cache_options":
+                    cache=returned[field]
+                    if (not isinstance(cache,dict) or set(cache)-{"mode","ttl"} or cache.get("mode") != "explicit" or
+                            ("ttl" in cache and cache["ttl"] != "30m")):
+                        problems.append("returned_"+field)
                 elif (returned[field].get("effort") != expected_value["effort"] if field == "reasoning" and isinstance(returned[field],dict) else returned[field] != expected_value):
                     problems.append("returned_"+field)
         elif p["kind"] in {"noul","predicate"}:
@@ -213,8 +302,10 @@ def settings_check(config, payload, parsed, valid):
             "problems":sorted(set(problems))}
 
 
-def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=None):
+def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=None, reparses=None, reparse_manifest_sha256=None):
     state, accounting = read_journal(journal_path, plan)
+    reparsed,reparse_receipt=load_development_reparses(reparses,plan,attempts_directory,state,
+        plan_sha256=plan_sha256,manifest_sha256=reparse_manifest_sha256)
     active = plan.get("active_configurations") or list(plan["model_configurations"])
     requests = [r for r in plan["requests"].values() if r["split"] == "development" and r["namespace"] == "first"]
     by_part = defaultdict(list)
@@ -239,11 +330,17 @@ def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=N
         elif source != "promptshield" or len({r["id"] for r in part}) != 100 or len({r["group_id"] for r in part}) != 100:
             raise ValueError("External development requires100unique original requests/components")
         statuses, models, problems, echoes, settings = Counter(), Counter(), Counter(), Counter(), {}
+        original_statuses=Counter();resolved=0
         elapsed, input_tokens, output_tokens = [], [], []
         valid = terminal = 0
         evidence_hashes = []
         for request in part:
             retained = retained_attempt(request, attempts_directory, state)
+            original_statuses[retained["status"]] += 1
+            if request["key"] in reparsed:
+                derived=reparsed[request["key"]]["derived_parsed"]
+                retained=dict(retained,parsed=derived,status=derived["status"],valid=derived.get("valid") is True)
+                resolved += 1
             statuses[retained["status"]] += 1
             valid += retained["valid"]
             terminal += retained["evidence_sha256"] is not None
@@ -264,6 +361,7 @@ def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=N
         confirmation_count = sum(r["config"] == config and r["source"] == source and r["split"] == "confirmation" and r["namespace"] == "first" for r in plan["requests"].values())
         summary = {"source":source,"config":config,"planned_requests":expected,"terminal_attempts":terminal,
             "valid_responses":valid,"status_counts":dict(statuses),"returned_models":dict(models),
+            "original_status_counts":dict(original_statuses),"derived_technical_resolutions":resolved,
             "settings_problems":dict(problems),"accepted_not_echoed_field_counts":dict(echoes),
             "requested_configurations":list(settings.values()),"observed_input_tokens_total":sum(input_tokens),
             "observed_input_tokens_max":max(input_tokens) if input_tokens else None,
@@ -302,6 +400,7 @@ def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=N
         "plan_sha256":plan_sha256,"validated_configurations":sorted(validated),
         "unsupported_configurations":unsupported,"blockers":blockers,"source_config_coverage":summaries,
         "accounting":accounting,"accuracy_calculated":False,"selection_or_prompts_changed":False,
+        "development_technical_reparse":reparse_receipt,
         "recorded_at_utc":datetime.now(timezone.utc).isoformat(),"network_or_model_calls":0}
 
 
@@ -369,10 +468,30 @@ def main():
     parser.add_argument("--output",type=Path,required=True)
     parser.add_argument("--source-rows",type=Path,action="append",default=[])
     parser.add_argument("--audit-details",type=Path)
+    parser.add_argument("--create-development-reparse",type=Path)
+    parser.add_argument("--manifest",type=Path,help="Preserved amended development manifest when creating a sidecar")
+    parser.add_argument("--reparses",type=Path)
+    parser.add_argument("--reparse-manifest",type=Path,help="Same preserved amended development manifest bound by the sidecar")
     args=parser.parse_args()
     body=args.plan.read_bytes(); plan=json.loads(body)
+    def manifest_hash(path):
+        if path is None:
+            return None
+        from scripts.study_v7 import routes
+        retained=path.read_bytes();manifest=json.loads(retained)
+        if manifest.get("plan_sha256") != digest(body) or manifest.get("execution_code_sha256",{}).get("scripts/study_v7/routes.py") != digest(Path(routes.__file__).read_bytes()):
+            raise ValueError("Preserved amendment manifest does not bind this plan and parser code")
+        return digest(retained)
     if args.phase == "development":
-        result=development_receipt(plan,args.attempts,plan_sha256=digest(body),journal_path=args.journal)
+        if args.create_development_reparse:
+            if args.manifest is None or args.reparses is not None:
+                raise ValueError("Sidecar creation requires its preserved amendment manifest and no existing --reparses")
+            create_development_reparses(plan,args.attempts,plan_sha256=digest(body),
+                manifest_sha256=manifest_hash(args.manifest),output=args.create_development_reparse,journal_path=args.journal)
+            args.reparses=args.create_development_reparse
+            args.reparse_manifest=args.manifest
+        result=development_receipt(plan,args.attempts,plan_sha256=digest(body),journal_path=args.journal,
+            reparses=args.reparses,reparse_manifest_sha256=manifest_hash(args.reparse_manifest))
     else:
         rows={}
         for path in args.source_rows:

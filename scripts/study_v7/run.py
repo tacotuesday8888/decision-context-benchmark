@@ -12,6 +12,7 @@ import fcntl
 import json
 import os
 from pathlib import Path
+import re
 import threading
 import time
 from scripts.study_v7.requests import PANEL, canonical, digest, materialize
@@ -78,6 +79,35 @@ def verify_manifest(path):
     return manifest, plan, rows
 
 
+def _stop_policy(receipt):
+    """A continuation acknowledges exact old stops; a new stop remains final."""
+    def valid_name(name):
+        return isinstance(name, str) and re.fullmatch(r'stop(?:-[A-Za-z0-9_.-]+)?\.json', name) is not None
+    name = receipt.get('stop_record_name', 'stop.json')
+    acknowledged = receipt.get('acknowledged_stops', {})
+    if not valid_name(name) or not isinstance(acknowledged, dict):
+        raise PermissionError('Invalid immutable stop-record policy')
+    for old_name, sha in acknowledged.items():
+        if (not valid_name(old_name) or old_name == name or not isinstance(sha, str) or
+                re.fullmatch(r'[0-9a-f]{64}', sha) is None):
+            raise PermissionError('Acknowledged stops require distinct safe names and exact SHA256 hashes')
+    return name, acknowledged
+
+
+def _check_stops(execution, receipt):
+    """Never delete/rewrite stops; any unacknowledged current/new stop blocks."""
+    name, acknowledged = _stop_policy(receipt)
+    execution = Path(execution)
+    for old_name, sha in acknowledged.items():
+        path = execution / old_name
+        if path.is_symlink() or not path.is_file() or digest(path.read_bytes()) != sha:
+            raise PermissionError('Acknowledged historical stop is missing or changed: ' + old_name)
+    for path in execution.glob('stop*.json'):
+        if path.name not in acknowledged:
+            raise PermissionError('Unacknowledged preserved v7 stop blocks dispatch: ' + path.name)
+    return execution / name
+
+
 class OwnerPermit:
     """Validated immutable owner receipt; not an environment toggle or API login."""
     def __init__(self, authorization_path, manifest_path, phase):
@@ -96,6 +126,7 @@ class OwnerPermit:
 
     def check(self):
         r = self.receipt
+        _stop_policy(r)
         if digest(self.authorization_path.read_bytes()) != self.authorization_sha256:
             raise PermissionError('Owner authorization changed during execution')
         if digest(self.manifest_path.read_bytes()) != self.manifest_sha256:
@@ -230,7 +261,7 @@ def execute(permit):
     except BlockingIOError:
         process_lock.close()
         raise PermissionError('Another v7 executor owns dispatch') from None
-    stop_path = execution / 'stop.json'
+    stop_path = execution / _stop_policy(permit.receipt)[0]
     stop = threading.Event()
     paused = {p.stem.removeprefix('paused-') for p in execution.glob('paused-*.json')}
     pause_lock = threading.Lock()
@@ -238,8 +269,7 @@ def execute(permit):
     runtime_lock = threading.Lock()
     def guard():
         permit.check()
-        if stop_path.exists():
-            raise PermissionError('Preserved v7 stop requires explicit reviewed continuation; no automatic resume')
+        _check_stops(execution, permit.receipt)
     try:
         guard()
         r = permit.receipt

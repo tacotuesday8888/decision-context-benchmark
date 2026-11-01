@@ -50,6 +50,16 @@ def check_metadata():
     require(digest((OUT/'run-manifest.json').read_bytes())==summary['run_manifest_sha256'],'Run manifest lock differs')
     for name,sha in manifest['source_selection_receipts'].items():
         require(digest((ROOT/name).read_bytes())==sha,'Selection/equivalence receipt differs: '+name)
+    active_path=OUT/'run-manifest.json'
+    pointer=OUT/'active-run.json'
+    if pointer.exists():
+        active=json.loads(pointer.read_text())
+        active_path=ROOT/active['manifest_path']
+        require(digest(active_path.read_bytes())==active['manifest_sha256'],'Active amendment manifest differs')
+        current=json.loads(active_path.read_text())
+        require(current['plan_sha256']==manifest['plan_sha256'] and current['source_files']==manifest['source_files'],
+                'Operational amendment changed locked request/source bytes')
+        manifest=current
     for name,sha in manifest['execution_code_sha256'].items():
         require(digest((ROOT/name).read_bytes())==sha,'Execution code lock differs: '+name)
     for scenario, costs in forecast['cost_scenarios_usd'].items():
@@ -63,7 +73,8 @@ def check_metadata():
     template=json.loads((OUT/'run-authorization.json').read_text())
     require(template['experimental_inference_authorized'] is False,'Default authorization template must remain inert')
     return {'main_groups':3200,'main_pages':6400,'external_confirmation':4000,'external_development':100,
-            'request_counts':manifest['counts'],'offline':True,'model_calls':0}
+            'request_counts':manifest['counts'],'active_manifest':str(active_path.relative_to(ROOT)),
+            'offline':True,'model_calls':0}
 
 
 def main():
@@ -75,7 +86,7 @@ def main():
         from scripts.study_v7.main_data import verify_locked
         from scripts.study_v7.run import verify_manifest
         verify_locked()
-        verify_manifest(OUT/'run-manifest.json')
+        verify_manifest(ROOT/result['active_manifest'])
         external=json.loads((OUT/'external-selection-v3.json').read_text())
         for name,sha in external['artifacts'].items():
             require(digest((RAW/name).read_bytes())==sha,'Ignored external evidence differs')

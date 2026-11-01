@@ -13,7 +13,7 @@ from scripts.study_v7.requests import PANEL, canonical, digest, AUDIT_SCHEMA
 from scripts.study_v6.routes import (_exclusive, probability, _failure, _truncated,
     _valid_count, _stream_events, requires_stop, parse_response as parse_native)
 
-PARSER_VERSION = 'study-v7-routes-1'
+PARSER_VERSION = 'study-v7-routes-2'
 
 
 def parse_response(config, body, *, audit=False):
@@ -51,6 +51,16 @@ def parse_response(config, body, *, audit=False):
                 if name == 'reasoning':
                     if raw[name].get('effort') != value['effort']:
                         mismatches.append('reasoning.effort')
+                elif name == 'prompt_cache_options':
+                    # v7.0.1 technical parser amendment: the provider echoes its
+                    # documented 30m default even without cache breakpoints. The
+                    # requested mode/bytes remain unchanged; other metadata is
+                    # not silently ignored or treated as an equivalent setting.
+                    returned = raw[name]
+                    if (not isinstance(returned, dict) or set(returned) - {'mode', 'ttl'} or
+                            returned.get('mode') != 'explicit' or
+                            ('ttl' in returned and returned['ttl'] != '30m')):
+                        mismatches.append(name)
                 elif raw[name] != value:
                     mismatches.append(name)
         if mismatches:

@@ -94,14 +94,14 @@ Default inspection stays offline:
 
 ```sh
 cd '/Users/langqi/Developer/Projects/Decision Context Benchmark Plan'
-'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest.json
+'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest-development-v7.0.1.json
 ```
 
 The complete bounded development instruction is:
 
 ```sh
 cd '/Users/langqi/Developer/Projects/Decision Context Benchmark Plan'
-'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest.json --authorization results/study-v7/development-authorization-v2.json --phase development --execute
+'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest-development-v7.0.1.json --authorization results/study-v7/development-authorization-v7.0.1.json --phase development --execute
 ```
 
 It is inert until its owner receipt matches the exact frozen plan/manifest/code,
@@ -120,6 +120,13 @@ request plan, token audit and raw attempts stay only under ignored
 `data/raw/study-v7/`. Delivery is in [private draft PR14](https://github.com/tacotuesday8888/decision-context-benchmark/pull/14),
 dependent on [planning PR12](https://github.com/tacotuesday8888/decision-context-benchmark/pull/12).
 Preparation commit: `975106875047d08756a10e61c5cb8a3e93e0e58c`.
+
+All22applicable preparation CI checks passed. The first13development responses
+exposed an overly strict metadata parser; [v7.0.1](docs/study-v7/AMENDMENT-v7.0.1.md)
+documents the correction and an exact-hash continuation without resending those
+requests. The original preparation manifest/authorization and stop remain
+preserved; [active-run.json](results/study-v7/active-run.json) identifies the current
+amendment. No confirmation request has run at this checkpoint.
 
 The Scientific Agent Skills procedural assistance is cited in the
 [software provenance outline](docs/study-v7/PAPER-OUTLINE.md); it does not certify

@@ -447,6 +447,101 @@ class Routes(unittest.TestCase):
         self.assertEqual(parsed['status'], 'subscription_route_unsupported')
         self.assertTrue(routes.requires_stop(parsed))
 
+    def test_cache_metadata_default_ttl_is_additive_but_other_changes_reject(self):
+        for metadata in ({'mode': 'explicit'}, {'mode': 'explicit', 'ttl': '30m'}):
+            parsed = routes.parse_response('luna_responses', stream(config='luna_responses',
+                prompt_cache_options=metadata))
+            self.assertTrue(parsed['valid'])
+            self.assertEqual(parsed['returned_settings']['prompt_cache_options'], metadata)
+        for metadata in ({'mode': 'implicit', 'ttl': '30m'}, {'mode': 'explicit', 'ttl': '12h'},
+                         {'mode': 'explicit', 'ttl': None}, {'mode': 'explicit', 'extra': True},
+                         {'ttl': '30m'}):
+            parsed = routes.parse_response('luna_responses', stream(config='luna_responses',
+                prompt_cache_options=metadata))
+            self.assertEqual(parsed['status'], 'settings_mismatch')
+            self.assertEqual(parsed['settings_mismatch_fields'], ['prompt_cache_options'])
+
+    def test_recorded_stop_continuation_preserves_old_stop_holds_and_never_replays(self):
+        # Transport and local inference boundaries are entirely mocked. Start a
+        # real synthetic journal, preserve a stop, then resume only unsent keys.
+        main = main_rows(1, 'development'); external = external_rows(1, 'development')
+        plan = requests.build_plan(main, external, sol_config=None)
+        rows = {r['id']: r for r in main+external}
+        manifest = {'version': 'study-v7-run-1', 'plan_sha256': 'a'*64,
+            'historical_accounting': {'prior_accounted_usd': {'openai': '0', 'typesafe': '0'}, 'evidence_sha256': {}}}
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); raw = root/'raw'; execution = raw/'execution-v1'
+            manifest_path = root/'manifest.json'; manifest_path.write_bytes(requests.canonical(manifest))
+            auth = {'experimental_inference_authorized': True, 'resume_experimental_inference': True,
+                'authorization_source': 'explicit_owner_instruction', 'owner_instruction': 'SYNTHETIC CONTINUATION TEST ONLY',
+                'manifest_sha256': requests.digest(manifest_path.read_bytes()), 'plan_sha256': 'a'*64,
+                'authorized_phases': ['development'], 'allow_subscription_fallback': False,
+                'execution_profile': plan['execution_profile'], 'allow_paid_sol_api': False,
+                'allow_purchases_or_recharge': False, 'approved_at_utc': '2026-11-01T00:00:00Z',
+                'admission_deadline_utc': '2099-01-01T00:00:00Z',
+                'historical_accounted_usd': {'openai': '0', 'typesafe': '0'},
+                'caps_usd': {'openai': '100', 'typesafe': '100'},
+                'incremental_caps_usd': {'openai': '100', 'typesafe': '100'},
+                'allocations_usd': {a: {'openai': '50', 'typesafe': '50'} for a in plan['schedules']}}
+            auth_path = root/'authorization.json'; auth_path.write_bytes(requests.canonical(auth))
+            calls = []; failed = []; overflow = []
+            def post(config, body, token, directory):
+                calls.append(directory.name)
+                http = 200
+                if config == 'jev_firstparty' and not overflow:
+                    overflow.append(directory.name); http = 400
+                    text = '{"error":"context_length_exceeded"}'
+                elif config == 'luna_responses' and not failed:
+                    failed.append(directory.name)
+                    text = stream(config=config, prompt_cache_options={'mode': 'implicit'})
+                elif config in requests.NATIVE:
+                    answers = {'injection': {'type': 'noul', 'noul': .9}} if config == 'jev_firstparty' else [
+                        {'name': 'injection', 'type': 'predicate', 'probability': .9}]
+                    text = json.dumps({'model': requests.PANEL[config]['model'],
+                        'usage': {'input_tokens': 10}, 'answers': answers})
+                else:
+                    text = stream(config=config, prompt_cache_options={'mode': 'explicit', 'ttl': '30m'})
+                routes._exclusive(directory/'response.raw', text.encode())
+                return {'http_status': http, 'transport_exit_code': 0}, text
+            class Local:
+                def classify(self, text):
+                    return {'score': .9, 'windows': 1, 'input_tokens': 5,
+                        'returned_model': requests.PANEL['protectai_local']['model'],
+                        'revision': requests.PANEL['protectai_local']['revision']}
+            with patch.object(run, 'RAW', raw), patch.object(run, 'verify_manifest', return_value=(manifest, plan, rows)), \
+                 patch.object(routes, '_credential', return_value='synthetic-only'), \
+                 patch.object(routes, '_post', side_effect=post), patch.object(routes, '_LocalRuntime', Local):
+                result = run.execute(run.OwnerPermit(auth_path, manifest_path, 'development'))
+                self.assertEqual(result['status'], 'stopped')
+                old_stop = execution/'stop.json'; before = old_stop.read_bytes()
+                calls_before = set(calls)
+                old_entries = result['accounting']['entries']
+                with self.assertRaisesRegex(PermissionError, 'Unacknowledged'):
+                    run.execute(run.OwnerPermit(auth_path, manifest_path, 'development'))
+                self.assertEqual(set(calls), calls_before)
+                auth['acknowledged_stops'] = {'stop.json': requests.digest(before)}
+                auth['stop_record_name'] = 'stop-v7.0.1.json'
+                auth_path.write_bytes(requests.canonical(auth))
+                continued = run.execute(run.OwnerPermit(auth_path, manifest_path, 'development'))
+                self.assertEqual(continued['status'], 'bounded_phase_finished')
+                self.assertEqual(old_stop.read_bytes(), before)
+                self.assertEqual(len(calls), len(set(calls)))
+                self.assertEqual(calls.count(failed[0]), 1)
+                self.assertEqual(calls.count(overflow[0]), 1)
+                hold = continued['accounting']['entries'][overflow[0]]
+                self.assertEqual(hold, old_entries[overflow[0]])
+                self.assertEqual(hold['status'], 'unknown_usage')
+                self.assertEqual(hold['accounted_usd'], hold['reserved_usd'])
+                self.assertTrue(continued['accounting']['terminal'])
+                new_stop = execution/'stop-v7.0.1.json'; new_stop.write_bytes(b'new stop')
+                with self.assertRaisesRegex(PermissionError, 'Unacknowledged'):
+                    run.execute(run.OwnerPermit(auth_path, manifest_path, 'development'))
+                self.assertEqual(len(calls), len(set(calls)))
+                new_stop.unlink() # This is a temporary synthetic fixture only.
+                old_stop.write_bytes(before+b'changed')
+                with self.assertRaisesRegex(PermissionError, 'missing or changed'):
+                    run.execute(run.OwnerPermit(auth_path, manifest_path, 'development'))
+
     def test_current_authorization_template_paused(self):
         path = Path(run.DEFAULT_AUTHORIZATION)
         r = json.loads(path.read_text())
