@@ -176,3 +176,7 @@ Root checked journal prefix index 79930: 38,635 dispatches and 38,634 settlement
 - Live complete-line journal prefix through index 95684 independently summed: OpenAI $27.34706450, TypeSafe $5.228007498, unknown OpenAI hold $1.575. 46,273 dispatches and settlements, no duplicate dispatches. Receipt: `live-accounting-check-5.json`. No accuracy inspected.
 - Worker active at cursor `48e27ee0-0d56-4e05-98f1-457d179d0219:515`, last report 43,964/48,000 native records, no new stop.
 - Root PR13 commit b42a02b3 verified 20/20 CI checks passed. Shared Codex allowance recently 32% used / 68% remaining, one free reset still unused.
+
+### Native main collection complete
+
+Root independently joined all 48,000 frozen main_native confirmation keys to their completion files: 47,840 OK, 157 ties, three HTTP failures, zero missing completion files. Receipt: `main-native-completion-check.json`. This is operational completion, not an accuracy claim. Worker cursor547 confirms transition to fixed general-model/local comparisons; analysis still deferred. PR13 revision21fc3cb3 passed20/20CI checks.
