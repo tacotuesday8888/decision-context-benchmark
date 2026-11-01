@@ -1,63 +1,40 @@
 # Decision Context Benchmark
 
-**Testing whether task context improves prompt-injection detection.**
+**Does knowing the user’s task help AI detect prompt injection?**
 
-A series of controlled experiments comparing detector decisions with and without the legitimate user's task. Evaluation tracks both **false alarms** on harmless content and **missed attacks**.
+We compare decision models such as Jev with general-purpose language models, using the same content with and without task information.
 
-[Experiment notes](../docs/research-notebook/README.md) · [Main results](../results/study-v7-execution/README.md) · [Sol follow-up](../results/subscription-followup-execution/README.md) · [Methods](../docs/subscription-followup/PROTOCOL-v1.md)
+[Research notes](https://docs.google.com/document/d/1T8pvePmYF7rYWWugGc8HkSEtiI8CK3jU_3EZer2WFmo/edit) · [Four examples](https://docs.google.com/document/d/1h5RO4VKXj-eB-dk3-C2v0YRtCl9n_DrriGXa66m7lbk/edit) · [Results](../results/paper-preparation/) · [Reproduce](../REPRODUCING.md) · [Data](../DATA.md)
 
----
+## Main finding
 
-## Research question
+Task information changes mistakes, but does not consistently improve detection. In the main comparison, Jev flagged fewer normal-labeled pages while missing more attack-labeled pages. GPT-6 Luna and GPT-6.1 Sol had higher average error; a smaller second-source test produced different patterns.
 
-Does useful task information improve detection—or do apparent gains come from other prompt changes?
+![False alarms and missed attacks](../results/paper-preparation/figure-2-error-tradeoff.png)
 
-The larger experiments compare four conditions: the published task, empty-task formatting, a generic warning, and repeated “Context unavailable.” filler matched by character count. The candidate content stays fixed across these conditions. The filler is not token-matched or semantically empty.
+These are results against publisher labels, not proof of safer working agents or a universal model ranking.
 
-## Findings at a glance
+## Experiments
 
-| Observation | Interpretation |
-| :--- | :--- |
-| Jev raised fewer false alarms but missed more attacks on the main dataset. | A better average score can conceal a security tradeoff. |
-| Sol and Luna made more errors with task context on the main dataset. | Context did not consistently improve detection. |
-| The second source produced a different pattern. | Results depend on the source and comparison prompt. |
-| The small agent pilot demonstrated no protection benefit. | Detector accuracy alone does not establish agent safety. |
+| Stage | Data | Main models |
+|---|---|---|
+| Earlier study | 761 task–text combinations from three sources | Jev, GPT-6 Luna, GPT-6 Astra, Nimble, Laya; ProtectAI v2 reference |
+| Larger study | 3,000 BrowseSafe++ normal/attack pairs | Jev and GPT-6 Luna (Decisions) |
+| Follow-up | 500 pairs from that larger study | GPT-6.1 Sol |
+| Supporting checks | PromptShield, DTap and 12 authored agent tasks | Separate comparisons |
 
-Findings apply to the tested configurations and source labels. Sources are analyzed separately; no universal model ranking is claimed. Detailed results retain uncertainty estimates, failures and abstentions.
+The earlier study has 582 distinct texts and 138 tasks. The main Jev/Luna analysis uses 2,850 complete pairs; Sol uses 498. Counts overlap and must not be added. [Details and access](../DATA.md)
 
-The main source is a project-held-out subset of BrowseSafe++'s public training release, with privacy-rewritten pages and publisher-provided tasks. These are not untouched production requests or independently human-validated labels. [Error tradeoff figure](../results/critical-review/error-tradeoffs.png) · [Critical review and claim boundaries](../docs/critical-review/README.md)
+## Use the repository
 
-## Experiment map
+- **Read results:** [main study](../results/study-v7-execution/README.md), [Sol follow-up](../results/subscription-followup-execution/README.md), [second source](../results/subscription-followup-extensions-execution/README.md).
+- **Check the numbers:** follow [offline reproduction](../REPRODUCING.md); no model calls or API keys needed for the compact check.
+- **Understand the design:** [protocol](../docs/subscription-followup/PROTOCOL-v1.md), [related work](../docs/critical-review/METHODS-NOTE.md), [review findings](../docs/paper-preparation/REVIEW-RESOLUTION.md).
 
-| Study | Evaluation scope | Record |
-| :--- | :--- | :--- |
-| Earlier context study | **761 task–content pairs**; 582 distinct texts, 138 tasks | [Completion audit](../docs/extension-v3/COMPLETION-STATUS.md) |
-| Larger Jev/Luna study | **3,000 clean/attack pairs**; 6,000 pages | [Results and coverage](../results/study-v7-execution/README.md) |
-| Sol follow-up | **500 pairs** from the larger study | [Results and repeat checks](../results/subscription-followup-execution/README.md) |
-| PromptShield benchmark | **4,000 texts**; separate detection evaluation | [External-source results](../results/study-v7-execution/README.md#coverage-and-operational-limits) |
-| Second-source diagnostic | **66 pairs**; 132 released observations | [Results and limitations](../results/subscription-followup-extensions-execution/README.md#released-simulated-service-source) |
-| Simulated-action pilot | **12 constructed tasks** | [Pilot outcomes](../results/subscription-followup-extensions-execution/README.md#constructed-one-step-pilot) |
-
-**Counting note:** a task–content pair links one task to one content example; a clean/attack pair contains two examples. The Sol subset reuses main-study data. These counts are not an additive total of independent examples.
+`docs/` holds methods and notes; `scripts/` holds code; `results/` holds saved outputs. Restricted raw data remain local.
 
 ## Status
 
-As of **November 1, 2026**, the latest bounded experiments and critical review are complete. Independent offline checks reproduce the main findings; no numerical correction is required. Human label review remains open; a blinded packet is prepared. The new five-page paper has not been drafted.
+Completed experiments and reviewed preparation are on `main`. The current paper is not yet written. The repository remains private; there is no paper DOI or public release to cite.
 
-[Working notes](../docs/research-notebook/README.md) summarize the history and next steps. The [editable Google Doc](https://docs.google.com/document/d/1T8pvePmYF7rYWWugGc8HkSEtiI8CK3jU_3EZer2WFmo/edit) supports discussion with the teacher.
-
-## Repository guide
-
-| Location | Contents |
-| :--- | :--- |
-| [`docs/`](../docs/) | Protocols, design decisions and experiment notes |
-| [`scripts/`](../scripts/) | Data preparation, execution and analysis code |
-| [`results/`](../results/) | Compact outcomes, tables, figures and verification records |
-
-Start with each study's result README for reproduction instructions and access requirements. The core Sol and second-source records include offline reanalysis examples. Restricted raw evidence remains local and is linked through saved hashes. Original outcomes and failures are preserved.
-
-## Project history
-
-The 761-pair study is an earlier completed stage. Later controls and larger evaluations extend and qualify its findings. The [historical root README](../README.md) remains unchanged as part of that record.
-
-This repository is private. [Experiment PR15](https://github.com/tacotuesday8888/decision-context-benchmark/pull/15) and [documentation PR16](https://github.com/tacotuesday8888/decision-context-benchmark/pull/16) are draft deliveries. This overview is on the documentation branch; the default branch may still display older work.
+Historical stage tips are kept as archive tags. The root README is a frozen earlier record; this GitHub overview is the current guide. [History](../docs/repository/HISTORY.md) · [Contribution rules](../CONTRIBUTING.md)
