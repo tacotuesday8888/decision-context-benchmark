@@ -1,0 +1,15 @@
+{
+  "conditions": {
+    "A": "Historical candidate-only exact request",
+    "B": "Historical exact request with empty TRUSTED_USER_TASK"
+  },
+  "cost_usd": 0,
+  "design": "Two independent process restarts per adapter/SDK and AB/BA ordering; repeat the pair twice within each process; 32 forward calls total",
+  "environment": "CPU eager, two threads, evaluation mode; CPU AMP disabled explicitly for repeatability. Historical per-forward dtype was not recorded.",
+  "purpose": "Post-hoc reproducibility of one selected historical formatting flip, not a new accuracy estimate",
+  "script_sha256": "2474f47c02837547bca997e362f038bdac4c288da745c0308e0dc400fe86d1c8",
+  "source_hashes": {
+    "results/extension-v3/confirmation/laya_local/55c5090952021e24b1635f6d.json": "9dd76e206c9bf1d58a4d7989217a345152bb23fc938e0667234adc6819dd2038",
+    "results/extension-v3/confirmation/laya_local/614aac425fd608ee16de97c0.json": "243a6c7df27ad58f6d3d617f6927a8a9908d9c4b50b668e1ce11c42ccf52b1a0"
+  }
+}
