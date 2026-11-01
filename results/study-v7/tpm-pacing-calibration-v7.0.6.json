@@ -1,0 +1,79 @@
+{
+  "accuracy_or_predictions_inspected": false,
+  "current_plan_path": "data/raw/study-v7/request-plan-v7.0.2.json",
+  "current_plan_sha256": "70d8606f6a3090514ac08c2c67d27f84d3cf95db18847e08a0f48cc3f4d644da",
+  "input": "Source/payload-bound usage metadata and frozen local serialization token audit only.",
+  "limitations": [
+    "Counts under the local encoding are serialization proxies,not exact native/provider rate charges.",
+    "Observed usage margins establish empirical calibration only,not a certified upper bound for unseen inputs or background organization usage.",
+    "A future429 remains a preserved failure and stops dispatch; no automatic retry,source replacement,or subscription/paid fallback.",
+    "Remaining weight implies roughly3.3hours of minimum rate pacing plus local processing/accounting/provider latency. The14:00UTC admission cutoff remains fixed; completion is not guaranteed."
+  ],
+  "minimum_weight_budget_minutes_at_1p5million_per_minute": 195.839232,
+  "network_or_model_calls": 0,
+  "observed_usage": {
+    "luna_decisions": {
+      "input_proxy_ratio_max": 2.1153846153846154,
+      "input_proxy_ratio_median": 0.9582208116488781,
+      "input_proxy_ratio_p95": 1.1573676680972818,
+      "input_proxy_ratio_p99": 1.8661417322834646,
+      "input_proxy_weighted_ratio": 0.9567850536858357,
+      "input_tokens": 10262133,
+      "maximum_actual_input_plus_output_over_pacing_weight": 0.6003717472118959,
+      "n": 2104,
+      "observed_weight_violations": 0,
+      "output_tokens": 0,
+      "proxy_tokens": 10725641
+    },
+    "luna_responses": {
+      "input_proxy_ratio_max": 0.98715682809002,
+      "input_proxy_ratio_median": 0.8915973465139416,
+      "input_proxy_ratio_p95": 0.9604419889502762,
+      "input_proxy_ratio_p99": 0.9857408184051285,
+      "input_proxy_weighted_ratio": 0.9204485779229977,
+      "input_tokens": 1910507,
+      "maximum_actual_input_plus_output_over_pacing_weight": 0.49035200561337855,
+      "n": 500,
+      "observed_weight_violations": 0,
+      "output_tokens": 8018,
+      "proxy_tokens": 2075626
+    }
+  },
+  "pacing_configuration": {
+    "luna_responses_output_tokens": 256,
+    "minimum_request_weight": 1024,
+    "provider_token_limit": 2000000,
+    "proxy_multiplier": 2,
+    "soft_token_budget": 1500000,
+    "startup_cooldown_seconds": 60,
+    "window_seconds": 60
+  },
+  "pacing_version": "study-v7-luna-pacing-1",
+  "planned_paid_token_audit_matches": 35200,
+  "planned_weight_summary": {
+    "luna_decisions": {
+      "maximum_weight": 50650,
+      "minimum_weight": 1024,
+      "over_soft_window_count": 0,
+      "requests": 29300,
+      "sum_weights": 267680462
+    },
+    "luna_responses": {
+      "maximum_weight": 40046,
+      "minimum_weight": 1280,
+      "over_soft_window_count": 0,
+      "requests": 5900,
+      "sum_weights": 51949452
+    }
+  },
+  "primary_rate_reference": "https://developers.openai.com/api/docs/guides/rate-limits",
+  "recorded_at_utc": "2026-11-01T08:14:37.588663+00:00",
+  "remaining_pacing_weight": 293758848,
+  "remaining_unattempted_and_reserved_confirmation_plus_repeat_calls": 32594,
+  "restart_policy": "Every new gate waits a full60seconds before any paid Luna dispatch. Includes repeat-phase/new-process startup. Initial resume separately requires coordinator120second cooldown.",
+  "scope": "Both paid Luna routes share one four-worker gate. Jev,local and Sol are unchanged. Monetary accepted-context reservations/caps/sourcegroups/payloads/statistics/failed first attempts are unchanged.",
+  "token_audit_path": "data/raw/study-v7/token-audit-v3.jsonl",
+  "token_audit_sha256": "a76ded65261426b08d4ea962645ba11a51e97635a09596725e91b302e6023b90",
+  "version": "study-v7-tpm-pacing-calibration-v7.0.6",
+  "weight_formula": "max(1024,2*serialization_proxy_tokens)+(256 for luna_responses;0 for luna_decisions)"
+}

@@ -1,0 +1,496 @@
+{
+  "authorization_reference": "docs/study-v7/RUN-AUTHORIZATION.md",
+  "authorized_incremental_caps_usd": {
+    "openai_optional_authoring": "0",
+    "openai_tests_audit": "350",
+    "total": "370",
+    "typesafe": "20"
+  },
+  "character_matched_task_minus_length_proxy_tokens": {
+    "jev_firstparty": {
+      "max": 43,
+      "mean": 9.149333333333333,
+      "median": 9,
+      "min": -1,
+      "n": 6000,
+      "sum": 54896
+    },
+    "luna_decisions": {
+      "max": 43,
+      "mean": 9.149333333333333,
+      "median": 9,
+      "min": -1,
+      "n": 6000,
+      "sum": 54896
+    },
+    "luna_responses": {
+      "max": 27,
+      "mean": 9.152,
+      "median": 9,
+      "min": 0,
+      "n": 1000,
+      "sum": 9152
+    },
+    "sol_subscription": {
+      "max": 27,
+      "mean": 9.152,
+      "median": 9,
+      "min": 0,
+      "n": 1000,
+      "sum": 9152
+    }
+  },
+  "cost_scenarios_usd": {
+    "accepted_context_maximum": {
+      "all_tests_total": "16661.7099200",
+      "jev_firstparty": "39.379200",
+      "luna_decisions": "15382.500",
+      "luna_responses": "1239.8307200",
+      "openai_total": "16622.3307200",
+      "typesafe_total": "39.379200"
+    },
+    "native_write_proxy": {
+      "all_tests_total": "41.324364444",
+      "jev_firstparty": "5.575841544",
+      "luna_decisions": "33.19685800",
+      "luna_responses": "2.5516649",
+      "openai_total": "35.74852290",
+      "typesafe_total": "5.575841544"
+    },
+    "ordinary_proxy": {
+      "all_tests_total": "21.406249644",
+      "jev_firstparty": "5.575841544",
+      "luna_decisions": "13.2787432",
+      "luna_responses": "2.5516649",
+      "openai_total": "15.8304081",
+      "typesafe_total": "5.575841544"
+    },
+    "stress_2x_proxy_max_output": {
+      "all_tests_total": "83.309528888",
+      "jev_firstparty": "11.151683088",
+      "luna_decisions": "66.3937160",
+      "luna_responses": "5.7641298",
+      "openai_total": "72.1578458",
+      "typesafe_total": "11.151683088"
+    }
+  },
+  "counts": {
+    "jev_firstparty": 29300,
+    "luna_decisions": 29300,
+    "luna_responses": 5900,
+    "protectai_local": 5200,
+    "sol_subscription": 6000
+  },
+  "coverage_preflight": {
+    "jev_firstparty": {
+      "coverage": "unchanged_full_input_server_gate_pending_development",
+      "model_forward_passes": 0,
+      "native_tokenizer_count_verified": false,
+      "proxy_count_above_native_limit_not_certified": 0
+    },
+    "luna_decisions": {
+      "coverage": "unchanged_full_input_server_gate_pending_development",
+      "model_forward_passes": 0,
+      "native_tokenizer_count_verified": false,
+      "proxy_count_above_native_limit_not_certified": 0
+    },
+    "luna_responses": {
+      "coverage": "unchanged_full_input_server_gate_pending_development",
+      "model_forward_passes": 0,
+      "native_tokenizer_count_verified": false,
+      "proxy_count_above_native_limit_not_certified": 0
+    },
+    "protectai_local": {
+      "coverage": "complete_sliding_windows",
+      "model_forward_passes": 0,
+      "native_tokenizer_count_verified": true,
+      "proxy_count_above_native_limit_not_certified": 0
+    },
+    "sol_subscription": {
+      "coverage": "unchanged_full_input_server_gate_pending_development",
+      "model_forward_passes": 0,
+      "native_tokenizer_count_verified": false,
+      "proxy_count_above_native_limit_not_certified": 0
+    }
+  },
+  "current_cumulative_caps_usd": {
+    "openai": "357.0275592",
+    "typesafe": "21.82758493400000006"
+  },
+  "current_headroom_usd": {
+    "openai": "350.0000000",
+    "typesafe": "20.00000000000000000"
+  },
+  "doubled_proxy_requests_above_272k": {
+    "jev_firstparty": 0,
+    "luna_decisions": 0,
+    "luna_responses": 0,
+    "protectai_local": 0,
+    "sol_subscription": 0
+  },
+  "general_required_requests_per_second_each_for_8h": {
+    "luna_responses": "0.2048611111111111111111111111",
+    "sol_subscription": "0.2083333333333333333333333333"
+  },
+  "historical_conservative_accounted_usd": {
+    "openai": "7.0275592",
+    "typesafe": "1.82758493400000006"
+  },
+  "inference_calls_made": 0,
+  "input_basis": {
+    "conservative_bound": "accepted_context_maximum reserves the full accepted route context per request, output caps and worst documented cache/long-input rates; does not use proxy as certified upper.",
+    "encoding": "o200k_base",
+    "framing": "Canonical JSON includes explicit request/schema metadata; hidden server framing is not measured.",
+    "measured": "Exact tokenization of each complete canonical serialized JSON payload under this local encoding.",
+    "not_native": "No GPT-6 Luna/Sol or Jev tokenizer mapping is available in installed tiktoken0.13.0. These are proxy counts, not exact billed/native input counts.",
+    "output_assumptions": "Paid Luna mean16;stress uses fixed256 maximum. Sol subscription has an unsupported requested cap/provider-default ceiling and zero API-dollar cost; quota/time are not guaranteed. No empirical output usage exists.",
+    "protectai": "Actual pinned candidate tokenizer, 510-token windows /64 overlap; no weights loaded or forward passes."
+  },
+  "limitations": [
+    "Proxy scenarios are forecasts, not certified billing maxima. Full-context maximum is a deliberately loose bound, not an expected bill.",
+    "Jev tokenization may differ substantially. Reforecast with authenticated native development usage after authorization without inspecting accuracy.",
+    "Provider rate limits, credit, paid Responses field support and all v7 inference throughput remain unverified.",
+    "Native and general requests may overlap; serial sums are not a source-specific wall-clock guarantee. ProtectAI hardware throughput remains unmeasured."
+  ],
+  "local_required_windows_per_second_for_8h": "0.2274652777777777777777777778",
+  "local_windows": 6551,
+  "main_confirmation_proxy_tokens_by_condition": {
+    "jev_firstparty": {
+      "format": {
+        "max": 25289,
+        "mean": 5203.6455,
+        "median": 3946,
+        "min": 160,
+        "n": 6000,
+        "sum": 31221873
+      },
+      "length": {
+        "max": 25312,
+        "mean": 5224.6815,
+        "median": 3964,
+        "min": 173,
+        "n": 6000,
+        "sum": 31348089
+      },
+      "reminder": {
+        "max": 25306,
+        "mean": 5220.6455,
+        "median": 3963,
+        "min": 177,
+        "n": 6000,
+        "sum": 31323873
+      },
+      "task": {
+        "max": 25324,
+        "mean": 5233.830833333333,
+        "median": 3976,
+        "min": 174,
+        "n": 6000,
+        "sum": 31402985
+      }
+    },
+    "luna_decisions": {
+      "format": {
+        "max": 25290,
+        "mean": 5204.6455,
+        "median": 3947,
+        "min": 161,
+        "n": 6000,
+        "sum": 31227873
+      },
+      "length": {
+        "max": 25313,
+        "mean": 5225.6815,
+        "median": 3965,
+        "min": 174,
+        "n": 6000,
+        "sum": 31354089
+      },
+      "reminder": {
+        "max": 25307,
+        "mean": 5221.6455,
+        "median": 3964,
+        "min": 178,
+        "n": 6000,
+        "sum": 31329873
+      },
+      "task": {
+        "max": 25325,
+        "mean": 5234.830833333333,
+        "median": 3977,
+        "min": 175,
+        "n": 6000,
+        "sum": 31408985
+      }
+    },
+    "luna_responses": {
+      "format": {
+        "max": 19869,
+        "mean": 5126.029,
+        "median": 3893,
+        "min": 302,
+        "n": 1000,
+        "sum": 5126029
+      },
+      "length": {
+        "max": 19888,
+        "mean": 5147.071,
+        "median": 3910,
+        "min": 321,
+        "n": 1000,
+        "sum": 5147071
+      },
+      "reminder": {
+        "max": 19886,
+        "mean": 5143.029,
+        "median": 3910,
+        "min": 319,
+        "n": 1000,
+        "sum": 5143029
+      },
+      "task": {
+        "max": 19895,
+        "mean": 5156.223,
+        "median": 3921,
+        "min": 326,
+        "n": 1000,
+        "sum": 5156223
+      }
+    },
+    "sol_subscription": {
+      "format": {
+        "max": 19864,
+        "mean": 5121.029,
+        "median": 3888,
+        "min": 297,
+        "n": 1000,
+        "sum": 5121029
+      },
+      "length": {
+        "max": 19883,
+        "mean": 5142.071,
+        "median": 3905,
+        "min": 316,
+        "n": 1000,
+        "sum": 5142071
+      },
+      "reminder": {
+        "max": 19881,
+        "mean": 5138.029,
+        "median": 3905,
+        "min": 314,
+        "n": 1000,
+        "sum": 5138029
+      },
+      "task": {
+        "max": 19890,
+        "mean": 5151.223,
+        "median": 3916,
+        "min": 321,
+        "n": 1000,
+        "sum": 5151223
+      }
+    }
+  },
+  "model_configurations": {
+    "jev_firstparty": {
+      "context_tokens": 32000,
+      "credential": "TYPESAFE_API_KEY",
+      "endpoint": "https://api.typesafe.ai/v1/systemone",
+      "kind": "noul",
+      "model": "jev-1.14.0",
+      "provider": "typesafe",
+      "route": "api_key"
+    },
+    "luna_decisions": {
+      "context_tokens": 1050000,
+      "credential": "OPENAI_API_KEY",
+      "endpoint": "https://api.openai.com/v1/decisions",
+      "kind": "predicate",
+      "model": "gpt-6-luna",
+      "provider": "openai",
+      "route": "api_key"
+    },
+    "luna_responses": {
+      "context_tokens": 1050000,
+      "credential": "OPENAI_API_KEY",
+      "endpoint": "https://api.openai.com/v1/responses",
+      "kind": "responses",
+      "model": "gpt-6-luna",
+      "output_cap": 256,
+      "provider": "openai",
+      "reasoning": "none",
+      "route": "api_key"
+    },
+    "protectai_local": {
+      "aggregation": "maximum P(INJECTION) over complete overlapping candidate-only windows",
+      "context_tokens": 512,
+      "kind": "local_detector",
+      "model": "protectai/deberta-v3-base-prompt-injection-v2",
+      "overlap_tokens": 64,
+      "provider": null,
+      "revision": "90c9989b1a342275dd0d1a95aad283c04e075671",
+      "route": "local",
+      "window_tokens": 510
+    },
+    "sol_subscription": {
+      "context_tokens": 1050000,
+      "credential_source": "existing project .secrets/chatgpt.json only",
+      "endpoint": "https://api.openai.com/v1/responses",
+      "kind": "responses",
+      "model": "gpt-6.1-sol",
+      "output_cap": null,
+      "output_limit_status": "max_output_tokens unsupported on SIWC; provider default, not 2048",
+      "preview_limitations_source": "https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations",
+      "provider": null,
+      "reasoning": "low",
+      "route": "subscription"
+    }
+  },
+  "native_projected_hours": "6.128879892037786774628879892",
+  "official_sources": [
+    "https://developers.openai.com/api/docs/pricing",
+    "https://developers.openai.com/api/docs/guides/decisions",
+    "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+    "https://docs.typesafe.ai/models",
+    "https://github.com/openai/tiktoken/blob/main/tiktoken/model.py"
+  ],
+  "optional_authoring_calls_made": 0,
+  "paid_calls": 64500,
+  "paid_execution_authorized": true,
+  "paid_sol_api_and_paid_authoring_permitted": false,
+  "plan_sha256": "ad3a9b1bcbad2ebc3f4337673b45ddc0ddf05855cf06a70dccb2b473c99af815",
+  "protectai_tokenizer_sha256": "f0a66ad0d735d8dca9ecac4ff50fcdef4bb6adbadd2941a926844844d2c2059b",
+  "proxy_requests_above_272k": {
+    "jev_firstparty": 0,
+    "luna_decisions": 0,
+    "luna_responses": 0,
+    "protectai_local": 0,
+    "sol_subscription": 0
+  },
+  "rates_usd_per_million": {
+    "jev_input": "0.042",
+    "luna_decisions_max_cache_write": "0.25",
+    "luna_input": "0.10",
+    "luna_output": "0.50",
+    "sol_input": "2",
+    "sol_output": "10"
+  },
+  "runtime_by_source": {
+    "browsesafe": {
+      "basis": "49.6 minutes for 7904 historical native calls; unchanged request rate assumption, not measured v7 throughput",
+      "historical_request_rate_extrapolation_hours": "5.271255060728744939271255061",
+      "native_requests": 50400
+    },
+    "promptshield": {
+      "basis": "49.6 minutes for 7904 historical native calls; unchanged request rate assumption, not measured v7 throughput",
+      "historical_request_rate_extrapolation_hours": "0.8576248313090418353576248314",
+      "native_requests": 8200
+    }
+  },
+  "sources": {
+    "browsesafe": {
+      "jev_firstparty": {
+        "protectai_windows": 0,
+        "proxy_tokens": 131536496,
+        "requests": 25200
+      },
+      "luna_decisions": {
+        "protectai_windows": 0,
+        "proxy_tokens": 131561696,
+        "requests": 25200
+      },
+      "luna_responses": {
+        "protectai_windows": 0,
+        "proxy_tokens": 24596318,
+        "requests": 4800
+      },
+      "protectai_local": {
+        "protectai_windows": 2179,
+        "proxy_tokens": 0,
+        "requests": 1100
+      },
+      "sol_subscription": {
+        "protectai_windows": 0,
+        "proxy_tokens": 25662011,
+        "requests": 4900
+      }
+    },
+    "promptshield": {
+      "jev_firstparty": {
+        "protectai_windows": 0,
+        "proxy_tokens": 1221636,
+        "requests": 4100
+      },
+      "luna_decisions": {
+        "protectai_windows": 0,
+        "proxy_tokens": 1225736,
+        "requests": 4100
+      },
+      "luna_responses": {
+        "protectai_windows": 0,
+        "proxy_tokens": 448331,
+        "requests": 1100
+      },
+      "protectai_local": {
+        "protectai_windows": 4372,
+        "proxy_tokens": 0,
+        "requests": 4100
+      },
+      "sol_subscription": {
+        "protectai_windows": 0,
+        "proxy_tokens": 442831,
+        "requests": 1100
+      }
+    }
+  },
+  "subscription_calls": 6000,
+  "summary_by_config": {
+    "jev_firstparty": {
+      "max": 25324,
+      "mean": 4530.994266211604,
+      "median": 3405,
+      "min": 96,
+      "n": 29300,
+      "sum": 132758132
+    },
+    "luna_decisions": {
+      "max": 25325,
+      "mean": 4531.994266211604,
+      "median": 3406,
+      "min": 97,
+      "n": 29300,
+      "sum": 132787432
+    },
+    "luna_responses": {
+      "max": 19895,
+      "mean": 4244.855762711864,
+      "median": 3265,
+      "min": 209,
+      "n": 5900,
+      "sum": 25044649
+    },
+    "protectai_local": {
+      "max": 512,
+      "mean": 241.98115384615386,
+      "median": 177,
+      "min": 2,
+      "n": 5200,
+      "sum": 1258302
+    },
+    "sol_subscription": {
+      "max": 41766,
+      "mean": 4350.807,
+      "median": 3318,
+      "min": 204,
+      "n": 6000,
+      "sum": 26104842
+    }
+  },
+  "token_audit_sha256": "cf101a368b1c5b86476bc9c6f52c1773222e78e4d164dfb52537568163095019",
+  "tokenizer_software": {
+    "tiktoken": "0.13.0",
+    "tokenizers": "0.23.1"
+  },
+  "version": "study-v7-measured-forecast-1"
+}

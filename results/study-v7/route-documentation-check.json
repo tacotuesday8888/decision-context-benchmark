@@ -1,0 +1,41 @@
+{
+  "version": "study-v7-route-documentation-1",
+  "checked_date": "2026-11-01",
+  "method": "Read-only official documentation; no inference, credit or current organization rate-limit verification",
+  "inference_calls_made": 0,
+  "sources": [
+    {
+      "url": "https://docs.typesafe.ai/models",
+      "verified": "jev-1.14.0 uses POST /v1/systemone, input USD0.042/M, output free; default 32k per-question and 64k per-request; v7 sends one question and does not enable long context. Organization rate limits require separate verification."
+    },
+    {
+      "url": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+      "verified": "gpt-6-luna supports reasoning none, Responses, structured outputs and 1,050,000 context. Input USD0.10/M, output USD0.50/M. Above272k input, 2x input/cache and1.5x output apply."
+    },
+    {
+      "url": "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+      "verified": "gpt-6.1-sol supports reasoning low, Responses, structured outputs and1,050,000 context. Input USD2/M, output USD10/M. Above272k input,2x input/cache and1.5x output apply. Preparation-agent Ultra is not the measured low setting."
+    },
+    {
+      "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
+      "verified": "Explicit-only mode with no explicit breakpoints creates no prompt-cache reads/writes. Exact field acceptance remains an authorized-development dependency, with no silent substitution."
+    },
+    {
+      "url": "https://developers.openai.com/api/docs/guides/decisions",
+      "verified": "Native Decisions uses gpt-6-luna, input and named predicate questions; probability returned in answers. The v7 request retains the existing native contract and does not inherit Responses-only settings."
+    }
+  ],
+  "conservative_request_reservation": {
+    "jev_firstparty_usd": "0.001344",
+    "luna_decisions_usd": "0.525",
+    "luna_responses_usd": "0.2101408",
+    "sol_responses_usd": "4.222528",
+    "basis": "Full accepted context ceiling, paid Responses max output, native Decisions maximum cache-write tier, and long-input multipliers; not a forecast of ordinary cost. Smaller ceilings require exact native payload/framing evidence."
+  },
+  "unverified": [
+    "Paid Luna/Sol Responses inference and exact field acceptance",
+    "Current provider organization rate limits, credit, throughput and availability",
+    "Exact Jev/OpenAI tokenizer count for each planned request",
+    "Actual future inference usage and charges"
+  ]
+}
