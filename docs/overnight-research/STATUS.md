@@ -1,66 +1,86 @@
-# Experiment status — November 1, 08:11 UTC
+# What we learned from the overnight experiment
 
-**The main experiment has started, but it is not finished.** We cannot yet say whether task context improves detection. We are checking service failures and costs while the run proceeds; we are not changing the experiment based on accuracy.
+November 1, 2026. Collection is finished. The main numbers, external results, repeat checks and spending below were independently reconstructed from saved records. Corrected charts and frozen code/data hashes also passed review. Final private-branch delivery checks are still being completed; this note will be updated when those checks finish. No paper has been written or submitted.
 
-## What we are testing
+## The question
 
-Does telling a model the user's real task help it identify prompt injection? We compare the same page with the real task, an empty task field, a generic warning, and length-matched filler. This tests classification, not whether an autonomous agent resists an attack.
+Does telling a prompt-injection detector what the user is actually trying to do help it classify a suspicious page?
 
-## Data and models
+We showed the same pages with four kinds of context: the real task, an empty task field, a generic warning, and unrelated filler of similar length. This helps separate useful task information from simply adding more words.
 
-The main test contains 3,000 held-out BrowseSafe++ groups, each with a benign page and an attack page: 6,000 pages. A separate PromptShield test contains 4,000 requests. Development examples are separate. Duplicate and historical-exposure checks are saved, but they cannot prove that a model never saw these public sources during training.
+## The main finding
 
-The core models are Jev, Luna Decisions, Luna Responses, and the published ProtectAI model running locally. Jev and Luna Decisions use their native decision interfaces. ProtectAI is a reference detector; local hosting does not make its published weights smaller.
+**Task information helped Jev but hurt Luna Decisions on this dataset.** More context did not automatically make both models better.
 
-Sol's subscription interface produced 499 valid development responses. It then suffered repeated service failures across development and the audit. We preserved those failures and deferred Sol after the documented recovery limit. We did not switch to paid Sol.
+The table shows how much the error rate changed when we supplied the real task, compared with each control. A percentage point means one additional correct or incorrect answer per 100 examples, approximately.
 
-## What has actually run
+| Compared with | Jev: fewer errors with task | Luna Decisions: more errors with task |
+| --- | ---: | ---: |
+| Empty task field | 1.28 percentage points | 1.40 percentage points |
+| Generic warning | 2.37 percentage points | 1.16 percentage points |
+| Similar-length filler | 1.07 percentage points | 1.77 percentage points |
 
-At this snapshot, 3,209 main-test first responses were saved across Jev and Luna Decisions: 3,203 valid classifications, four Jev ties, and two Luna service/rate-limit errors. These are model responses, not 3,209 independent examples. More records may exist after this timestamp.
+These six comparisons use the same 2,850 fully answered groups out of 3,000 planned groups. Each group contains a benign and an injected page. The preplanned tests account for making six comparisons; all six adjusted p-values are below 0.001. The effects are measurable but modest.
 
-The AI audit completed 70 of 100 planned reviews, with one failed call and 29 never sent. An independent quotation check found 390 exact source matches and one nonliteral span. This is an incomplete, unblinded AI review, not independent human validation. It does not replace the original dataset labels or filter difficult examples.
+We also kept all 3,000 planned groups in a separate check: allow every unanswered or undecided classification to be either right or wrong. Even under those extremes, each effect keeps its direction in this particular tested dataset. Those ranges are **not confidence intervals** and do not establish how every future dataset will behave.
 
-## Money
+## How much data we actually used
 
-The new run's recorded usage is $2.68956375 OpenAI plus $0.481445454 Jev, approximately **$3.17**. Another **$1.05** remains reserved for two requests with unknown usage. These figures exclude older studies and are usage accounting, not a provider invoice or account balance.
+- Main test: **6,000 distinct pages in 3,000 groups**, from BrowseSafe++. Two native decision models, four conditions: **48,000 requests**. Those requests are not 48,000 independent examples.
+- External test: **4,000 texts** from PromptShield. Jev and ProtectAI each evaluated all 4,000.
+- Local baseline on the main test: **1,000 pages**, a preselected subset of the 6,000 above.
+- Consistency check: **800 repeated Jev requests**, drawn from 100 preselected main groups across four conditions. These are repeat measurements, not extra independent data.
+- Development examples and the incomplete AI-assisted audit were kept separate from the main result.
 
-Current authorized limits are $350 additional OpenAI experiment usage and $20 additional Jev usage. Expensive Sol API calls, paid coding assistance, purchases, and automatic recharge are disabled. The limits are ceilings, not spending targets.
+The source datasets were not invented by us. They contain material constructed or rewritten by their publishers. We added controlled context conditions. The exact source versions, selection process and original labels are saved. Source labels are the reference standard here; they are not a guarantee that every ambiguous example is correctly labeled.
 
-## Current issue and what happens next
+## The other findings
 
-Luna reached its token-per-minute limit. The worker added and tested conservative pacing shared across both Luna interfaces. The run resumed, preserving both failed first attempts and their cost holds and sending only requests never sent. Prompts, data, models, statistical comparisons, and spending limits stay unchanged.
+Jev changed its yes/no answer on **9 of 791 repeat pairs where both answers were usable**—about 1.14%. Nine of the 800 pairs lacked two usable binary answers, mostly because of ties. The original answers were never replaced by the repeats. The returned probabilities also changed slightly. This checks consistency over this repeat run, not long-term stability.
 
-Remaining work is to finish the core calls and planned repeats; reconcile all failures, missing cases, and spending; compute the frozen comparisons and uncertainty intervals; independently verify the numbers and charts; and save a final plain-language handoff. No manuscript or LaTeX paper is being written.
+On PromptShield, Jev's balanced error was **25.63%**, compared with **48.35%** for this ProtectAI baseline. Balanced error gives benign and attack examples equal weight. Jev still missed **1,013 of 1,990 attacks with usable answers**; ten more attack cases were ties. ProtectAI missed **1,921 of 2,000 attacks**. Being better than this baseline does not make Jev reliable protection.
 
-New groups stop being admitted at **14:00 UTC / 9:00 AM New York**. The authorized work window ends at **16:06 UTC / 11:06 AM New York**. Completion before then depends on provider availability and throughput; unfinished cases will be reported rather than concealed.
+ProtectAI here means the pinned, published DeBERTa detector running locally, with the planned full-text windowing rule. It is a particular older model and configuration—not a claim about every product or newer model from that organization. Running those same weights through an API would not itself make them stronger.
 
-## Where the work lives
+## What did not finish
 
-- Execution: `/Users/langqi/Developer/Projects/Decision Context Benchmark Plan`
-- Independent research and checks: `/Users/langqi/Developer/Projects/Decision Context Benchmark Research`
-- Earlier studies, preserved: `/Users/langqi/Developer/Projects/Decision Context Benchmark`
-- Detailed coordinator evidence: `docs/overnight-research/CONTROL.md`
-- Private execution review: https://github.com/tacotuesday8888/decision-context-benchmark/pull/14
-- Private research review: https://github.com/tacotuesday8888/decision-context-benchmark/pull/13
+OpenAI API credits ran out after the full native main test. The API Responses comparison has only **109 usable main answers out of 4,000 planned**, plus two failed calls; it cannot support the intended broad comparison. Its external tests and repeat tests were not run. Luna Decisions' external and repeat tests were also deferred.
 
-Raw examples, responses, and credentials are not included in these status notes. The repository remains private.
+Sol's subscription route failed during the earlier audit. Its confirmation comparisons were not run. We did not replace them with another route, retry failed first attempts, buy credits, or recharge. The audit contains 70 completed AI reviews of 100 planned pairs and is not an independent human gold-label study.
 
-Update at 08:19 UTC: the paced run is active. The worker reports 3,493 of 48,000 planned native confirmation responses saved, with no new stop. Root independently checked the first 138 pacing events: maximum observed rolling weight 1,497,820, below the 1,500,000 soft limit. The money and detailed counts above remain the explicitly timestamped earlier snapshot.
+Missing comparisons remain visible in the reports. The overnight run is therefore **a completed bounded execution with an incomplete original model panel**.
 
-Update at 08:29 UTC: the worker last reported 6,260 of 48,000 native confirmation records and remains active. Independent spending reconciliation now shows approximately **$5.49** in new recorded usage ($4.63367705 OpenAI and $0.855393042 Jev), plus the preserved $1.05 unknown-usage hold. No duplicate requests were found among 8,706 dispatches across development, audit, and confirmation. These are interim totals, not final bills or accuracy results.
+## What it cost
 
-Update at 08:58 UTC: 14,603 of 48,000 main native records are saved; the run is active with no new stop. Independently reconciled new usage is approximately **$11.38** ($9.56762675 OpenAI and $1.809811668 Jev), plus the unchanged $1.05 unknown-cost hold. No duplicate requests were found among 16,890 dispatches; one call was still in flight. These totals exclude older studies.
+| New overnight usage | Recorded amount |
+| --- | ---: |
+| OpenAI | $29.69410125 |
+| TypeSafe / Jev | $5.951424192 |
+| Total with returned usage | **$35.645525442** |
+| Additional conservative holds for five OpenAI calls without usage | **$1.9952816** |
+| Total including those holds | **$37.640807042** |
 
-Update at 09:29 UTC: the worker last reported 23,913 of 48,000 main native records, nearly halfway. The run remains active. Independent accounting shows approximately **$17.89** in new usage ($15.02873280 OpenAI and $2.863248066 Jev), plus the unchanged $1.05 unknown-cost hold. No duplicate requests were found among 26,467 dispatches; three calls were in flight. These usage totals exclude older studies.
+These are usage-based estimates, not provider invoices. They exclude earlier studies. Including the preserved historical accounting gives **$46.495951176**, including historical and new unknown-cost holds. No subscription purchase or recharge occurred. The free Codex reset was not needed; it would not refill API credits.
 
-Update after the 09:49 UTC timeout: collection stopped at 29,328 admitted native records when one Luna call returned HTTP504. The failed first result and its charge hold were preserved. After reconciliation and cooldown, the single executor resumed untouched cases, reaching 29,344 records at the latest snapshot. Root verified that the full request plan and all 173 execution-code files still match the frozen version; spending limits and deadlines are unchanged. Recorded new usage at the stop was approximately **$21.82**, with **$1.575** held for uncertain charges. No duplicate dispatches were found.
+The complete accounting log has 60,186 dispatches and 60,186 recorded outcomes, including development and earlier failed attempts. Its hash chain verifies. There are no duplicate dispatches, open reservations or calls left in flight.
 
-Update at 10:18 UTC: the main native phase is past three quarters, with 36,087 of 48,000 records last reported. Collection remains active. Independent accounting now shows approximately **$26.98** in new usage ($22.64612220 OpenAI and $4.329417372 Jev), plus the preserved $1.575 unknown-cost hold. No duplicate requests were found among 38,635 dispatches; one call was in flight. These totals exclude older studies.
+## Is this enough for a good paper?
 
-Update at 10:45 UTC: the worker remains active, with 43,964 of 48,000 main native records last reported. Independent accounting shows approximately **$32.58** in new usage ($27.34706450 OpenAI and $5.228007498 Jev), plus the preserved $1.575 unknown-cost hold. All 46,273 dispatched calls in this snapshot had settled; there were no duplicate dispatches. These totals exclude older studies.
+It is enough for a substantive, narrowly framed result: **task context has model-dependent effects on static prompt-injection classification**. The paired controls, fixed data selection, shared comparison groups, repeat measurements and explicit missing outcomes make the evidence more credible than a collection of favorable examples.
 
-Update at 10:59 UTC: the main native comparison finished. Root independently checked all 48,000 planned records against completion files: 47,840 usable responses, 157 ties, three preserved HTTP failures, and no missing completion files. The worker has moved to the fixed general-model and local-detector comparisons. This is completion of one collection stage, not an accuracy result or completion of the whole study.
+It does not yet support a broad claim that one model family is safer, that a decision API is inherently better, or that agents are protected from real attacks. We did not measure downstream agent actions, training-data exposure, or a general speed advantage. Related papers already study context and decision manipulation, so novelty must be argued around this specific controlled comparison, not “context matters” alone.
 
-Update after the 11:00 UTC stop: OpenAI API credits are exhausted. Two Luna Responses calls returned explicit credit_balance_exhausted errors. The free Codex reset does not refill API credits. No recharge or retry is authorized. All 50,414 sent calls are settled with no duplicate dispatches or settlements. Independently reconciled new usage is $29.69410125 OpenAI and $5.671810830 Jev (about **$35.37**), plus $1.9952816 held for unknown charges. The worker is preparing a versioned deferral of remaining paid OpenAI tests so eligible Jev/local work can continue. Missing tests will remain in the planned denominators.
+More random examples are not the immediate need. A useful next study would complete an independent general-model comparison, repeat Luna's results, and test the same task-context intervention on another dataset that genuinely contains user tasks. Targeted independent review of ambiguous labels would strengthen the label claims. That is future work, not something silently added after seeing these results.
 
-Update at 2026-11-01T11:33:13.473636+00:00: the reviewed v7.0.8 continuation is running. ProtectAI was last reported at 256 of 1,000 main pages, with no new stop. Root independently checked the initial post-deferral ledger suffix: only ProtectAI dispatched, with zero new paid OpenAI calls. Jev remains eligible for later scheduled work. All 22 execution and 20 independent-review CI checks passed at the verified revisions. Remaining collection, final analysis and independent result checks are still required.
+## Where the work is
+
+- Executor and full results: `/Users/langqi/Developer/Projects/Decision Context Benchmark Plan/results/study-v7-execution/`
+- Frozen protocol, execution history and amendments: `Decision Context Benchmark Plan/docs/study-v7/`
+- Independent checks and literature review: this `docs/overnight-research/` folder.
+- Primary result checks: `independent-primary-results.json` and `primary-results-crosscheck.json`.
+- External/repeat checks: `external-repeat-results-crosscheck.json`.
+- Final spending check: `final-accounting-independent.json`.
+- Literature: `decision-model-papers.md` and `detector-papers.md`; 16 focused paper reviews, with reading depth and limitations recorded.
+- Private draft work: [executor PR 14](https://github.com/tacotuesday8888/decision-context-benchmark/pull/14) and [independent review PR 13](https://github.com/tacotuesday8888/decision-context-benchmark/pull/13). Neither is public publication or a merged release.
+
+The original pilot and older study records remain preserved. The next step after verification is a decision about a carefully scoped follow-up or a narrowly framed write-up, not more spending by default.

@@ -230,3 +230,8 @@ Root independently reconstructed rawpredictions/source labels without importing 
 ## 12:53 UTC external/repeat and finalaccounting verified
 
 Independent raw reconstruction verified all14descriptive rowcounts/confusions/balancederrors, Jevrepeatcounts/changes/payloadidentity, andexternalmatched difference-.217on1000rows. Ninechangedbinaryanswers among791both-valid repeatpairs;800planned; preserve9nonpaired-valid cases. Full135053-event88347623-bytejournal hashchain verified:60186dispatches=60186settlements,no duplicates/no reserved/no inflight;60181settled,5unknown,8693cancelledunsent. KnownnewcostOpenAI29.69410125,TypeSafe5.951424192,total35.645525442;unknownholds1.9952816,totalconservative37.640807042excluding historicalcosts. Receipts external-repeat-results-crosscheck.json/final-accounting-independent.json. Worker notified. Codex59%remaining,oneunusedreset. Remainingpresentationrepairs, finalartifactchecks/CI, plainhandoff, automationcleanup andcompletionaudit.
+
+
+## 12:57 UTC handoff drafted and presentation verified
+
+STATUS.md rewritten as current plain-language results/data/cost/limitations handoff. Revisedfigures inspected; all9input/eightoutputhashesverified, numericalartifacts unchanged. All174frozencodefiles,originalplan,two selectedsourcefiles andthree selectionreceipts matchfreeze. Saved final-render-freeze-check.json. Worker notified visualreviewpassed andis finishing privatePRdelivery. Root/executor remain unmergedprivate drafts. Remaining finalCI/workercloseout, completionaudit, automationcleanup andfinalhandoffstatus.
