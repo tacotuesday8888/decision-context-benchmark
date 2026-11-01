@@ -75,6 +75,3 @@ Check the four examples, discuss whether the conclusions are fair, choose the cl
 761-pair study: https://github.com/tacotuesday8888/decision-context-benchmark/blob/5f4e667db22a4dc404d79597a88657d3a9d272f6/docs/extension-v3/COMPLETION-STATUS.md · Main results: https://github.com/tacotuesday8888/decision-context-benchmark/blob/5f4e667db22a4dc404d79597a88657d3a9d272f6/results/study-v7-execution/README.md · Sol results: https://github.com/tacotuesday8888/decision-context-benchmark/blob/5f4e667db22a4dc404d79597a88657d3a9d272f6/results/subscription-followup-execution/README.md · Second source and pilot: https://github.com/tacotuesday8888/decision-context-benchmark/blob/5f4e667db22a4dc404d79597a88657d3a9d272f6/results/subscription-followup-extensions-execution/README.md
 
 Editable notes: https://docs.google.com/document/d/1T8pvePmYF7rYWWugGc8HkSEtiI8CK3jU_3EZer2WFmo/edit
-
-
-
