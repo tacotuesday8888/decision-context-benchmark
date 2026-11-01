@@ -158,3 +158,11 @@ Root checked journal prefix index 35081: 16,890 dispatches, 16,889 settlements, 
 ### Independent accounting refresh, 09:29 UTC
 
 Root checked journal prefix index 54831: 26,467 dispatches and 26,464 settlements, zero duplicate dispatch or settlement keys. Three calls were still in flight. New usage totals OpenAI $15.02873280 and TypeSafe $2.863248066, combined $17.891980866; unknown OpenAI holds remain $1.050. Receipt `live-accounting-check-3.json` excludes historical usage and in-flight reservations. Latest worker cursor 344: active, 23,913/48,000 native records, no new stop. Codex allowance last checked at 74% remaining with one reset unused. PR13 revision 92dc9ebf passed 20/20 checks. No accuracy inspected.
+
+### Isolated core timeout and recovery audit, 09:49 UTC
+
+After more than 26,000 additional native records under pacing, Luna Decisions returned HTTP504. Root independently checked key e491ae0014cf92e9b789945d17cb06bf9fb7364c5e1d01db45ed2d827dfd0660: 15.21 seconds, transport exit0, no response headers. The stop file and failed primary outcome remain preserved. Root journal snapshot:31,603 dispatches, zero duplicate keys, failed key sent once; new known usage OpenAI $18.32802035 /TypeSafe $3.496494162, unknown OpenAI holds $1.575. Worker cursor396 confirms all29,328 admitted native records terminal, zero in-flight or reserved, and is preparing documented cooldown/unsent-only continuation under unchanged paced freeze, caps and deadline. Root relayed its independent evidence; no competing executor or accuracy inspection.
+
+### Continuation independently verified and resumed
+
+Root verified v7.0.7 active pointer, authorization and all acknowledged-stop hashes. Compared with the preceding receipt, only stop acknowledgment, continuation reference, timestamp, stop filename, supersession and version fields changed. All 173 execution-code hashes and the complete request-plan hash still match the same v7.0.6 manifest. Caps, deadlines, model settings, inference plan and analysis remain unchanged. Worker cursor400 confirms new untouched native records are arriving:29,344/48,000, no new stop.
