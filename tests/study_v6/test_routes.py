@@ -37,8 +37,9 @@ class Parsers(unittest.TestCase):
         observation = {'http_status': 413, 'transport_exit_code': 0}
         body = routes.NIMBLE_CAPACITY_BODY
         self.assertEqual(routes.parse_transport('nimble_local', observation, body)['status'], 'http_error')
-        current = routes.parse_transport('nimble_local', observation, body, routes.PARSER_VERSION)
-        self.assertEqual(current, {'status': 'unsupported_over_limit', 'valid': False, 'prediction': None})
+        for version in ('v6-routes-2', 'v6-routes-3'):
+            current = routes.parse_transport('nimble_local', observation, body, version)
+            self.assertEqual(current, {'status': 'unsupported_over_limit', 'valid': False, 'prediction': None})
         for config, obs, raw, expected in (
                 ('nimble_local', observation, body + '\n', 'http_error'),
                 ('nimble_local', observation, '{"error":"another limit"}', 'http_error'),
@@ -47,6 +48,65 @@ class Parsers(unittest.TestCase):
             self.assertEqual(routes.parse_transport(config, obs, raw, routes.PARSER_VERSION)['status'], expected)
         with self.assertRaises(ValueError):
             routes.parse_transport('nimble_local', observation, body, 'unknown')
+
+    def test_strict_native_context_capacity_error_counts_and_json(self):
+        error = 'request (12677 tokens) exceeds the available context size (8448 tokens), try increasing it'
+        body = json.dumps({'error': error})
+        expected = {'requested_tokens': 12677, 'available_tokens': 8448}
+        self.assertEqual(routes.native_context_capacity_error(body), expected)
+        self.assertEqual(routes.native_context_capacity_error(body.encode()), expected)
+        for invalid in (
+                error, '{}', '[]', 'null', '{"error":true}', body[:-1],
+                json.dumps({'error': error, 'other': 1}),
+                '{"error":"other","error":' + json.dumps(error) + '}',
+                json.dumps({'error': error + '.'}), json.dumps({'error': error + '\n'}),
+                json.dumps({'error': error.replace('request (', 'request  (')}),
+                json.dumps({'error': error.replace('12677', '8448')}),
+                json.dumps({'error': error.replace('12677', '8447')}),
+                json.dumps({'error': error.replace('12677', '0')}),
+                json.dumps({'error': error.replace('8448', '0')}),
+                json.dumps({'error': error.replace('12677', '-12677')}),
+                json.dumps({'error': error.replace('12677', '012677')}),
+                json.dumps({'error': error.replace('12677', '12677.0')}),
+                json.dumps({'error': error.replace('8448', 'NaN')}), b'\xff', {'error': error}):
+            self.assertIsNone(routes.native_context_capacity_error(invalid))
+
+    def test_only_parser3_nimble_http400_successful_transport_recognizes_context_error(self):
+        body = '{"error":"request (12677 tokens) exceeds the available context size (8448 tokens), try increasing it"}'
+        observation = {'http_status': 400, 'transport_exit_code': 0}
+        for version in (None, 'v6-routes-2'):
+            self.assertEqual(routes.parse_transport('nimble_local', observation, body, version)['status'], 'http_error')
+        parsed = routes.parse_transport('nimble_local', observation, body, 'v6-routes-3')
+        self.assertEqual(parsed, {'status': 'unsupported_over_limit', 'valid': False, 'prediction': None})
+        self.assertFalse(routes.requires_stop(parsed))
+        for config, obs, raw, expected in (
+                ('jev_firstparty', observation, body, 'http_error'),
+                ('nimble_local', observation | {'http_status': 500}, body, 'http_error'),
+                ('nimble_local', observation | {'transport_exit_code': 28}, body, 'transport_error'),
+                ('nimble_local', observation, '{"error":"Context size has been exceeded."}', 'http_error'),
+                ('nimble_local', observation, body.replace('12677', '8448'), 'http_error')):
+            parsed = routes.parse_transport(config, obs, raw, 'v6-routes-3')
+            self.assertEqual(parsed['status'], expected)
+            self.assertTrue(routes.requires_stop(parsed))
+
+    def test_second_statically_proved_native_context_form_is_strict_and_versioned(self):
+        error = 'input (12677 tokens) is larger than the max context size (8448 tokens). skipping'
+        body = json.dumps({'error': error})
+        observation = {'http_status': 400, 'transport_exit_code': 0}
+        self.assertEqual(routes.native_context_capacity_error(body),
+            {'requested_tokens': 12677, 'available_tokens': 8448})
+        for version in (None, 'v6-routes-2'):
+            self.assertEqual(routes.parse_transport('nimble_local', observation, body, version)['status'], 'http_error')
+        self.assertEqual(routes.parse_transport('nimble_local', observation, body, 'v6-routes-3'),
+            {'status': 'unsupported_over_limit', 'valid': False, 'prediction': None})
+        for invalid in (error.replace('12677', '8448'), error.replace('8448', '0'),
+                error.replace('12677', '012677'), error + '.', error.replace('. skipping', ' skipping')):
+            raw = json.dumps({'error': invalid})
+            self.assertIsNone(routes.native_context_capacity_error(raw))
+            self.assertEqual(routes.parse_transport('nimble_local', observation, raw, 'v6-routes-3')['status'], 'http_error')
+        self.assertEqual(routes.parse_transport('nimble_local', observation | {'transport_exit_code': 28},
+            body, 'v6-routes-3')['status'], 'transport_error')
+        self.assertEqual(routes.parse_transport('jev_firstparty', observation, body, 'v6-routes-3')['status'], 'http_error')
 
     def test_fixed_boolean_orientation_and_ties(self):
         for config in ('jev_firstparty', 'luna_decisions', 'nimble_local'):
@@ -262,6 +322,23 @@ class Accounting(unittest.TestCase):
 
 
 class DurableAttempts(unittest.TestCase):
+    def test_future_context_rejection_retains_raw_without_usage_or_retry(self):
+        request = routes.payload('nimble_local', row(), 'task')
+        body = '{"error":"request (12677 tokens) exceeds the available context size (8448 tokens), try increasing it"}'
+        def fake_post(config, payload, token, directory):
+            routes._exclusive(directory / 'response.raw', body.encode())
+            return {'http_status': 400, 'transport_exit_code': 0}, body
+        with tempfile.TemporaryDirectory() as temp, patch.object(routes, '_post', side_effect=fake_post) as post:
+            result = routes.invoke('nimble_local', request, temp, 'context-rejection', runtime=object())
+            post.assert_called_once()
+            self.assertEqual(result['parser_version'], 'v6-routes-3')
+            self.assertTrue(result['native_request_sent'])
+            self.assertFalse(result['local_preflight'])
+            self.assertFalse(result['stop_required'])
+            self.assertEqual(result['parsed'], {'status': 'unsupported_over_limit', 'valid': False, 'prediction': None})
+            self.assertNotIn('usage', result['parsed'])
+            self.assertEqual((Path(temp) / 'context-rejection' / 'response.raw').read_bytes(), body.encode())
+
     def test_credential_failure_has_no_dispatch_intent(self):
         request = routes.payload('jev_firstparty', row(), 'task')
         with tempfile.TemporaryDirectory() as temp, patch.object(routes, '_credential',
@@ -281,7 +358,7 @@ class DurableAttempts(unittest.TestCase):
             result = routes.invoke('nimble_local', request, temp, 'preflight')
             post.assert_not_called()
             credential.assert_not_called()
-            self.assertEqual(result['parser_version'], 'v6-routes-2')
+            self.assertEqual(result['parser_version'], 'v6-routes-3')
             self.assertFalse(result['native_request_sent'])
             self.assertTrue(result['local_preflight'])
             self.assertFalse(result['stop_required'])

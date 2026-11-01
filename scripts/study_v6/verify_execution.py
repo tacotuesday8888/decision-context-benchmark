@@ -50,8 +50,8 @@ def _failure(status):
 def _reparse(request, result, folder):
     """Reparse complete native bytes; interrupted intent remains primary missing."""
     raw_path = folder / 'response.raw'
-    require(result.get('parser_version') in (None, 'v6-routes-2'), 'Unknown retained native parser version')
-    if result.get('parser_version') == 'v6-routes-2':
+    require(result.get('parser_version') in (None, 'v6-routes-2', 'v6-routes-3'), 'Unknown retained native parser version')
+    if result.get('parser_version') in ('v6-routes-2', 'v6-routes-3'):
         require(type(result.get('local_preflight')) is bool and type(result.get('native_request_sent')) is bool,
                 'New parser records require explicit preflight/request-sent provenance')
         if request['config'] == 'nimble_local' and not result['local_preflight']:
@@ -61,7 +61,7 @@ def _reparse(request, result, folder):
                 require(audit == measured and measured['supported'] is True,
                         'New Nimble request does not match its complete native-byte admission proof')
     if result.get('local_preflight') is True:
-        require(result.get('parser_version') == 'v6-routes-2' and request['config'] == 'nimble_local' and
+        require(result.get('parser_version') in ('v6-routes-2', 'v6-routes-3') and request['config'] == 'nimble_local' and
                 result.get('native_request_sent') is False, 'Preflight exclusion claims a native model request')
         byte_audit = routes.native_byte_coverage(request['payload'])
         require(byte_audit['supported'] is False and byte_audit['coverage_status'] == 'unsupported_native_byte_limit' and
@@ -102,10 +102,13 @@ def _reparse(request, result, folder):
         return parsed
     if http in (401, 403):
         return _failure('authentication_error')
+    if (result.get('parser_version') == 'v6-routes-3' and config == 'nimble_local' and http == 400 and
+            exit_code == 0 and routes.native_context_capacity_error(raw_path.read_bytes()) is not None):
+        return _failure('unsupported_over_limit')
     if http == 400 and any(s in body.lower() for s in (
             'max_tokens_exceeded', 'context_length_exceeded', 'context length', 'too long', 'context window')):
         return _failure('unsupported_over_limit')
-    if (result.get('parser_version') == 'v6-routes-2' and config == 'nimble_local' and
+    if (result.get('parser_version') in ('v6-routes-2', 'v6-routes-3') and config == 'nimble_local' and
             http == 413 and exit_code == 0 and raw_path.read_bytes() == NIMBLE_LEGACY_CAPACITY_BODY):
         return _failure('unsupported_over_limit')
     return _failure('transport_error' if exit_code else 'http_error')
@@ -297,10 +300,15 @@ def _audit_cost_order(journal_path, requests, expected_schedules):
             require(entry['status'] in ('settled', 'unknown_usage'), 'Continuation was journaled before terminal failure accounting')
         elif kind == 'development_capacity_continuation':
             entry = entries[data['failed_key']]
+            capacity_kind = data.get('capacity_kind', 'native_request_bytes')
+            proof = (capacity_kind == 'native_request_bytes' and data['raw_response_sha256'] == NIMBLE_LEGACY_CAPACITY_SHA256)
+            if capacity_kind == 'native_context_tokens':
+                requested, available = data.get('requested_tokens'), data.get('available_tokens')
+                proof = type(requested) is int and type(available) is int and requested > available > 0
             require(entry['status'] == 'settled' and entry['config'] == 'nimble_local' and
                 entry['split'] == 'development' and entry['provider'] is None and
                 money(entry['reserved_usd']) == money(entry['accounted_usd']) == 0 and
-                data['raw_response_sha256'] == NIMBLE_LEGACY_CAPACITY_SHA256,
+                proof,
                 'Development capacity amendment changed its exact legacy settled unmetered failure')
         else:
             raise VerificationError('Unknown primary accounting event')
@@ -563,6 +571,8 @@ def verify_bundle(frozen_by_split, ledger_path, directory, terminal_receipts=Non
         'accounting_only_reserved_raw_conflicts_retained': sum(r['result'].get('reserved_raw_conflict_retained') is True for r in records.values()),
         'reviewed_remaining_first_attempt_continuations': len(ledger['continuations']),
         'reviewed_development_capacity_amendments': len(capacity_keys),
+        'reviewed_development_capacity_amendments_by_kind': dict(Counter(
+            e.get('capacity_kind', 'native_request_bytes') for e in ledger['development_amendments'].values())),
         'confirmation_normalized_eligible_cells': len(normalized), 'source_denominators': by_source,
         'main_target_reviewed_groups': len(main_target),
         'main_target_runnable_groups': len(expected_schedules['main']),

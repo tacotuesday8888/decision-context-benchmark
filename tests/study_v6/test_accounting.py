@@ -436,6 +436,62 @@ class DevelopmentCapacityAccountingTests(unittest.TestCase):
         with self.assertRaises(AccountingError):
             self.ledger.record_development_capacity_continuation(self.key,**dict(self.args(),manifest_sha256='e'*64))
 
+    def context_failure(self):
+        body=b'{"error":"request (12677 tokens) exceeds the available context size (8448 tokens), try increasing it"}'
+        record=copy.deepcopy(self.record);record['key']='dev-nimble-context'
+        record['request_sha256']=digest(b'unchanged token-overflow request')
+        record['result']['parser_version']='v6-routes-2'
+        record['result']['observation']['http_status']=400
+        record['result']['raw_hashes']['response.raw']=digest(body)
+        spec={'key':record['key'],'provider':None,'config':'nimble_local','split':'development',
+              'request_sha256':record['request_sha256'],'reserved_usd':'0'}
+        self.ledger.reserve_batch('development:context-first','development',[spec]);self.ledger.mark_dispatched(record['key'])
+        self.ledger.settle(record['key'],'0',evidence_sha256=digest(canonical(record)+b'\n'))
+        args=dict(self.args(record),manifest_sha256='e'*64,raw_response_sha256=digest(body),
+                  capacity_kind='native_context_tokens',raw_response_body=body)
+        return record,args
+
+    def test_typed_token_capacity_child_preserves_legacy_event_caps_and_all_entries(self):
+        parent=self.ledger.record_development_capacity_continuation(self.key,**self.args())
+        record,args=self.context_failure();before=self.ledger.snapshot();prefix=self.path.read_bytes()
+        event=self.ledger.record_development_capacity_continuation(record['key'],**args)
+        self.assertEqual(event['capacity_kind'],'native_context_tokens')
+        self.assertEqual((event['requested_tokens'],event['available_tokens']),(12677,8448))
+        self.assertEqual(self.ledger.snapshot()['development_amendments'][self.key],parent)
+        self.assertNotIn('capacity_kind',parent)
+        self.assertEqual(before['entries'],self.ledger.snapshot()['entries'])
+        self.assertEqual(before['policy'],self.ledger.snapshot()['policy'])
+        self.assertEqual(before['all_in_accounted_usd'],self.ledger.snapshot()['all_in_accounted_usd'])
+        self.assertTrue(self.path.read_bytes().startswith(prefix))
+        self.assertEqual(BudgetLedger(self.path).snapshot()['development_amendments'][record['key']],event)
+        with self.assertRaises(AlreadyDispatched):self.ledger.mark_dispatched(record['key'])
+
+    def test_token_capacity_requires_body_hash_positive_overflow_and_parser2(self):
+        record,args=self.context_failure()
+        bad=[]
+        bad.append(dict(args,raw_response_body=None))
+        bad.append(dict(args,raw_response_sha256='f'*64))
+        for text in ('request (8448 tokens) exceeds the available context size (8448 tokens), try increasing it',
+                     'request (0 tokens) exceeds the available context size (8448 tokens), try increasing it'):
+            body=canonical({'error':text})
+            altered=copy.deepcopy(record);altered['result']['raw_hashes']['response.raw']=digest(body)
+            bad.append(dict(args,failure_record=altered,failure_evidence_sha256=digest(canonical(altered)+b'\n'),
+                            raw_response_body=body,raw_response_sha256=digest(body)))
+        altered=copy.deepcopy(record);altered['result']['parser_version']='v6-routes-3'
+        bad.append(dict(args,failure_record=altered,failure_evidence_sha256=digest(canonical(altered)+b'\n')))
+        for variant in bad:
+            with self.assertRaises(AccountingError):
+                self.ledger.record_development_capacity_continuation(record['key'],**variant)
+        self.assertNotIn(record['key'],self.ledger.snapshot()['development_amendments'])
+
+    def test_replay_rejects_unknown_capacity_kind_and_invalid_token_counts(self):
+        record,args=self.context_failure();state=self.ledger.snapshot()
+        data={k:v for k,v in args.items() if k not in ('failure_record','raw_response_body')}
+        data.update(failed_key=record['key'],requested_tokens=12677,available_tokens=8448)
+        for changed in ({'capacity_kind':'unknown'}, {'requested_tokens':True}, {'available_tokens':0}, {'requested_tokens':8448}):
+            with self.assertRaises(AccountingError):
+                BudgetLedger._apply(copy.deepcopy(state),'development_capacity_continuation',dict(data,**changed))
+
 
 if __name__ == "__main__":
     unittest.main()

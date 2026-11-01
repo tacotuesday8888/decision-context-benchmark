@@ -76,9 +76,23 @@ def development_amendment(hashes=None, *, base_freeze=None, require_committed=Tr
         require_committed=require_committed, project_root=ROOT, directory=plan.DEST)
 
 
+def amendment_gates(amendment):
+    if amendment is None:
+        return 'offline-verification-v3.json', 'prefreeze-audit-v2.json', ()
+    versions = {
+        'dev-amendment-v6.0.1': ('offline-verification-v4.json', 'prefreeze-audit-v3.json',
+            ('development-amendment-v6.0.1.json',)),
+        'dev-amendment-v6.0.2': ('offline-verification-v5.json', 'prefreeze-audit-v4.json',
+            ('development-amendment-v6.0.1.json', 'development-amendment-v6.0.2.json')),
+    }
+    if amendment.get('version') not in versions:
+        raise PermissionError('Unknown development operational amendment lineage')
+    return versions[amendment['version']]
+
+
 def offline_gate(hashes):
     amendment = development_amendment(hashes)
-    name = 'offline-verification-v4.json' if amendment else 'offline-verification-v3.json'
+    name, _, _ = amendment_gates(amendment)
     receipt = load(plan.RESULTS / name)
     if receipt.get('checks_passed') is not True or receipt.get('scientific_hashes') != hashes:
         raise PermissionError('Offline verification is missing or stale')
@@ -104,7 +118,7 @@ def setup_gate():
 
 def prefreeze_audit_gate():
     amendment = development_amendment()
-    name = 'prefreeze-audit-v3.json' if amendment else 'prefreeze-audit-v2.json'
+    _, name, _ = amendment_gates(amendment)
     receipt = load(plan.RESULTS / name)
     if (receipt.get('checks_passed') is not True or receipt.get('new_model_calls') != 0 or
             receipt.get('model_outputs_inspected') is not False):
@@ -226,6 +240,7 @@ def freeze(split):
     _, grouping = verify_grouping()
     hashes = scientific_hashes()
     amendment = development_amendment(hashes)
+    offline_name, audit_name, amendment_names = amendment_gates(amendment)
     offline_gate(hashes)
     head = committed(hashes)
     intended = load(plan.DEST / 'intended-plan.json')
@@ -238,17 +253,16 @@ def freeze(split):
     if current_history != load(plan.DEST / 'inherited-accounting.json'):
         raise PermissionError('Spending changed after planning')
     refs = [plan.RESULTS / 'request-plan-v1.json', plan.RESULTS / 'price-verification-v2.json',
-            plan.RESULTS / ('offline-verification-v4.json' if amendment else 'offline-verification-v3.json'),
+            plan.RESULTS / offline_name,
             plan.RESULTS / 'runtime-versions-v1.json',
-            plan.RESULTS / ('prefreeze-audit-v3.json' if amendment else 'prefreeze-audit-v2.json'),
+            plan.RESULTS / audit_name,
             plan.DEST / 'noninference-access-v1.json', plan.DEST / 'nimble-local-metadata.json',
             plan.RESULTS / 'grouping-admission-v1.json',
             plan.DEST / 'intended-plan.json', plan.DEST / 'coverage.json', plan.DEST / 'inherited-accounting.json',
             ROOT / 'results/study-v6-review-resolution/resolution-final.json',
             ROOT / 'results/study-v6-review-resolution/planning-final.json']
     if amendment:
-        refs += [plan.RESULTS / 'development-amendment-v6.0.1.json',
-                 plan.DEST / 'development-amendment-v6.0.1.json']
+        refs += [directory / name for name in amendment_names for directory in (plan.RESULTS, plan.DEST)]
     resolution = load(ROOT / 'results/study-v6-review-resolution/resolution-final.json')
     refs += [ROOT / v['path'] for v in resolution['inputs'].values()]
     refs += [ROOT / v['path'] for v in resolution['outputs'].values()]
@@ -284,12 +298,15 @@ def freeze(split):
         output['ledger_before_confirmation_sha256'] = sha256(ledger_bytes)
         output['ledger_before_confirmation_bytes'] = len(ledger_bytes)
         if amendment:
+            latest = amendment_names[-1]
             output['development_amendment_sha256'] = sha256(
-                (plan.RESULTS / 'development-amendment-v6.0.1.json').read_bytes())
+                (plan.RESULTS / latest).read_bytes())
+            output['development_amendment_file'] = latest
             output['development_capacity_amendment'] = {
                 'version': amendment['version'],
                 'scientific_requests_unchanged': True,
                 'prospective_native_byte_gate': 'nimble_local',
+                'prospective_parser_version': routes.PARSER_VERSION,
                 'original_development_first_attempts_preserved': True}
     immutable(plan.RESULTS / (split + '-freeze-v1.json'), output)
     return output
@@ -315,7 +332,10 @@ def verify(split, *, require_committed=True):
     if split == 'confirmation':
         amendment_hash = frozen.get('development_amendment_sha256')
         if amendment_hash is not None:
-            if sha256((plan.RESULTS / 'development-amendment-v6.0.1.json').read_bytes()) != amendment_hash:
+            name = frozen.get('development_amendment_file', 'development-amendment-v6.0.1.json')
+            if name not in ('development-amendment-v6.0.1.json', 'development-amendment-v6.0.2.json'):
+                raise PermissionError('Unknown pinned development amendment receipt')
+            if sha256((plan.RESULTS / name).read_bytes()) != amendment_hash:
                 raise ValueError('Development operational amendment changed')
             if development_amendment(hashes, require_committed=require_committed) is None:
                 raise ValueError('Confirmation requires its pinned development amendment')

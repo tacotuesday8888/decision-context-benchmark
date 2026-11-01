@@ -181,3 +181,59 @@ required before empirical figures or the final paper/PDF.
   verification v4, inspect/stage only intended files, commit/push code and receipts,
   prepare/commit the explicit amendment, obtain green CI, activate and resume only
   the 53 remaining initial requests.
+
+## Activated amendment checkpoint
+
+- Correction/audit commit `1e69a95c` and exact amendment receipt commit `1cdc5022`
+  are pushed to private draft PR #11. All 20 push/PR CI checks passed at
+  `1cdc5022e783879d6512d1686ebf30cd8e3a0d17`; the original development freeze
+  plus committed amendment passed production verification.
+- The raw amendment manifest SHA is
+  `6f1d4c86e8fa83a26d6582a3cd2ac7944d7d36e7f2bb97bc07253c81b5db1cf2`.
+  It pins exactly 407 preserved attempts and 53 unsent first-attempt keys
+  (45 Nimble, eight ProtectAI), unchanged caps and all approved replacement hashes.
+- Explicit activation appended the separate nonfinancial capacity event before
+  archiving the exact original stop. The transient continuation registry remains
+  empty. The historical failed key was not retried or relabeled.
+- The root sole executor resumed the same development command. Its first nine
+  new records are explicit Nimble byte preflight exclusions with no native request
+  sent. Remaining model/interface checks are in progress. API accounting remains
+  OpenAI $0.0955757 / TypeSafe $0.088137462, including all previous unknown holds.
+
+Next: finish remaining development, independently reparse its terminal raw evidence
+and review operational metadata/accounting. Create and commit the confirmation
+freeze with the amended prospective coverage and retained development lineage;
+obtain green CI before the sequential paid main/supporting and fixed comparators.
+
+## Second development capacity-stop checkpoint
+
+- The resumed process stopped after 16 new records: nine local byte exclusions,
+  six usable Nimble responses, then a native HTTP 400 rejecting 12,677 request
+  tokens against 8,448 available. The old matcher missed `available context size`.
+  Its `v6-routes-2` `http_error`, raw response and new active STOP remain intact.
+- There are now 423 terminal records, no pending attempts, one preserved activated
+  byte amendment and 37 unsent original keys (29 Nimble / eight ProtectAI).
+  Unified execution session 13903 exited with the preserved stop. No confirmation
+  freeze or inference exists. API accounting is unchanged at $0.0955757 OpenAI /
+  $0.088137462 TypeSafe. Original 407 records and the v6.0.1 lineage remain intact.
+- A second explicitly versioned development correction is being prepared in
+  AMENDMENT-v6.0.2.md. Future parser v6-routes-3 will recognize only the structured
+  native context-capacity rejection; earlier records keep their original parsing.
+  The child lineage pins parent v6.0.1, all 423 records, prefix/stop, unchanged caps
+  and exactly 37 remaining keys. No failed key will be resent; no context setting,
+  model, prompt, source, cohort or analysis changes. Transient eligibility is
+  unchanged. Root owns freeze/docs; route, accounting and amendment agents own
+  their previously assigned files. All actual execution remains stopped.
+
+Next: complete/test the two-version operational chain, refreshed offline v5 and
+request-only audit v4, commit code and then the exact child receipt, obtain green
+CI, activate explicitly, and finish remaining initial development. Independently
+verify development before creating/committing confirmation and proceeding with
+the unchanged main/supporting/comparator schedules.
+- V6.0.2 code and chain fixtures now pass all 222 v6 tests, with scientific and
+  actual execution bytes unchanged during the suite. Actual parent receipt/static
+  evidence and its archived production chain passed independent read-only checks.
+  Audit v4 regenerated all 23,821 requests / 24,445 references, confirmed identical
+  v6.0.1 confirmation coverage, and pinned current code plus archived parent code
+  correctly. Offline v5 and final audit v4 are written; no child preparation or
+  activation has happened yet. All original 423 records and active STOP persist.

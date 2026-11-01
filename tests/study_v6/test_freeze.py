@@ -82,6 +82,18 @@ class AdmissionTests(unittest.TestCase):
 
 
 class CommitTests(unittest.TestCase):
+    def test_only_explicit_amendment_versions_select_current_gate_receipts(self):
+        self.assertEqual(freeze.amendment_gates(None),
+            ('offline-verification-v3.json', 'prefreeze-audit-v2.json', ()))
+        for version, offline, audit, count in (
+                ('dev-amendment-v6.0.1', 'offline-verification-v4.json', 'prefreeze-audit-v3.json', 1),
+                ('dev-amendment-v6.0.2', 'offline-verification-v5.json', 'prefreeze-audit-v4.json', 2)):
+            actual = freeze.amendment_gates({'version': version})
+            self.assertEqual(actual[:2], (offline, audit))
+            self.assertEqual(len(actual[2]), count)
+        with self.assertRaisesRegex(PermissionError, 'Unknown development operational'):
+            freeze.amendment_gates({'version': 'unreviewed'})
+
     def test_uncommitted_scientific_change_or_untracked_file_is_refused(self):
         for process in (subprocess.CompletedProcess([], 0, stdout=b'previous scientific code'),
                 subprocess.CompletedProcess([], 128, stdout=b'')):
@@ -229,6 +241,20 @@ class JournalPrefixTests(unittest.TestCase):
             freeze.verify('confirmation', require_committed=False)
         write(path, {'fixture': 'changed amendment'})
         with self.assertRaisesRegex(ValueError, 'operational amendment changed'):
+            freeze.verify('confirmation', require_committed=False)
+
+    def test_confirmation_pins_latest_explicit_lineage_and_rejects_unknown_receipt(self):
+        name = 'development-amendment-v6.0.2.json'
+        path = self.results / name
+        write(path, {'fixture': 'exact child amendment'})
+        self.frozen.update(development_amendment_file=name,
+            development_amendment_sha256=sha256(path.read_bytes()))
+        write(self.results / 'confirmation-freeze-v1.json', self.frozen)
+        with patch.object(freeze, 'development_amendment', return_value={'fixture': 'verified chain'}):
+            freeze.verify('confirmation', require_committed=False)
+        self.frozen['development_amendment_file'] = '../unreviewed.json'
+        write(self.results / 'confirmation-freeze-v1.json', self.frozen)
+        with self.assertRaisesRegex(PermissionError, 'Unknown pinned development'):
             freeze.verify('confirmation', require_committed=False)
 
 

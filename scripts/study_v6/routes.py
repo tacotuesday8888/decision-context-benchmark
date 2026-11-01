@@ -56,7 +56,7 @@ SERVER_COVERAGE_SOURCES = {
     'nimble_local': ['https://huggingface.co/bespokelabs/Bespoke-Nimble-9B',
         'docs/controls-v4/MODEL-ROUTES.md', 'scripts/controls_v4/nimble_runtime.py'],
 }
-PARSER_VERSION = 'v6-routes-2'
+PARSER_VERSION = 'v6-routes-3'
 NIMBLE_CAPACITY_BODY = '{"error":"text and schema must not exceed 64 KiB"}'
 NIMBLE_BYTE_LIMIT = 65536
 
@@ -67,6 +67,41 @@ def canonical(value):
 
 def digest(value):
     return hashlib.sha256(value).hexdigest()
+
+
+def native_context_capacity_error(body):
+    """Recognize the pinned native rejection, never infer capacity from prose.
+
+    This is server token-count evidence on a rejected full request, not tokenizer
+    preflight evidence or model usage. JSON duplicates, extra fields, changed
+    wording and counts that do not prove an overflow remain unrecognized.
+    """
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError('Duplicate native error key')
+            result[key] = value
+        return result
+    try:
+        if not isinstance(body, (str, bytes)):
+            return None
+        raw = json.loads(body, object_pairs_hook=unique)
+        if not isinstance(raw, dict) or set(raw) != {'error'} or not isinstance(raw['error'], str):
+            return None
+        formats = (r'request \(([1-9][0-9]*) tokens\) exceeds the available context size '
+                   r'\(([1-9][0-9]*) tokens\), try increasing it',
+                   r'input \(([1-9][0-9]*) tokens\) is larger than the max context size '
+                   r'\(([1-9][0-9]*) tokens\)\. skipping')
+        match = next((matched for pattern in formats if (matched := re.fullmatch(pattern, raw['error']))), None)
+        if match is None:
+            return None
+        requested, available = map(int, match.groups())
+        if requested <= available:
+            return None
+        return {'requested_tokens': requested, 'available_tokens': available}
+    except (ValueError, TypeError, UnicodeError):
+        return None
 
 
 def native_byte_coverage(request):
@@ -263,7 +298,7 @@ def parse_response(config, body):
 
 def parse_transport(config, observation, body, parser_version=None):
     """Reparse transport evidence without rewriting legacy first-attempt records."""
-    if parser_version not in (None, PARSER_VERSION):
+    if parser_version not in (None, 'v6-routes-2', PARSER_VERSION):
         raise ValueError('Unknown route parser version')
     status, code = observation['http_status'], observation['transport_exit_code']
     if status == 200:
@@ -274,8 +309,11 @@ def parse_transport(config, observation, body, parser_version=None):
         return parsed
     if status in (401, 403):
         return _failure('authentication_error')
-    if (parser_version == PARSER_VERSION and config == 'nimble_local' and status == 413 and not code and
+    if (parser_version in ('v6-routes-2', PARSER_VERSION) and config == 'nimble_local' and status == 413 and not code and
             body in (NIMBLE_CAPACITY_BODY, NIMBLE_CAPACITY_BODY.encode())):
+        return _failure('unsupported_over_limit')
+    if (parser_version == PARSER_VERSION and config == 'nimble_local' and status == 400 and not code and
+            native_context_capacity_error(body) is not None):
         return _failure('unsupported_over_limit')
     if status == 400 and any(s in body.lower() for s in
             ('max_tokens_exceeded', 'context_length_exceeded', 'context length', 'too long', 'context window')):

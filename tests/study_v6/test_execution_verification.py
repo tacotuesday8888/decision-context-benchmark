@@ -327,6 +327,8 @@ class ExecutionVerificationTests(unittest.TestCase):
         result={'parser_version':'v6-routes-2','local_preflight':True,'native_request_sent':False,
                 'native_byte_coverage':audit}
         self.assertEqual(_reparse(request,result,folder),{'status':'unsupported_over_limit','valid':False,'prediction':None})
+        self.assertEqual(_reparse(request,dict(result,parser_version='v6-routes-3'),folder),
+                         {'status':'unsupported_over_limit','valid':False,'prediction':None})
         forged=dict(audit,measured_bytes=audit['measured_bytes']+1)
         with self.assertRaises(VerificationError):_reparse(request,dict(result,native_byte_coverage=forged),folder)
         with self.assertRaises(VerificationError):_reparse(request,dict(result,native_request_sent=True),folder)
@@ -369,6 +371,29 @@ class ExecutionVerificationTests(unittest.TestCase):
         self.assertEqual(summary['valid_native_output_unique_requests'],2)
         self.assertEqual(len(normalized),4)
         self.assertEqual(next(r['reason'] for r in details['planned_cell_dispositions'] if r['id']=='dev'),'native_byte_preflight_exclusion')
+
+    def test_token_capacity_legacy_parser2_remains_http_error_and_future3_is_strict(self):
+        folder=self.root/'token-capacity';folder.mkdir()
+        body=b'{"error":"request (12677 tokens) exceeds the available context size (8448 tokens), try increasing it"}'
+        exclusive(folder/'response.raw',body)
+        payload=native_payload({'candidate':'Complete page.','task':'Read the page.','policy':None,
+            'source':'browsesafe','setting':'indirect_tool_content'},'task','nimble_local')
+        request={'config':'nimble_local','payload':payload}
+        result={'parser_version':'v6-routes-2','local_preflight':False,'native_request_sent':True,
+            'native_byte_coverage':routes.native_byte_coverage(payload),
+            'observation':{'http_status':400,'transport_exit_code':0}}
+        self.assertEqual(_reparse(request,result,folder)['status'],'http_error')
+        future=dict(result,parser_version='v6-routes-3')
+        self.assertEqual(_reparse(request,future,folder)['status'],'unsupported_over_limit')
+        self.assertEqual(_reparse({'config':'jev_firstparty'},future,folder)['status'],'http_error')
+        self.assertEqual(_reparse(request,dict(future,observation={'http_status':400,'transport_exit_code':1}),folder)['status'],'transport_error')
+        (folder/'response.raw').write_bytes(b'{"error":"input (12677 tokens) is larger than the max context size (8448 tokens). skipping"}')
+        self.assertEqual(_reparse(request,result,folder)['status'],'http_error')
+        self.assertEqual(_reparse(request,future,folder)['status'],'unsupported_over_limit')
+        for invalid in (b'{"error":"request (8448 tokens) exceeds the available context size (8448 tokens), try increasing it"}',
+                        b'{"error":"request (12677 tokens) exceeds the available context size (8448 tokens), try increasing it","extra":true}'):
+            (folder/'response.raw').write_bytes(invalid)
+            self.assertEqual(_reparse(request,future,folder)['status'],'http_error')
 
 
 if __name__ == '__main__':

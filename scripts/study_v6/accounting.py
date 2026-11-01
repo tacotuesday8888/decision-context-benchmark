@@ -350,11 +350,17 @@ class BudgetLedger:
         elif kind == "development_capacity_continuation":
             key = data["failed_key"]
             entry = state["entries"][key]
+            capacity_kind = data.get("capacity_kind", "native_request_bytes")
+            capacity_proof = (capacity_kind == "native_request_bytes" and
+                data.get("raw_response_sha256") == NIMBLE_LEGACY_CAPACITY_SHA256)
+            if capacity_kind == "native_context_tokens":
+                requested, available = data.get("requested_tokens"), data.get("available_tokens")
+                capacity_proof = type(requested) is int and type(available) is int and requested > available > 0
             if (key in state["development_amendments"] or entry["status"] != "settled" or
                     entry.get("config") != "nimble_local" or entry.get("split") != "development" or
                     entry["provider"] is not None or entry["evidence_sha256"] != data["failure_evidence_sha256"] or
                     any(money(entry[k]) != 0 for k in ("reserved_usd", "accounted_usd", "actual_usd")) or
-                    data.get("raw_response_sha256") != NIMBLE_LEGACY_CAPACITY_SHA256):
+                    not capacity_proof):
                 raise AccountingError("Development capacity amendment requires the exact settled unmetered legacy failure")
             state["development_amendments"][key] = data
         else:
@@ -626,8 +632,9 @@ class BudgetLedger:
 
     def record_development_capacity_continuation(self, failed_key, *, failure_record,
             failure_evidence_sha256, stop_sha256, manifest_sha256, manifest_path,
-            receipt_path, receipt_sha256, activated_at_epoch, raw_response_sha256):
-        """Approve remaining DEV first attempts after one exact native byte rejection.
+            receipt_path, receipt_sha256, activated_at_epoch, raw_response_sha256,
+            capacity_kind="native_request_bytes", raw_response_body=None):
+        """Approve remaining DEV first attempts after an exact typed native rejection.
 
         This separate operational amendment does not widen transient continuation,
         replace any original parsing, retry a key or release/change any money.
@@ -647,21 +654,36 @@ class BudgetLedger:
             raise AccountingError("Development amendment must bind the exact original first-attempt record")
         result = failure_record.get("result", {})
         parsed, observation = result.get("parsed", {}), result.get("observation", {})
+        counts = None
+        if capacity_kind == "native_request_bytes":
+            valid_cause = (result.get("parser_version") is None and observation.get("http_status") == 413 and
+                           raw_response_sha256 == NIMBLE_LEGACY_CAPACITY_SHA256)
+        elif capacity_kind == "native_context_tokens":
+            from scripts.study_v6.routes import native_context_capacity_error
+            counts = native_context_capacity_error(raw_response_body) if isinstance(raw_response_body, bytes) else None
+            valid_cause = (result.get("parser_version") == "v6-routes-2" and observation.get("http_status") == 400 and
+                           counts is not None and digest(raw_response_body) == raw_response_sha256)
+        else:
+            valid_cause = False
         if (failure_record.get("key") != failed_key or failure_record.get("config") != "nimble_local" or
                 failure_record.get("split") != "development" or failure_record.get("attempt") != 0 or
                 failure_record.get("first_attempt_primary") is not True or
-                result.get("parser_version") is not None or parsed.get("status") != "http_error" or
+                not valid_cause or parsed.get("status") != "http_error" or
                 parsed.get("valid") is not False or parsed.get("prediction") is not None or parsed.get("score") is not None or
-                result.get("stop_required") is not True or observation.get("http_status") != 413 or
+                result.get("stop_required") is not True or
+                type(observation.get("http_status")) is not int or
+                type(observation.get("transport_exit_code")) is not int or
                 observation.get("transport_exit_code") != 0 or result.get("access_route") != "local" or
                 result.get("paid_request") is not False or
-                raw_response_sha256 != NIMBLE_LEGACY_CAPACITY_SHA256 or
                 result.get("raw_hashes", {}).get("response.raw") != raw_response_sha256):
-            raise AccountingError("Only the exact legacy DEV Nimble HTTP413 byte-limit failure permits this amendment")
+            raise AccountingError("Only an exact typed DEV Nimble legacy capacity failure permits this amendment")
         data = dict(failed_key=failed_key, failure_evidence_sha256=failure_evidence_sha256,
             stop_sha256=stop_sha256, manifest_sha256=manifest_sha256, manifest_path=manifest_path,
             receipt_path=receipt_path, receipt_sha256=receipt_sha256,
             activated_at_epoch=activated_at_epoch, raw_response_sha256=raw_response_sha256)
+        if capacity_kind == "native_context_tokens":
+            data.update(capacity_kind=capacity_kind, requested_tokens=counts['requested_tokens'],
+                        available_tokens=counts['available_tokens'])
         with self._locked() as state:
             self._check_guard(state)
             entry = state["entries"][failed_key]
