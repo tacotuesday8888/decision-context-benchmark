@@ -329,3 +329,34 @@ paper/PDF delivery remain required; no historical-stack merge or publication.
 - Six verified bibliography entries and their detailed source metadata are
   prepared under ignored `report-preparation-v1/`; no empirical narrative or PDF
   exists yet. These preparations use no experiment output or new model requests.
+
+## Main terminal and supporting execution checkpoint
+
+- Main unified session 41540 exited zero. The fixed native main schedule completed
+  all 487 groups / 988 pages / 7,904 unique requests, without cost or systemic
+  stop, and with no pending entries. Its receipt is
+  `results/study-v6-execution/main-execution-v1.json`; full final raw/statistical
+  verification remains required. No correctness or effect estimates were inspected.
+- Main dispositions: Jev 3,910 usable, 26 ties and 16 unsupported over-limit
+  responses; Luna Decisions 3,951 usable and one tie. Both providers have 3,952
+  unique main records. Ties remain abstentions; unsupported outcomes remain missing.
+- Main conservative accounting: OpenAI $5.81934935 (all usage-priced estimates);
+  TypeSafe $1.315081488, comprising $1.189467888 usage-priced estimates plus
+  $0.125613600 retained unknown-usage holds. Total initial reservations over time
+  were $51.6233650 / $8.668409736; these were repeatedly released/settled rather
+  than held simultaneously or billed. The main cap stayed $9 per provider.
+- The root sole executor started `.venv/bin/python scripts/study_v6/run.py
+  supporting` in unified session 86184, logging append-only to ignored
+  `execution-v1/supporting-progress-v1.log`. The frozen schedule has 126 groups:
+  the source round-robin diagnostics followed by first-100 main extras. At an
+  intermediate snapshot four groups were admitted, 23 requests were pending, no
+  STOP/cost stop existed, and supporting accounting was $0.0458801 / $0.007651014.
+  The fixed separate supporting cap is $2 per provider; live ledger is authoritative.
+- Supplementary independent arithmetic bundle commit `026fa018` is pushed and
+  all 20 CI checks passed. The 108 primary scientific hashes remain unchanged.
+
+Next: let the active supporting process reach a terminal disposition, then run
+Luna chat, Astra chat, Laya, Nimble and ProtectAI comparators sequentially in the
+documented environments. Never start a competing inference process. Preserve any
+systemic stop and use only the frozen reviewed continuation policy if applicable.
+All confirmation outcomes/correctness remain uninspected until terminal execution.
