@@ -1,6 +1,6 @@
 # What we learned from the overnight experiment
 
-November 1, 2026. Collection is finished. The main numbers, external results, repeat checks and spending below were independently reconstructed from saved records. Corrected charts and frozen code/data hashes also passed review. Final private-branch delivery checks are still being completed; this note will be updated when those checks finish. No paper has been written or submitted.
+November 1, 2026. Collection is finished. The main numbers, external results, repeat checks and spending below were independently reconstructed from saved records. Corrected charts, frozen code/data hashes and final executor delivery passed review. All 22 checks passed on executor commit `73d7a8a89cb2229fc29f48a8300560493f87f484`. Its worktree is clean, inference is closed, and the overnight supervision schedule is paused. No paper has been written or submitted.
 
 ## The question
 
@@ -85,4 +85,4 @@ More random examples are not the immediate need. A useful next study would compl
 - Literature: `decision-model-papers.md` and `detector-papers.md`; 16 focused paper reviews, with reading depth and limitations recorded.
 - Private draft work: [executor PR 14](https://github.com/tacotuesday8888/decision-context-benchmark/pull/14) and [independent review PR 13](https://github.com/tacotuesday8888/decision-context-benchmark/pull/13). Neither is public publication or a merged release.
 
-The original pilot and older study records remain preserved. The next step after verification is a decision about a carefully scoped follow-up or a narrowly framed write-up, not more spending by default.
+The original pilot and older study records remain preserved. The next step is a decision about a carefully scoped follow-up or a narrowly framed write-up, not more spending by default.
