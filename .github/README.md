@@ -1,40 +1,30 @@
 # Decision Context Benchmark
 
-**Does knowing the user’s task help AI detect prompt injection?**
+Does telling a model what the user wants help it detect prompt injection?
 
-We compare decision models such as Jev with general-purpose language models, using the same content with and without task information.
+We compare Jev and other decision models with general-purpose language models. The task-context tests compare judgments of the same text with and without the user’s task. We also use a generic warning and filler text to check whether the task itself makes a difference.
 
-[Research notes](https://docs.google.com/document/d/1T8pvePmYF7rYWWugGc8HkSEtiI8CK3jU_3EZer2WFmo/edit) · [Four examples](https://docs.google.com/document/d/1h5RO4VKXj-eB-dk3-C2v0YRtCl9n_DrriGXa66m7lbk/edit) · [Results](../results/paper-preparation/) · [Reproduce](../REPRODUCING.md) · [Data](../DATA.md)
+## Data and models
 
-## Main finding
+- **AgentDojo, AgentDyn and InjecAgent:** 761 task–text combinations, covering 582 distinct texts and 138 tasks.
+- **BrowseSafe++:** 3,000 clean/attacked page pairs tested with Jev and GPT-6 Luna (Decisions). GPT-6.1 Sol was tested on a 500-pair subset.
+- **Additional tests:** PromptShield, DTap and 12 simulated tasks we wrote.
 
-Task information changes mistakes, but does not consistently improve detection. In the main comparison, Jev flagged fewer normal-labeled pages while missing more attack-labeled pages. GPT-6 Luna and GPT-6.1 Sol had higher average error; a smaller second-source test produced different patterns.
+Other comparisons include GPT-6 Astra, Nimble, Laya and ProtectAI v2. Models were not all tested on every dataset. The complete-pair BrowseSafe++ analysis includes 2,850 pairs for Jev/Luna and 498 for Sol. [Dataset and model details](../DATA.md)
+
+## Results
+
+Adding the task did not consistently improve detection. On BrowseSafe++, Jev raised fewer false alarms but missed more attacks. GPT-6 Luna and GPT-6.1 Sol had higher average error with task information. Results differed on DTap.
 
 ![False alarms and missed attacks](../results/paper-preparation/figure-2-error-tradeoff.png)
 
-These are results against publisher labels, not proof of safer working agents or a universal model ranking.
+These findings concern the tested data and settings; they do not establish protection for working agents.
 
-## Experiments
+## Read more
 
-| Stage | Data | Main models |
-|---|---|---|
-| Earlier study | 761 task–text combinations from three sources | Jev, GPT-6 Luna, GPT-6 Astra, Nimble, Laya; ProtectAI v2 reference |
-| Larger study | 3,000 BrowseSafe++ normal/attack pairs | Jev and GPT-6 Luna (Decisions) |
-| Follow-up | 500 pairs from that larger study | GPT-6.1 Sol |
-| Supporting checks | PromptShield, DTap and 12 authored agent tasks | Separate comparisons |
+- [Research notes](https://docs.google.com/document/d/1T8pvePmYF7rYWWugGc8HkSEtiI8CK3jU_3EZer2WFmo/edit) and [four examples to discuss](https://docs.google.com/document/d/1h5RO4VKXj-eB-dk3-C2v0YRtCl9n_DrriGXa66m7lbk/edit)
+- [Results and figures](../docs/paper-preparation/README.md)
+- [Methods and related work](../docs/critical-review/METHODS-NOTE.md)
+- [Reproduce the analysis](../REPRODUCING.md)
 
-The earlier study has 582 distinct texts and 138 tasks. The main Jev/Luna analysis uses 2,850 complete pairs; Sol uses 498. Counts overlap and must not be added. [Details and access](../DATA.md)
-
-## Use the repository
-
-- **Read results:** [main study](../results/study-v7-execution/README.md), [Sol follow-up](../results/subscription-followup-execution/README.md), [second source](../results/subscription-followup-extensions-execution/README.md).
-- **Check the numbers:** follow [offline reproduction](../REPRODUCING.md); no model calls or API keys needed for the compact check.
-- **Understand the design:** [protocol](../docs/subscription-followup/PROTOCOL-v1.md), [related work](../docs/critical-review/METHODS-NOTE.md), [review findings](../docs/paper-preparation/REVIEW-RESOLUTION.md).
-
-`docs/` holds methods and notes; `scripts/` holds code; `results/` holds saved outputs. Restricted raw data remain local.
-
-## Status
-
-Completed experiments and reviewed preparation are on `main`. The current paper is not yet written. The repository remains private; there is no paper DOI or public release to cite.
-
-Historical stage tips are kept as archive tags. The root README is a frozen earlier record; this GitHub overview is the current guide. [History](../docs/repository/HISTORY.md) · [Contribution rules](../CONTRIBUTING.md)
+Code is in `scripts/`, methods in `docs/`, and saved results in `results/`. Restricted raw data are not included. The paper is not yet written.
