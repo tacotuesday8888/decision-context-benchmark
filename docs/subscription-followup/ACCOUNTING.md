@@ -22,8 +22,11 @@ freezing its policy. Old expanded/v3/v4/v6/v7 snapshots are not summed again.
 | TypeSafe | 7.77900912600000006 | 21.82758493400000006 | 14.048575808 |
 | OpenAI | 38.71694205 | 38.71694205 | 0 |
 
-The inherited OpenAI total includes the unchanged unknown-charge hold
-`1.9952816`; inherited TypeSafe unknown holds are zero. The OpenAI total is
+The inherited OpenAI total includes the unchanged **v7** unknown-charge hold
+`1.9952816`; new unknown TypeSafe holds in that v7 closure are zero. These are
+v7-specific hold figures, not a release or recount of earlier historical unknown
+charges: all earlier conservative amounts remain inside the inherited baselines.
+The OpenAI total is
 informational inherited accounting, not new API allowance. Project-OAuth Sol is
 unmetered in this USD journal and consumes a bounded call allowance. Zero new
 API dollars does not mean unlimited subscription use or verified quota.
