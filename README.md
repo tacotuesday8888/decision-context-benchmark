@@ -11,8 +11,18 @@ The paper/report makes no novelty claim: closely related context ablations alrea
 ## Expanded v2 preparation
 
 The expanded collection contains **402 distinct evaluation candidates and 60 development
-candidates**, with original task/source support recorded per row. **No expanded evaluation
-has run.** Paid execution is disabled while billing is pending.
+candidates**, with original task/source support recorded per row. The frozen preparation
+record is preserved. **Expanded evaluation is complete: 5,274 saved logical cells**
+across seven configurations (six model IDs), including five operational failures and
+seven classification abstentions. No original pilot record was changed.
+Read the [source-specific report](results/expanded-execution/report.md),
+[research draft](paper/manuscript.md), [PDF draft](output/pdf/decision-context-benchmark-draft.pdf),
+and [offline paper reproduction instructions](paper/README.md).
+The [research/statistical plan](docs/expanded-execution/RESEARCH-PLAN.md) distinguishes
+primary classification analysis from the later exploratory probability analysis.
+Conservative all-in metered accounting is $0.096443 OpenAI and $0.051171 TypeSafe,
+within the independent $15 / $20 caps; subscription fees and local electricity are excluded.
+Local Nimble and Laya both completed all 812 planned cells without discarded weak results.
 
 Read the [expanded protocol](docs/expanded-v2/protocol.md),
 [dataset review](docs/expanded-v2/dataset-review.md),

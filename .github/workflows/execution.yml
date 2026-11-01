@@ -1,0 +1,24 @@
+name: Verify expanded execution offline
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  offline-execution:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: requirements-expanded-v2-data.txt
+      - run: pip install -r requirements-expanded-v2-data.txt
+      - run: python -m unittest discover -s tests/expanded_execution -v
+      - run: python -m unittest discover -s tests/laya_v2 -v
+      - run: python -c "import sys; sys.path.insert(0, 'scripts/laya_v2'); from runner import verify_freeze; verify_freeze()"
+      - run: python -m unittest discover -s tests/nimble_v2 -v
+      - run: python -c "import sys; sys.path.insert(0, 'scripts/nimble_v2'); from run import verify_freeze; verify_freeze()"
+      - run: python scripts/expanded_execution/verify.py
+      - run: python scripts/expanded_execution/audit_execution.py --require-terminal
+      - run: python scripts/expanded_execution/verify_analysis.py
+      - run: python scripts/expanded_execution/verify_paper.py

@@ -24,3 +24,10 @@
   Do not make paid requests or purchases while billing is pending; the prior pilot
   cap does not authorize expanded spending. Keep the expanded protocol and outputs
   separately versioned and obtain a new bounded run instruction before paid inference.
+
+- October 29 execution setup update: the owner authorizes separate total caps of
+  US$15 OpenAI and US$20 TypeSafe/Jev, including earlier checks and execution. These
+  supersede the earlier shared US$15 expanded cap; they are limits, not spending
+  targets. Local Nimble setup/development is authorized. Keep native decision routes,
+  freeze changes before evaluation, and preserve historical records. No purchases,
+  automatic recharge, public publication, or submissions.
