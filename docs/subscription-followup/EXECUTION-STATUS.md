@@ -1,6 +1,6 @@
 # Follow-up execution status
 
-Updated November1,2026,16:36UTC. Sole model executor is this GPT-6.1 Sol Ultra
+Updated November1,2026,16:49UTC. Sole model executor is this GPT-6.1 Sol Ultra
 chat. The private follow-up is draftPR15, stacked on the closed v7 preparation
 branch. No merge, public release, submission or manuscript is authorized.
 
@@ -18,7 +18,10 @@ The final lineage receipt is
 Independent metadata replay verified all4,510 unique actual cells, all70/74
 frozen file bindings, unchanged inherited accounting and zero incremental API
 USD. The global inference clock is still14:57:56.429131–19:57:56.429131UTC.
-Actual accuracy analysis remains held until the extension binding review.
+The frozen20,000-draw analysis and compact per-cell exports are saved in
+`results/subscription-followup-execution`; independent numerical verification
+passed all raw joins, cohorts, estimates, bounds and tables. An independent
+100,000-draw index bootstrap agreed within0.1062 percentage points. The extension was frozen/reviewed before accuracy was opened.
 
 The prepared extension manifest binds661 files and exactly1,128 maximum calls:
 576 subscription Sol and552 native Jev, whose full-context reservation ceiling
@@ -29,11 +32,13 @@ Manifest SHA256:
 `9af1ca12c53dd0952534ff2ad5f0869288ce264200731be5c316179273e847a9`.
 Its exact final manifest/auth/core-lineage binding review passed: all661
 frozen files and27 evidence descriptors matched, with no remaining finding.
-No extension inference has started. All three prior availability failures and
+Extension sole process26745 started at16:40:26UTC after commit07e064e3 had
+all24 checks green. Both native Jev and subscription Sol returned HTTP200
+valid outputs with the expected pinned returned model. All three prior availability failures and
 consecutive count zero carry forward; neither clock nor recovery limits reset.
 
 All133 follow-up unit fixtures and seven source-data checks passed. Commit
-3f3326d2 has all24 GitHub checks green. Independent read-only review covered
+07e064e3 has all24 GitHub checks green. Independent read-only review covered
 protocols, source selection/provenance/grouping, scorer/runtime, analysis,
 missing-error bounds and the immutable freeze builder. Compact per-cell outcome
 exports will support private-repository reanalysis; full prompts/transports
