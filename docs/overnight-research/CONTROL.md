@@ -200,3 +200,8 @@ Worker active at cursor590; ProtectAI256/1000main, no new stop. Earlier root suf
 ### 11:44 UTC independent live accounting
 
 Complete-line prefix through index107193:50,870dispatches/50,868settlements,zero duplicate dispatches/settlements,two calls in flight. All456post-deferral dispatches are ProtectAI;zero new paid OpenAI calls. Known new usage unchanged at OpenAI29.69410125/TypeSafe5.671810830 and unknown hold1.9952816. Receipt live-accounting-check-6.json. Worker activecursor616,ProtectAI474/1000mainlastreported,no new stop. No accuracy inspected.
+
+
+## 12:09 UTC accounting checkpoint
+
+Root checked journal prefix index109299:51,194dispatches,51,192settlements,two calls in flight,zero duplicate dispatches or settlements. All780post-deferral calls were ProtectAI; no paidOpenAI call resumed. Known new usage remains29.69410125OpenAI and5.671810830TypeSafe; unknownOpenAIholds1.9952816. Receipt:live-accounting-check-7.json. Worker remains active; last cursor672reported797/1000local main pages. PR13 revision3ac79ac3passed20/20CI. Codex allowance last checked38%used/62%remaining,one reset unused. Collection/analysis/final handoff still pending; retain14:00UTC admission cutoff and16:06deadline.
