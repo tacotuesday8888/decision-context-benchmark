@@ -17,6 +17,7 @@ import threading
 import time
 from scripts.study_v7.requests import PANEL, canonical, digest, materialize
 from scripts.study_v7.budget import BudgetLedger, policy, reservation, usage_cost
+from scripts.study_v7.deferral import load_deferral
 from scripts.study_v6.routes import _exclusive
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -146,12 +147,16 @@ class OwnerPermit:
         self.ledger = None
         self.execution_profile = self.plan.get('execution_profile', 'original-paid-sol-preparation')
         self.active_configurations = set(self.plan.get('active_configurations', self.plan.get('model_configurations', PANEL)))
+        self.operational_deferral = load_deferral(self.manifest, self.receipt, self.plan, ROOT)
+        self.deferred_configurations = self.operational_deferral.configurations if self.operational_deferral else frozenset()
         self.check()
 
     def check(self):
         r = self.receipt
         _stop_policy(r)
         _pause_policy(r)
+        if self.operational_deferral is not None:
+            self.operational_deferral.check()
         if digest(self.authorization_path.read_bytes()) != self.authorization_sha256:
             raise PermissionError('Owner authorization changed during execution')
         if digest(self.manifest_path.read_bytes()) != self.manifest_sha256:
@@ -210,6 +215,8 @@ class OwnerPermit:
 
     def check_request(self, record, payload):
         self.check()
+        if record['config'] in self.deferred_configurations:
+            raise PermissionError('Paid OpenAI configuration is operationally deferred after credit exhaustion')
         if record['config'] not in self.active_configurations:
             raise PermissionError('Inactive configuration is not authorized')
         if (self.execution_profile == 'cheap-api-sol-subscription' or self.receipt.get('allow_paid_sol_api') is False) and record['config'] == 'sol_responses':
@@ -304,6 +311,8 @@ def execute(permit):
             r['allocations_usd'], permit.manifest['historical_accounting'].get('evidence_sha256'))
         ledger = BudgetLedger(execution / 'accounting.jsonl', frozen, guard=guard, history_root=CANONICAL)
         permit.ledger = ledger
+        if permit.operational_deferral is not None:
+            permit.operational_deferral.verify_evidence(ledger, execution)
         for allocation in permit.allowed_allocations:
             groups = [{'group': g['group'], 'requests': [reservation(permit.plan['requests'][key])
                 for key in g['request_keys']]} for g in permit.plan['schedules'].get(allocation, [])]
@@ -312,6 +321,8 @@ def execute(permit):
             if stop.is_set():
                 return None
             request = permit.plan['requests'][key]
+            if request['config'] in permit.deferred_configurations:
+                return None
             if request['config'] == 'sol_subscription':
                 paused.update(_paused_configurations(execution, permit.receipt))
             if request['config'] in paused:
@@ -365,6 +376,8 @@ def execute(permit):
         for allocation in permit.allowed_allocations:
             allocation_configs = {permit.plan['requests'][key]['config']
                 for g in permit.plan['schedules'].get(allocation, []) for key in g['request_keys']}
+            if allocation_configs and allocation_configs <= permit.deferred_configurations:
+                continue
             if allocation_configs and allocation_configs <= paused:
                 continue
             if allocation_configs and allocation_configs <= set((permit.manifest.get('route_validation') or {}).get('unsupported_configurations', {})):
@@ -383,6 +396,8 @@ def execute(permit):
                     if batch['status'] != 'admitted':
                         break
                     keys = batch['request_keys']
+                if permit.operational_deferral is not None:
+                    permit.operational_deferral.cancel_reserved(ledger, keys)
                 with ThreadPoolExecutor(max_workers=4) as workers:
                     futures = [workers.submit(attempt, key) for key in keys]
                     for future in as_completed(futures):
@@ -395,7 +410,8 @@ def execute(permit):
             if stop.is_set():
                 break
         return {'status': 'stopped' if stop.is_set() else 'bounded_phase_finished',
-            'phase': permit.phase, 'paused_configurations': sorted(paused), 'accounting': ledger.snapshot()}
+            'phase': permit.phase, 'paused_configurations': sorted(paused),
+            'operationally_deferred_configurations': sorted(permit.deferred_configurations), 'accounting': ledger.snapshot()}
     finally:
         fcntl.flock(process_lock, fcntl.LOCK_UN)
         process_lock.close()
@@ -418,6 +434,7 @@ def main(argv=None):
     result = execute(permit)
     print(json.dumps({'status': result['status'], 'phase': result['phase'],
         'paused_configurations': result.get('paused_configurations', []),
+        'operationally_deferred_configurations': result.get('operationally_deferred_configurations', []),
         'accounted_usd': result['accounting']['all_in_accounted_usd']}, indent=2))
 
 

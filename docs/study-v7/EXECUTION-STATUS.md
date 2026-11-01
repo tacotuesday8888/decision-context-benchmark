@@ -114,3 +114,43 @@ any unacknowledged stop; do not start a competing executor.
 Known new usage cost at the stop:18.32802035OpenAI/3.496494162TypeSafe, plus1.575
 unknownOpenAIhold. This is usage-based conservative accounting, not provider invoices.
 No accuracy was inspected; no source/prompt/model/pacing/statistical code changed.
+
+
+## Native phase complete10:58:41UTC
+
+All48,000main-native first attempts over3,000groups are terminal:47,840ok,
+157ties and3HTTPfailures. Allfailedfirstoutcomes and1.575unknownholds remain.
+Rootsession60436 continues the same confirmation phase into main_general
+(LunaResponses fourconditions on fixed500groups, localcandidate-only baseline),
+then external_native/external_general, then separately authorized repeats. Sol
+stays deferred. No accuracy/effect analysis has been run. Do not infer the shared
+complete-cohort denominator from48,000terminal records; the frozen adapter will
+exclude failures/ties only according to its predeclared shared-cohort rules and
+retain all3,000groups in full-planned bounds after collection ends.
+
+
+## OpenAI balance deferral freeze 2026-11-01T11:17:06.902840+00:00
+
+Session60436ended at the credit-exhaustion stop11:00:44UTC in main_general.
+Native48000completed unchanged. General139terminal (137ok,2missing_usage), one
+paidResponses reservation remained never-sent. Both failed streams explicitly
+report insufficient_quota/credit_balance_exhausted. No paidOpenAIprobe/recharge,
+reset or source/provider/model substitution is permitted. All five unknown holds
+sum1.9952816; known v7 usage cost29.69410125OpenAI/5.67181083TypeSafe.
+
+V7.0.8changesONLYdeferral.py/run.py.98offline tests pass (runner_budget,8.262s);
+independent focusedtests/code/receipt review passes, with restart recovery corrected.
+All original plan/schedules/keys/payloads/source labels/statistics/caps/deadline
+remain unchanged. Mixed groups reserve original full specs, cancel only deferred
+OpenAI reserved-never-sent entries to0 with exactreceiptSHA, and run Jev/local.
+Wholly deferred allocations stay unadmitted; terminal/unknown entries neverchange.
+No real cancellation or provider call has occurred during preparation.
+
+Final manifestv8SHA:d8f76649b18fbfbaa5a548ebc4248839fdceb609ef62b24de705a696213d19b2.
+Authorizationv8SHA:b0ccab8dea39890bafed4aafed452278fad989e4dcfb310f81ee1ff0c6c60d61.
+DeferralSHA:2c92367ad01ae64b98d18528e7270d0741173a2b475adf4a0e3e9853ac625cce.
+Current active-run pointer binds these. Read-only finalpreflight and metadata checks
+passed; all104231events/70333037bytes match the original credit-stop prefix. No
+executor is active until the requested final binding review completes. Then one
+rootexecutor may continue eligibleconfirmation followed byeligible repeats, with
+same14:00UTCadmission cutoff/16:06window end. Sol remains separatelydeferred.
