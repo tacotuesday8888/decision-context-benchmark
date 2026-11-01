@@ -32,6 +32,29 @@ def lines(path):
     return [json.loads(x) for x in Path(path).read_text().splitlines()]
 
 
+def replay_differences(actual, expected, path=''):
+    if isinstance(actual, dict) and isinstance(expected, dict):
+        if actual.keys() != expected.keys():
+            return [{'path': path, 'kind': 'keys differ'}]
+        return [d for k in actual for d in replay_differences(actual[k], expected[k], path + '/' + str(k))]
+    if isinstance(actual, list) and isinstance(expected, list):
+        if len(actual) != len(expected):
+            return [{'path': path, 'kind': 'length differs'}]
+        return [d for i, (a, b) in enumerate(zip(actual, expected)) for d in replay_differences(a, b, path + '/' + str(i))]
+    if actual == expected:
+        return []
+    result = {'path': path, 'actual': actual, 'expected': expected}
+    if type(actual) is float and type(expected) is float:
+        result['absolute_difference'] = abs(actual - expected)
+    return [result]
+
+
+def check_replay(actual, expected):
+    differences = replay_differences(actual, expected)
+    if differences:
+        raise AssertionError(json.dumps({'differences': len(differences), 'first_20': differences[:20]}, indent=2))
+
+
 def write_new(path, value):
     body = (json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + '\n').encode()
     path = Path(path)
@@ -151,8 +174,8 @@ def compact_review():
     source_rows = lines(source_dir / 'source-first-outcomes.jsonl')
     core = read(core_dir / 'core-analysis-v1.json')
     source = read(source_dir / 'source.json')
-    assert analyze_core.analyze_main(rows) == core['main']
-    assert extension_math.analyze_source(source_rows) == source
+    check_replay(analyze_core.analyze_main(rows), core['main'])
+    check_replay(extension_math.analyze_source(source_rows), source)
     repeats = lines(core_dir / 'repeat-outcomes.jsonl')
     repeated = {}
     index = {(r['group_id'], r['id'], r['condition']): r for r in rows if r['config'] == 'sol_subscription'}
