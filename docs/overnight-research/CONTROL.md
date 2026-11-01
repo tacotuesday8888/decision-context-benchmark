@@ -98,3 +98,11 @@ Worker v7.0.2 development reparse receipt reports core readiness complete for Je
 ### Sol subscription now responding,07:14UTC
 
 Root inspected amended-plan request keys against immutable completion records:48Sol subscription responses parsed `ok`, mean recorded elapsed3.617seconds. Only transport/parser statuses were inspected, not correctness. Original four rejected calls/pause remain preserved. Total completion count is increasing; worker remains active. This establishes initial route operation, not completion of all500development calls or a confirmation result.
+
+### Sol HTTP503 and readiness snapshot race,07:26UTC
+
+Root observed491amended Sol responses parsed ok plus one HTTP503 after the lane paused at07:26:00. The first `development-validation-v7.0.2.json` snapshot reported484ok/1interrupted_unknown/15unattempted and completed=true with Sol classified unsupported. Those counts preceded final in-flight settlement. Root directed the worker to preserve that snapshot, wait for owned executor completion and produce a new versioned final receipt before freezing confirmation. HTTP503 establishes service failure, not unsupported model parameters or quota exhaustion; if policy defers Sol, describe operational deferral accurately and retain partial data. No duplicate retry, reset or paid fallback. Core four configurations remain validated. Latest inspected worker cursor94.
+
+### Bounded service recovery chosen, approximately07:32UTC
+
+Worker inspected the retained HTTP503 body: `service_unavailable_error`, code `subscription_sharing_user_unavailable`, message that the ChatGPT user is temporarily unavailable. Root requested evaluation of a documented pre-confirmation recovery because this is not another unsupported-parameter rejection. Worker accepted one continuation for exactly eight never-sent development requests, unchanged payloads/settings, retaining491valid responses and the failed first attempt. No retry/replacement of the503, reset or paid fallback; another service failure stops the lane. Await final settled receipt before confirmation freeze. Worker active, latest cursor97.
