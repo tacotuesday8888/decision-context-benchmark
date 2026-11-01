@@ -294,9 +294,14 @@ class ExtensionPermit:
 
 class ExtensionExecutor(ContinuationExecutor):
     def __init__(self, p):
+        failures = p.manifest.get('prior_transient_failure_events', [])
+        consecutive = p.manifest.get('prior_consecutive_service_failures', 0)
+        _need(isinstance(failures, list) and len(failures) <= 5 and
+              type(consecutive) is int and 0 <= consecutive <= min(2, len(failures)),
+              'Inherited service recovery state is invalid or exhausted')
         Executor.__init__(self, p)
-        self.service_failures = list(p.manifest.get('prior_transient_failure_events', []))
-        self.consecutive_service_failures = 0
+        self.service_failures = copy.deepcopy(failures)
+        self.consecutive_service_failures = consecutive
 
     def restore(self):
         snapshot = self.permit.ledger.snapshot()

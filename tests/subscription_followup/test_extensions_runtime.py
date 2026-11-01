@@ -259,6 +259,19 @@ class RuntimeTests(unittest.TestCase):
         write(directory/"started.json",{})
         with self.assertRaises(PermissionError):x.ExtensionExecutor(p)
 
+    def test_service_recovery_state_is_inherited_without_reset(self):
+        self.m.update(prior_transient_failure_events=[{'key':'old-a'},{'key':'old-b'}],
+                      prior_consecutive_service_failures=2)
+        self.bind_manifest();p=self.permit();runner=x.ExtensionExecutor(p)
+        self.assertEqual(runner.consecutive_service_failures,2)
+        self.assertEqual(runner.service_failures,self.m['prior_transient_failure_events'])
+        for value in (3,-1,True):
+            with self.subTest(value=value):
+                p.manifest['prior_consecutive_service_failures']=value
+                with self.assertRaises(PermissionError):x.ExtensionExecutor(p)
+        p.manifest.update(prior_transient_failure_events=[{}]*6,prior_consecutive_service_failures=0)
+        with self.assertRaises(PermissionError):x.ExtensionExecutor(p)
+
     def test_gate_identity_completion_and_raw_hashes_precede_variant_choice(self):
         p=self.permit();g=self.pilot_group(p);gates,paths=self.gate_evidence(p,g)
         actor=next(c for c in g["cells"] if c.get("arm")=="Jev_gate" and c["gate_cell_id"]==gates[0]["cell_id"])
