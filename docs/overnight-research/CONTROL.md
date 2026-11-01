@@ -1,0 +1,50 @@
+# Overnight experiment coordination
+
+Updated 2026-11-01 06:10 UTC. This is an operational record, not a manuscript or a new frozen protocol.
+
+## Current user instructions
+
+- Work autonomously through 2026-11-01 16:06 UTC (11:06 AM America/New_York), with hourly supervision.
+- Experiments are authorized now; the earlier pause is revoked. Finish readiness checks, then development, freeze, confirmation and verified analysis in order.
+- The discussed incremental ceiling was $395: OpenAI experiments $350, optional coding help $25, TypeSafe $20. These are limits, not targets or confirmed available balances.
+- Latest routing restriction supersedes permission to spend that full allocation: cheap models through API, Jev through its native API, expensive models/work through existing subscription. Do not schedule paid Sol Responses evaluation or paid coding assistance. If no supported reproducible subscription evaluation route exists, defer the expensive comparator and proceed with the other models.
+- If credits run out, preserve progress and resume when legitimate allowances reset. This does not authorize purchases, recharge, bypassing limits, clearing evidence or duplicate paid requests. Record actual reset timing only when verified.
+- Official Codex usage check at approximately 06:11 UTC: 8% used, 92% remains; ONE existing free full reset available. User explicitly authorized this reset if needed. Root alone coordinates redemption with `consume_usage_reset`; workers must not redeem independently. Tool eligibility requires <=10% remaining in the five-hour or weekly window. Use stable idempotency key `01a18da8-20261101-overnight-reset-1` for this one logical attempt and record outcome. No reset has been consumed by this coordinator. This does not refill API credit. Further resets require separate explicit confirmation per tool instructions.
+- Do not draft the paper, LaTeX or final manuscript PDF. Analysis, methods notes, checked tables and figures are allowed. No publication/submission, purchases or billing changes.
+- Additional broad literature research is optional; prioritize useful data and execution work.
+
+## Single execution owner
+
+Working chat: **Prepare the expanded experiment**, ID `01a195ae-3adc-7c80-beab-361bfab5e741`, host `local`, GPT-6.1 Sol Ultra.
+
+Working checkout: `/Users/langqi/Developer/Projects/Decision Context Benchmark Plan`.
+
+Root coordination checkout: `/Users/langqi/Developer/Projects/Decision Context Benchmark Research`, branch `codex/overnight-research`.
+
+Canonical frozen older studies: `/Users/langqi/Developer/Projects/Decision Context Benchmark`. Do not restart old executor chats or run competing model calls. The user explicitly authorizes messages guiding the active working chat.
+
+Last compact status cursor: `48e27ee0-0d56-4e05-98f1-457d179d0219:8`. Worker active; latest reported preparation/statistical checks underway and paid-run authorization received. Cheap-API/expensive-subscription update and credit-reset update were delivered afterward. No new experimental result or spend is yet independently verified by this coordinator.
+
+## Plan and readiness
+
+Saved plan package is `docs/next-study/{PLAN,PROTOCOL,REVIEW,HANDOFF}.md`; private draft PR 12: https://github.com/tacotuesday8888/decision-context-benchmark/pull/12 . Plan commit `7a35915e438e5f17f2262595bae59b0838c68e31`; 20 CI checks passed at initial delivery. Later user instructions above supersede the original offline-only handoff.
+
+Planned main data: 3,000 fresh BrowseSafe++ groups, one benign/attack pair each (6,000 pages), plus separate development data. External PromptShield: 4,000 balanced test requests, nested 1,000-request general-model subset, 100 validation requests. These are targets until worker verifies final eligibility and manifests.
+
+Cheap/native comparison: Jev, Luna Decisions, Luna Responses, local published ProtectAI detector. Sol subscription comparator only if a valid reproducible route exists. Native and Responses routes must stay separately identified. Do not present chat subscription and API results as equivalent configurations.
+
+Four main conditions: actual task, format-only, generic warning and length control. Keep candidate fixed. Freeze before confirmation. Preserve source-label disagreements and technical failures. No outcome-dependent filtering. Save raw outputs and usage; one ledger/executor, safe restart IDs, complete-group comparisons, missing-result bounds.
+
+Historical conservative accounting before new work: OpenAI $7.02755920 and TypeSafe $1.827584934, including unresolved holds. Reconcile actual ledger rather than treating these as invoices or remaining credit. Prior $343.48 stress scenario included paid Sol and is obsolete for the newly restricted panel; worker must recompute cost. No promise that all work will consume the cap.
+
+## Literature helpers
+
+Two existing helpers are finishing focused notes only:
+- `overnight_decision_papers` owns `decision-model-papers.md`.
+- `overnight_detector_papers` owns `detector-papers.md`.
+
+Both were told the latest routing/reset instructions and to avoid expanding the reading list. Read final files before relying on detailed findings. Preliminary material corrections: newer JevOut includes blinded human review; prior work already studies task-aware detection; Nudge's released flips-first subset cannot estimate natural attack prevalence. These narrow novelty claims without invalidating this controlled experiment.
+
+## Supervision
+
+Heartbeat ID `research-preparation-overnight`, renamed **Overnight experiment supervision**, updated to hourly through deadline. Inspect with automation_update; do not edit scheduler files manually. Use compact wait_threads snapshots, diagnose stopped work before restarting, preserve user-facing updates for meaningful changes. At deadline stop new scheduling, safely settle/checkpoint in-flight work, pause heartbeat and produce a plain-language evidence/cost handoff. Do not silently extend the ten-hour window.
