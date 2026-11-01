@@ -20,6 +20,8 @@ The table shows how much the error rate changed when we supplied the real task, 
 | Generic warning | 2.37 percentage points | 1.16 percentage points |
 | Similar-length filler | 1.07 percentage points | 1.77 percentage points |
 
+**Jev’s improvement comes with a tradeoff.** On those same 2,850 groups, adding the task reduced false alarms on benign pages from **12.88% to 6.63%**, but increased missed attacks from **8.11% to 11.79%**, compared with the empty task field. The average error improved because the false-alarm reduction was larger. This is not an unqualified security improvement. These are descriptive parts of the same result, not extra significance tests.
+
 These six comparisons use the same 2,850 fully answered groups out of 3,000 planned groups. Each group contains a benign and an injected page. The preplanned tests account for making six comparisons; all six adjusted p-values are below 0.001. The effects are measurable but modest.
 
 We also kept all 3,000 planned groups in a separate check: allow every unanswered or undecided classification to be either right or wrong. Even under those extremes, each effect keeps its direction in this particular tested dataset. Those ranges are **not confidence intervals** and do not establish how every future dataset will behave.

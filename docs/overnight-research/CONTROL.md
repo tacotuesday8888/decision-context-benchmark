@@ -235,3 +235,8 @@ Independent raw reconstruction verified all14descriptive rowcounts/confusions/ba
 ## 12:57 UTC handoff drafted and presentation verified
 
 STATUS.md rewritten as current plain-language results/data/cost/limitations handoff. Revisedfigures inspected; all9input/eightoutputhashesverified, numericalartifacts unchanged. All174frozencodefiles,originalplan,two selectedsourcefiles andthree selectionreceipts matchfreeze. Saved final-render-freeze-check.json. Worker notified visualreviewpassed andis finishing privatePRdelivery. Root/executor remain unmergedprivate drafts. Remaining finalCI/workercloseout, completionaudit, automationcleanup andfinalhandoffstatus.
+
+
+## Interpretation tradeoff check
+
+Root independently verified primarycoverageconfusions and decomposedthe same2850sharedgroups. JevformatFP367/FN231versustaskFP189/FN336,outof2850eachclass: fewerfalsealarms12.88→6.63%, moremissedattacks8.11→11.79%. Addedexplicittradeoff to plainhandoff andnotifiedworker. Descriptiveonly,no newtests. Receiptshared-cohort-tradeoffs.json.
