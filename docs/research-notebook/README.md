@@ -2,6 +2,8 @@
 
 Summary of saved experiments · November 1, 2026
 
+[Current teacher meeting summary, including model roster and review status](../paper-preparation/TEACHER-MEETING-SUMMARY.md).
+
 ## Question
 
 Does giving a prompt-injection detector the user's actual task help it make fewer mistakes?
@@ -31,7 +33,7 @@ Takeaway: task context changes decisions, but it does not consistently improve d
 
 ## Still to check
 
-- Complete human label review. The prepared packet includes 24 flagged pairs (23 ambiguous plus one other disagreement) and eight comparison pairs; no human judgments have been entered.
+- Optional human review, reported only for the material actually read. The prepared packet includes 24 flagged pairs (23 ambiguous plus one other disagreement) and eight comparison pairs; no human judgments have been entered.
 - Use the [error tradeoff figure](../../results/critical-review/error-tradeoffs.png) alongside the paired effects.
 - Keep the [reviewed claim boundaries](../critical-review/INITIAL-REVIEW.md#claim-to-evidence-map) when drafting. The Astra review is complete; no numerical correction is required. See the [resolution log](../critical-review/RESOLUTION.md) for accepted and rejected findings.
 

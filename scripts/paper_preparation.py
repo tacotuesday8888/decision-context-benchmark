@@ -18,7 +18,7 @@ INPUTS = [
     'results/subscription-followup-execution/core-contrasts-v1.csv',
     'results/subscription-followup-extensions-execution/source.json',
 ]
-NAMES = {'jev_firstparty': 'Jev', 'luna_decisions': 'Luna Decisions', 'sol_subscription': 'Sol subscription'}
+NAMES = {'jev_firstparty': 'Jev', 'luna_decisions': 'GPT-6 Luna (Decisions)', 'sol_subscription': 'GPT-6.1 Sol'}
 CONDITIONS = {'format': 'Empty task', 'task': 'User task', 'reminder': 'Generic reminder', 'length': 'Character filler'}
 
 
@@ -65,7 +65,7 @@ def main():
         assert n == row['valid_attack'] == 498
         fp, fn = round(row['fpr']*n), round(row['fnr']*n)
         assert abs((fp+fn)/(2*n) - row['balanced_error']) < 1e-12
-        rates.append(dict(model='Sol subscription', condition=condition, groups=n,
+        rates.append(dict(model='GPT-6.1 Sol', condition=condition, groups=n,
                           false_alarms=fp, missed_attacks=fn, clean_pages=n, attacked_pages=n,
                           false_alarm_percent=100*fp/n, missed_attack_percent=100*fn/n,
                           balanced_error_percent=50*(fp+fn)/n))
@@ -80,7 +80,7 @@ def main():
                             holm_p=row['holm6_adjusted_p']))
     for row in read_csv(INPUTS[3]):
         if row['type'] == 'Sol contrast' and row['cohort'] == 'primary_complete8':
-            effects.append(dict(source='BrowseSafe++', model='Sol subscription', control=row['control'],
+            effects.append(dict(source='BrowseSafe++', model='GPT-6.1 Sol', control=row['control'],
                                 groups=int(row['n']), reduction_pp=100*float(row['mean']),
                                 lower95_pp=100*float(row['lower95']), upper95_pp=100*float(row['upper95']), holm_p=''))
     for e in effects:
@@ -96,7 +96,7 @@ def main():
     write_csv('context-effects.csv', effects)
 
     fig, axes = plt.subplots(1, 3, figsize=(11, 4.4), sharex=True, sharey=True)
-    for ax, model in zip(axes, ('Jev', 'Luna Decisions', 'Sol subscription')):
+    for ax, model in zip(axes, ('Jev', 'GPT-6 Luna (Decisions)', 'GPT-6.1 Sol')):
         rows = {r['condition']: r for r in rates if r['model'] == model}
         for y, key in enumerate(('false_alarm_percent', 'missed_attack_percent')):
             a, b = rows['format'][key], rows['task'][key]
@@ -109,7 +109,7 @@ def main():
         ax.set_xlim(0,26); ax.set_ylim(1.5,-.5)
         ax.set_xticks([0,5,10,15,20,25]); ax.grid(axis='x',alpha=.2)
         ax.set_xlabel('Error within each class (%)')
-    axes[0].set_yticks([0,1], ['Harmless pages\nflagged as attacks', 'Attacks\nmissed'])
+    axes[0].set_yticks([0,1], ['Clean-labeled pages\nflagged as attacks', 'Attack-labeled pages\nmissed'])
     fig.legend(handles=[plt.Line2D([],[],marker='o',mfc='white',mec='#333333',ls='',label='Empty task'),
                         plt.Line2D([],[],marker='s',color='#28658A',ls='',label='User task')],loc='upper center',ncol=2,frameon=False)
     fig.subplots_adjust(top=.75,bottom=.25,left=.16,wspace=.15)
@@ -118,8 +118,8 @@ def main():
     save(fig,'figure-2-error-tradeoff')
 
     for source_name, filename, models, limits in [
-        ('BrowseSafe++','figure-3-context-effects',('Jev','Luna Decisions','Sol subscription'),(-3.5,3.5)),
-        ('DTap (secondary)','supplement-second-source',('Jev','Sol subscription'),(-10,18))]:
+        ('BrowseSafe++','figure-3-context-effects',('Jev','GPT-6 Luna (Decisions)','GPT-6.1 Sol'),(-3.5,3.5)),
+        ('DTap (secondary)','supplement-second-source',('Jev','GPT-6.1 Sol'),(-10,18))]:
         fig, axes = plt.subplots(1,len(models),figsize=(11,4.2),sharex=True,sharey=True)
         for ax, model in zip(axes,models):
             rows={e['control']:e for e in effects if e['source']==source_name and e['model']==model}
@@ -129,14 +129,14 @@ def main():
                 ax.annotate(f'{m:+.2f}',(m,y),xytext=(0,9),textcoords='offset points',ha='center',fontsize=9)
             ax.axvline(0,color='#555555',lw=1);ax.set_xlim(*limits);ax.set_ylim(2.6,-.6)
             ax.set_title(f'{model}\nn = {e["groups"]:,} groups',fontsize=11)
-            ax.grid(axis='x',alpha=.2);ax.set_xlabel('Error reduction (percentage points)')
+            ax.grid(axis='x',alpha=.2);ax.set_xlabel('Balanced-error reduction\n(percentage points)')
         axes[0].set_yticks(range(3),['Against empty task','Against reminder','Against filler'])
         fig.suptitle(source_name+': effect of adding the user task',x=.16,ha='left',fontsize=14)
         fig.subplots_adjust(top=.75,bottom=.27,left=.16,wspace=.17)
         note=('Native panels share 2,850 groups; Sol has a separate 498-group cohort. Not a model ranking. '
               'Only native tests have Holm adjustment.' if source_name=='BrowseSafe++' else
               '62 shared complete groups of 66 planned; 64/66 planned groups are legal-domain cases. Descriptive, not pooled with main results.')
-        fig.text(.16,.05,'Positive = task lowers error; negative = task raises error. Lines: saved pointwise 95% group-bootstrap intervals.\n'
+        fig.text(.16,.015,'Balanced error = (false-alarm rate + missed-attack rate) / 2. Positive = task lowers this average.\nLines: saved pointwise 95% group-bootstrap intervals.\n'
                  +note+'\nMissing-outcome bounds use a different, all-planned cohort; see source tables. No new statistical fitting.',fontsize=8)
         save(fig,filename)
 
