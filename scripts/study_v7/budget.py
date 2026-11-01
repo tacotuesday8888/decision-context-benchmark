@@ -6,6 +6,8 @@ Only v7 policy and arbitrary source/model group schedules are added here.
 """
 from __future__ import annotations
 import copy
+import json
+import fcntl
 from decimal import Decimal
 from pathlib import Path
 from scripts.study_v6.accounting import (BudgetLedger as HistoricalLedger, AccountingError,
@@ -94,6 +96,53 @@ def policy(prior, caps, incremental_caps, allocations, evidence_sha256=None):
         'historical_evidence_sha256': evidence_sha256 or {}}
 
 
+def _validate_subscription_supersession(state, receipt, new_schedules, receipt_sha256):
+    allowed = {'development_sol_main', 'development_sol_external'}
+    if (receipt.get('version') != 'study-v7.0.2-sol-subscription-amendment' or
+            receipt.get('configuration_revision') != 'v7.0.2' or
+            not set(new_schedules) or not set(new_schedules) <= allowed):
+        raise AccountingError('Only the explicit v7.0.2 Sol development amendment is supported')
+    for name in ('previous_plan_sha256', 'new_plan_sha256', 'payload_revision_sha256', 'failure_metadata_sha256'):
+        value = receipt.get(name)
+        if not isinstance(value, str) or len(value) != 64 or any(c not in '0123456789abcdef' for c in value):
+            raise AccountingError('Amendment must bind exact plans, payload revision and failure metadata')
+    if receipt['previous_plan_sha256'] == receipt['new_plan_sha256']:
+        raise AccountingError('Payload revision requires a separately preserved new plan')
+    if any(e.get('split') != 'development' or e['status'] == 'dispatched' for e in state['entries'].values()):
+        raise AccountingError('Supersession requires development only and no in-flight attempts')
+    if not set(state['schedules']) <= {'development_main', 'development_external', *allowed}:
+        raise AccountingError('Confirmation schedules must remain unregistered before supersession')
+    old_keys, new_keys = set(), set()
+    for allocation, groups in new_schedules.items():
+        old = state['schedules'].get(allocation)
+        if old is None or any(money(v) != 0 for v in state['policy']['allocations_usd'][allocation].values()):
+            raise AccountingError('Affected allocation must already be a zero-cost Sol development schedule')
+        if old.get('configuration_revision') == 'v7.0.2':
+            raise AccountingError('Sol subscription amendment cannot be applied repeatedly')
+        if ([g['group'] for g in old['groups']] != [g['group'] for g in groups] or
+                [len(g['requests']) for g in old['groups']] != [len(g['requests']) for g in groups]):
+            raise AccountingError('Amendment cannot change source group order or request counts')
+        if (receipt.get('previous_schedules_sha256', {}).get(allocation) != digest(canonical(old['groups'])) or
+                receipt.get('new_schedules_sha256', {}).get(allocation) != digest(canonical(groups))):
+            raise AccountingError('Amendment schedule hashes differ')
+        for schedule, keys in ((old['groups'], old_keys), (groups, new_keys)):
+            for group in schedule:
+                for spec in group['requests']:
+                    if (spec.get('provider') is not None or money(spec['reserved_usd']) != 0 or
+                            spec.get('config') != 'sol_subscription' or spec.get('split') != 'development'):
+                        raise AccountingError('Only zero-cost native subscription development specifications may change')
+                    if spec['key'] in keys:
+                        raise AccountingError('Duplicate revised subscription attempt')
+                    keys.add(spec['key'])
+        for key in (r['key'] for g in old['groups'] for r in g['requests']):
+            entry = state['entries'].get(key)
+            if entry and entry['status'] == 'cancelled_unsent' and entry.get('evidence_sha256') != receipt_sha256:
+                raise AccountingError('Existing unsent cancellation does not bind this amendment')
+    if old_keys & new_keys or any(key in state['entries'] for key in new_keys):
+        raise AccountingError('Revised subscription requests require fresh distinct keys')
+    return old_keys
+
+
 class BudgetLedger(HistoricalLedger):
     def __init__(self, path, frozen_policy=None, *, guard=None, history_root=None):
         self.path = Path(path); self.lock_path = self.path.with_name(self.path.name + '.lock')
@@ -119,6 +168,17 @@ class BudgetLedger(HistoricalLedger):
                 raise AccountingError('Invalid frozen v7 policy')
             return {'policy': checked, 'entries': {}, 'batches': {}, 'schedules': {},
                     'continuations': {}, 'development_amendments': {}}
+        if kind == 'supersede_subscription_development':
+            receipt, groups, sha = data['receipt'], data['new_schedules'], data['receipt_sha256']
+            _validate_subscription_supersession(state, receipt, groups, sha)
+            archives = state.setdefault('subscription_schedule_supersessions', {})
+            if sha in archives or data['previous_schedules'] != {a: state['schedules'][a] for a in groups}:
+                raise AccountingError('Supersession archive changed or event repeated')
+            archives[sha] = copy.deepcopy(data)
+            for allocation, new_groups in groups.items():
+                state['schedules'][allocation] = {'groups': new_groups, 'admitted': 0, 'stopped': None,
+                    'configuration_revision': 'v7.0.2', 'supersession_receipt_sha256': sha}
+            return state
         return HistoricalLedger._apply(state, kind, data)
 
     def _check_guard(self, state):
@@ -128,6 +188,40 @@ class BudgetLedger(HistoricalLedger):
                     raise AccountingError('Historical spending evidence changed')
         if self.guard is not None:
             self.guard()
+
+    def supersede_subscription_development(self, receipt_path, new_schedules):
+        """Explicit offline amendment only; never inferred from changed requests.
+
+        Preserve all completed/unknown entries and old schedules. Only positively
+        never-dispatched zero-cost old reservations are cancelled, with the exact
+        amendment-file hash as evidence. Confirmation and provider policies cannot
+        change. No executor may hold the process lock during this operation.
+        """
+        receipt_bytes = Path(receipt_path).read_bytes()
+        receipt, sha = json.loads(receipt_bytes), digest(receipt_bytes)
+        groups = {a: [{'group': g['group'], 'requests': _requests(g['requests'])} for g in values]
+                  for a, values in new_schedules.items()}
+        with (self.path.parent / 'executor.lock').open('a+b') as executor_lock:
+            try:
+                fcntl.flock(executor_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                raise AccountingError('Executor must finish before the explicit subscription amendment') from None
+            with self._locked() as state:
+                self._check_guard(state)
+                previous = state.get('subscription_schedule_supersessions', {}).get(sha)
+                if previous is not None:
+                    if previous['receipt'] != receipt or previous['new_schedules'] != groups:
+                        raise AccountingError('Retained supersession receipt changed')
+                    return copy.deepcopy(previous)
+                old_keys = _validate_subscription_supersession(state, receipt, groups, sha)
+                for key in sorted(old_keys):
+                    if state['entries'].get(key, {}).get('status') == 'reserved':
+                        state = self._append(state, 'cancel_reserved', {'key': key, 'evidence_sha256': sha,
+                            'reason': 'explicit_zero_cost_subscription_development_revision_never_dispatched'})
+                data = {'receipt': receipt, 'receipt_sha256': sha, 'new_schedules': groups,
+                    'previous_schedules': {a: copy.deepcopy(state['schedules'][a]) for a in groups}}
+                self._append(state, 'supersede_subscription_development', data)
+                return copy.deepcopy(data)
 
     def entry(self, key):
         """Read one immutable copy, without copying every frozen schedule/entry."""
@@ -179,7 +273,10 @@ class BudgetLedger(HistoricalLedger):
             try:
                 if not admission_open:
                     raise BudgetExceeded('predeclared_time_cutoff')
-                batch = self._reserve(state, allocation + ':group:' + group['group'], allocation,
+                batch_id = allocation + ':group:' + group['group']
+                if schedule.get('configuration_revision'):
+                    batch_id += ':revision:' + schedule['configuration_revision']
+                batch = self._reserve(state, batch_id, allocation,
                                       group['requests'], group['group'])
             except BudgetExceeded as error:
                 stop = {'allocation': allocation, 'group': group['group'], 'index': index,

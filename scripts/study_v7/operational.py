@@ -43,8 +43,8 @@ def _development_reparse_record(request, retained, attempts_directory, *, plan_s
         raise ValueError("Original failure is outside the fixed default-TTL parser amendment")
     directory=Path(attempts_directory)/request["key"]
     completed=json.loads((directory/"completed.json").read_text())
-    if completed.get("parser_version") != "study-v7-routes-1" or routes.PARSER_VERSION != "study-v7-routes-2":
-        raise ValueError("Development technical resolution requires the exact v7.0.1 parser versions")
+    if completed.get("parser_version") != "study-v7-routes-1" or routes.PARSER_VERSION not in {"study-v7-routes-2","study-v7-routes-3"}:
+        raise ValueError("Development technical resolution requires the exact approved preconfirmation parser versions")
     observation=completed.get("observation")
     if not isinstance(observation,dict):
         raise ValueError("Original technical transport observation is missing")
@@ -54,7 +54,7 @@ def _development_reparse_record(request, retained, attempts_directory, *, plan_s
         raise ValueError("Amended parser did not resolve the retained technical failure")
     if derived.get("usage") != original.get("usage") or derived.get("returned_model") != original.get("returned_model"):
         raise ValueError("Technical reparse changed retained usage/model evidence")
-    return {"version":"study-v7-development-reparse-v7.0.1","request_key":request["key"],
+    return {"version":"study-v7-development-reparse-v7.0.2" if routes.PARSER_VERSION == "study-v7-routes-3" else "study-v7-development-reparse-v7.0.1","request_key":request["key"],
         "config":request["config"],"source":request["source"],"split":"development","namespace":"first",
         "plan_sha256":plan_sha256,"amendment_manifest_sha256":manifest_sha256,
         "original_completed_sha256":retained["evidence_sha256"],"original_status":retained["status"],
@@ -70,7 +70,7 @@ def create_development_reparses(plan, attempts_directory, *, plan_sha256, manife
     path=Path(output).resolve()
     if RAW.resolve() not in path.parents:
         raise ValueError("Development reparse sidecar must stay in ignored data/raw/study-v7")
-    state,_=read_journal(journal_path,plan)
+    state,_=read_journal(journal_path,plan,plan_sha256=plan_sha256)
     records=[]
     for request in plan["requests"].values():
         if request["config"] != "luna_responses" or request["split"] != "development" or request["namespace"] != "first":
@@ -114,7 +114,7 @@ def load_development_reparses(path, plan, attempts_directory, state, *, plan_sha
         "parser_code_sha256":sorted({r["parser_code_sha256"] for r in result.values()}),"retransmissions":0}
 
 
-def read_journal(path, plan):
+def read_journal(path, plan, *, plan_sha256=None):
     """Replay a stable byte snapshot through the pure state machine; never lock."""
     if path is None or not Path(path).exists():
         return None, {"verified": False, "reason": "No retained accounting journal supplied"}
@@ -133,8 +133,27 @@ def read_journal(path, plan):
     holds = {p: Decimal(0) for p in PROVIDERS}
     allocations = {a:{p:Decimal(0) for p in PROVIDERS} for a in state["policy"]["allocations_usd"]}
     statuses = Counter()
+    archived_specs={};archived_statuses=Counter()
+    for archive in state.get("subscription_schedule_supersessions",{}).values():
+        if plan_sha256 is None or archive["receipt"]["new_plan_sha256"] != plan_sha256:
+            raise ValueError("Superseded subscription journal must bind the exact new plan")
+        for allocation,schedule in archive["previous_schedules"].items():
+            for group in schedule["groups"]:
+                for spec in group["requests"]:
+                    archived_specs[spec["key"]]=dict(spec,allocation=allocation)
     for key, entry in state["entries"].items():
         request = plan["requests"].get(key)
+        if request is None and key in archived_specs:
+            old=archived_specs[key]
+            if (old["config"] != "sol_subscription" or old["split"] != "development" or old["provider"] is not None or
+                    entry["provider"] is not None or entry["status"] not in {"settled","unknown_usage","cancelled_unsent"} or
+                    entry.get("config") != old["config"] or entry.get("split") != old["split"] or
+                    entry.get("allocation") != old["allocation"] or entry.get("request_sha256") != old["request_sha256"] or
+                    any(money(entry[k]) != 0 for k in ("reserved_usd","accounted_usd")) or
+                    (entry.get("actual_usd") is not None and money(entry["actual_usd"]) != 0)):
+                raise ValueError("Superseded subscription entry differs from its retained zero-cost terminal specification")
+            archived_statuses[entry["status"]] += 1
+            request={"config":old["config"],"split":old["split"],"allocation":old["allocation"],"payload_sha256":old["request_sha256"]}
         if request is None or entry.get("request_sha256") != request["payload_sha256"] or entry.get("config") != request["config"]:
             raise ValueError("Accounting entry differs from frozen request")
         if entry["provider"] != PANEL[request["config"]]["provider"] or entry["allocation"] != request["allocation"]:
@@ -170,6 +189,8 @@ def read_journal(path, plan):
         "status_counts": dict(statuses), "incremental_accounted_usd": {p: amount(v) for p,v in totals.items()},
         "all_in_accounted_usd": {p: amount(v) for p,v in all_in.items()},
         "unknown_and_pending_holds_usd": {p: amount(v) for p,v in holds.items()},
+        "superseded_zero_cost_subscription_entry_statuses":dict(archived_statuses),
+        "subscription_supersession_receipt_sha256":sorted(state.get("subscription_schedule_supersessions",{})),
         "is_invoice_or_balance": False, "read_only_replay": True}
 
 
@@ -188,6 +209,8 @@ def retained_attempt(request, attempts_directory, state=None):
         result = json.loads(body)
         if result.get("request_sha256") != request["payload_sha256"] or result.get("namespace") != request["namespace"]:
             raise ValueError("Completed payload/namespace changed")
+        if result.get("configuration_revision") != request.get("configuration_revision"):
+            raise ValueError("Completed configuration revision differs from its explicit request")
         if result.get("first_attempt_primary") is not (request["namespace"] == "first"):
             raise ValueError("Incorrect first-attempt disposition")
         hashes = result.get("raw_hashes", {})
@@ -229,10 +252,25 @@ def retained_attempt(request, attempts_directory, state=None):
             "accounting_status": entry["status"] if entry else None}
 
 
-def settings_check(config, payload, parsed, valid):
+def _request_configuration(plan,request):
+    configuration=plan.get("model_configurations",{}).get(request["config"],PANEL[request["config"]])
+    if configuration.get("configuration_revision") != request.get("configuration_revision"):
+        raise ValueError("Request configuration revision differs from its frozen plan declaration")
+    return configuration
+
+
+def settings_check(config, payload, parsed, valid, *, configuration_revision=None, model_configuration=None):
     """Inspect requested/returned technical settings only; no labels or answers."""
-    p = PANEL[config]
+    p = model_configuration or PANEL[config]
+    amended=configuration_revision is not None
+    if amended and (config != "sol_subscription" or configuration_revision != "v7.0.2" or
+                    p.get("configuration_revision") != "v7.0.2" or
+                    p.get("cache_control_status") != "unsupported subscription API; provider default/uncontrolled"):
+        raise ValueError("Only the explicitly frozen Sol subscription v7.0.2 settings are supported")
     requested = {"model": p["model"], "route": p["route"]}
+    if amended:
+        requested.update(configuration_revision=configuration_revision,cache_control_status=p["cache_control_status"],
+                         native_context_capacity_tokens=p["context_tokens"])
     problems, not_echoed = [], []
     if payload is not None:
         if payload.get("model") != p["model"]:
@@ -240,6 +278,10 @@ def settings_check(config, payload, parsed, valid):
         if p["kind"] == "responses":
             expected = {"reasoning": {"effort":p["reasoning"]}, "store":False,
                 "service_tier":"default", "prompt_cache_options":{"mode":"explicit"}, "stream":True}
+            if amended:
+                expected.pop("prompt_cache_options")
+                if "prompt_cache_options" in payload:
+                    problems.append("unsupported_subscription_cache_control_requested")
             if p.get("output_cap") is not None:
                 expected["max_output_tokens"] = p["output_cap"]
             elif "max_output_tokens" in payload:
@@ -278,6 +320,8 @@ def settings_check(config, payload, parsed, valid):
                 if payload.get(field) != p[field]:
                     problems.append("requested_"+field)
     returned_model = parsed.get("returned_model")
+    if valid and amended and parsed.get("configuration_revision") != configuration_revision:
+        problems.append("returned_configuration_revision")
     if (valid and returned_model != p["model"]) or (returned_model is not None and returned_model != p["model"]):
         problems.append("returned_model")
     if valid and p["kind"] == "local_detector" and parsed.get("revision") != p["revision"]:
@@ -303,7 +347,7 @@ def settings_check(config, payload, parsed, valid):
 
 
 def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=None, reparses=None, reparse_manifest_sha256=None):
-    state, accounting = read_journal(journal_path, plan)
+    state, accounting = read_journal(journal_path, plan,plan_sha256=plan_sha256)
     reparsed,reparse_receipt=load_development_reparses(reparses,plan,attempts_directory,state,
         plan_sha256=plan_sha256,manifest_sha256=reparse_manifest_sha256)
     active = plan.get("active_configurations") or list(plan["model_configurations"])
@@ -344,7 +388,8 @@ def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=N
             statuses[retained["status"]] += 1
             valid += retained["valid"]
             terminal += retained["evidence_sha256"] is not None
-            checked = settings_check(config,retained["payload"],retained["parsed"],retained["valid"])
+            checked = settings_check(config,retained["payload"],retained["parsed"],retained["valid"],
+                configuration_revision=request.get("configuration_revision"),model_configuration=_request_configuration(plan,request))
             problems.update(checked["problems"])
             echoes.update(checked["accepted_not_echoed_fields"])
             if checked["returned_model"] is not None:
@@ -365,7 +410,7 @@ def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=N
             "settings_problems":dict(problems),"accepted_not_echoed_field_counts":dict(echoes),
             "requested_configurations":list(settings.values()),"observed_input_tokens_total":sum(input_tokens),
             "observed_input_tokens_max":max(input_tokens) if input_tokens else None,
-            "native_context_capacity_tokens":PANEL[config]["context_tokens"],
+            "native_context_capacity_tokens":plan.get("model_configurations",{}).get(config,PANEL[config])["context_tokens"],
             "unsupported_capacity_attempts":statuses["unsupported_over_limit"],
             "local_window_tokens":PANEL[config].get("window_tokens"),
             "unattempted_inputs_trimmed_or_refilled":False,
@@ -401,11 +446,15 @@ def development_receipt(plan, attempts_directory, *, plan_sha256, journal_path=N
         "unsupported_configurations":unsupported,"blockers":blockers,"source_config_coverage":summaries,
         "accounting":accounting,"accuracy_calculated":False,"selection_or_prompts_changed":False,
         "development_technical_reparse":reparse_receipt,
+        "core_readiness":{"completed":accounting["verified"] and not any(b["config"] != "sol_subscription" for b in blockers),
+            "validated_configurations":sorted(c for c in validated if c != "sol_subscription"),
+            "blockers":[b for b in blockers if b["config"] != "sol_subscription"],
+            "sol_disposition":"unsupported" if "sol_subscription" in unsupported else "validated" if "sol_subscription" in validated else "pending"},
         "recorded_at_utc":datetime.now(timezone.utc).isoformat(),"network_or_model_calls":0}
 
 
 def audit_receipt(plan, attempts_directory, rows_by_id, *, plan_sha256, journal_path=None, details_output=None):
-    state, accounting = read_journal(journal_path, plan)
+    state, accounting = read_journal(journal_path, plan,plan_sha256=plan_sha256)
     requests = [r for r in plan["requests"].values() if r["condition"] == "audit"]
     locked = plan["subsets"]["audit_groups"]
     if len(locked) != 100 or len(set(locked)) != 100 or len(requests) != 100 or {r["group_id"] for r in requests} != set(locked):
@@ -420,7 +469,8 @@ def audit_receipt(plan, attempts_directory, rows_by_id, *, plan_sha256, journal_
         fields = {name:source[name] for name in ("TASK","CLEAN_PAGE","ATTACK_PAGE")}
         retained = retained_attempt(request,attempts_directory,state)
         statuses[retained["status"]] += 1
-        checked = settings_check(request["config"],retained["payload"],retained["parsed"],retained["valid"])
+        checked = settings_check(request["config"],retained["payload"],retained["parsed"],retained["valid"],
+            configuration_revision=request.get("configuration_revision"),model_configuration=_request_configuration(plan,request))
         if checked["problems"]:
             counts["technical_settings_problem"] += 1
         case = {"group_id":request["group_id"],"request_key":request["key"],"status":retained["status"]}

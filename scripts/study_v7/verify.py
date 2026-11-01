@@ -57,8 +57,15 @@ def check_metadata():
         active_path=ROOT/active['manifest_path']
         require(digest(active_path.read_bytes())==active['manifest_sha256'],'Active amendment manifest differs')
         current=json.loads(active_path.read_text())
-        require(current['plan_sha256']==manifest['plan_sha256'] and current['source_files']==manifest['source_files'],
-                'Operational amendment changed locked request/source bytes')
+        require(current['source_files']==manifest['source_files'],'Operational amendment changed locked source bytes')
+        if current['plan_sha256']!=manifest['plan_sha256']:
+            evidence=current.get('plan_amendment_equivalence') or {}
+            receipt_path=ROOT/evidence.get('path','')
+            require(receipt_path.is_file() and digest(receipt_path.read_bytes())==evidence.get('sha256'),'Missing exact plan-amendment equivalence receipt')
+            receipt=json.loads(receipt_path.read_text())
+            require(receipt.get('previous_plan_sha256')==manifest['plan_sha256'] and receipt.get('new_plan_sha256')==current['plan_sha256']
+                and receipt.get('core_request_records_unchanged') is True and receipt.get('source_rows_and_subsets_unchanged') is True
+                and receipt.get('only_changed_configurations')==['sol_subscription'],'Unauthorized plan amendment scope')
         manifest=current
     for name,sha in manifest['execution_code_sha256'].items():
         require(digest((ROOT/name).read_bytes())==sha,'Execution code lock differs: '+name)

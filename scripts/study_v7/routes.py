@@ -9,17 +9,17 @@ import json
 from pathlib import Path
 import subprocess
 import time
-from scripts.study_v7.requests import PANEL, canonical, digest, AUDIT_SCHEMA
+from scripts.study_v7.requests import PANEL, canonical, digest, AUDIT_SCHEMA, model_configuration
 from scripts.study_v6.routes import (_exclusive, probability, _failure, _truncated,
     _valid_count, _stream_events, requires_stop, parse_response as parse_native)
 
-PARSER_VERSION = 'study-v7-routes-2'
+PARSER_VERSION = 'study-v7-routes-3'
 
 
-def parse_response(config, body, *, audit=False):
+def parse_response(config, body, *, audit=False, configuration_revision=None):
     if config in ('jev_firstparty', 'luna_decisions'):
         return parse_native(config, body)
-    p = PANEL[config]
+    p = model_configuration(config, configuration_revision)
     metadata = {}
     try:
         events = list(_stream_events(body))
@@ -40,6 +40,12 @@ def parse_response(config, body, *, audit=False):
             return _failure('model_mismatch', **metadata)
         expected = {'reasoning': {'effort': p['reasoning']},
             'service_tier': 'default', 'prompt_cache_options': {'mode': 'explicit'}, 'store': False}
+        if configuration_revision is not None:
+            if config != 'sol_subscription' or configuration_revision != 'v7.0.2':
+                return _failure('settings_mismatch', **metadata)
+            expected.pop('prompt_cache_options')
+            metadata['configuration_revision'] = configuration_revision
+            metadata['cache_control_status'] = 'unsupported subscription API; provider default/uncontrolled'
         if p.get('output_cap') is not None:
             expected['max_output_tokens'] = p['output_cap']
         else:
@@ -115,10 +121,10 @@ def _subscription_failure(value):
     return None
 
 
-def parse_transport(config, observation, body, *, audit=False):
+def parse_transport(config, observation, body, *, audit=False, configuration_revision=None):
     status, code = observation['http_status'], observation['transport_exit_code']
     if status == 200:
-        parsed = parse_response(config, body, audit=audit)
+        parsed = parse_response(config, body, audit=audit, configuration_revision=configuration_revision)
         return _failure('transport_error', usage=parsed.get('usage') or {},
             returned_model=parsed.get('returned_model')) if code else parsed
     if config == 'sol_subscription':
@@ -286,7 +292,8 @@ def invoke(config, request, raw_directory, attempt_key, *, permit=None, request_
             token = _credential(config, permit.credential_root)
             sent = True
             observation, body = _post(config, request, token, directory)
-            parsed = parse_transport(config, observation, body, audit=request_record['condition'] == 'audit')
+            parsed = parse_transport(config, observation, body, audit=request_record['condition'] == 'audit',
+                configuration_revision=request_record.get('configuration_revision'))
         result = {'parsed': parsed, 'observation': observation, 'stop_required': requires_stop(parsed)}
     except Exception as error:
         result = {'parsed': _failure('runtime_error'), 'observation': observation,
@@ -295,6 +302,7 @@ def invoke(config, request, raw_directory, attempt_key, *, permit=None, request_
         paid_request=PANEL[config]['route'] == 'api_key', native_request_sent=sent,
         request_sha256=digest(canonical(request)), namespace=request_record['namespace'],
         first_attempt_primary=request_record['namespace'] == 'first',
+        configuration_revision=request_record.get('configuration_revision'),
         elapsed_seconds=time.perf_counter()-start,
         finished_at=datetime.now(timezone.utc).isoformat(),
         raw_hashes={p.name: digest(p.read_bytes()) for p in sorted(directory.iterdir()) if p.is_file()})

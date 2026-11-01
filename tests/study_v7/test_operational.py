@@ -89,6 +89,7 @@ class OperationalTests(unittest.TestCase):
             original=journal.read_bytes()
             result=op.development_receipt(plan,attempts,plan_sha256="a"*64,journal_path=journal)
             self.assertTrue(result["completed"])
+            self.assertTrue(result["core_readiness"]["completed"])
             self.assertEqual(result["validated_configurations"],sorted(CONFIGS))
             self.assertFalse(result["accuracy_calculated"])
             self.assertTrue(result["accounting"]["read_only_replay"])
@@ -126,6 +127,69 @@ class OperationalTests(unittest.TestCase):
         subscription["max_output_tokens"]=2048
         checked=op.settings_check("sol_subscription",subscription,{},False)
         self.assertIn("subscription_unsupported_output_cap_requested",checked["problems"])
+
+    def test_explicit_subscription_v702_cache_default_and_catalogue_capacity(self):
+        from scripts.study_v7.requests import model_configuration
+        row={"source":"promptshield","candidate":"Synthetic ordinary request"}
+        body=payload("sol_subscription",row,"external",configuration_revision="v7.0.2")
+        configuration=model_configuration("sol_subscription","v7.0.2")
+        self.assertNotIn("prompt_cache_options",body)
+        parsed={"status":"ok","valid":True,"returned_model":"gpt-6.1-sol",
+            "configuration_revision":"v7.0.2","usage":USAGE,
+            "returned_settings":{"reasoning":{"effort":"low"},"service_tier":"default","store":False,
+                                 "prompt_cache_options":{"mode":"implicit"}}}
+        checked=op.settings_check("sol_subscription",body,parsed,True,
+            configuration_revision="v7.0.2",model_configuration=configuration)
+        self.assertEqual(checked["problems"],[])
+        self.assertIn("uncontrolled",checked["requested"]["cache_control_status"])
+        self.assertEqual(checked["requested"]["native_context_capacity_tokens"],500000)
+        self.assertIsNone(checked["requested"]["max_output_tokens"])
+        parsed["usage"]=dict(USAGE,input_tokens=500000)
+        checked=op.settings_check("sol_subscription",body,parsed,True,
+            configuration_revision="v7.0.2",model_configuration=configuration)
+        self.assertIn("subscription_usage_or_capacity",checked["problems"])
+        with self.assertRaisesRegex(ValueError,"explicitly frozen Sol"):
+            op.settings_check("luna_responses",body,{},False,configuration_revision="v7.0.2",model_configuration=configuration)
+        legacy=op.settings_check("sol_subscription",body,{},False)
+        self.assertIn("requested_prompt_cache_options",legacy["problems"])
+
+    def test_pure_replay_retains_archived_zero_cost_subscription_attempts(self):
+        from scripts.study_v7 import budget,requests
+        main=[dict(id=f"m-{label}",group_id="g",pair_id="pair",source="browsesafe",task="Synthetic task",
+            candidate=f"Synthetic page {label}",upstream_label=label,partition="development") for label in (0,1)]
+        external=[dict(id=f"e-{label}",group_id=f"eg-{label}",source="promptshield",candidate=f"Synthetic request {label}",
+            upstream_label=label,partition="development") for label in (0,1)]
+        old=requests.build_plan(main,external,sol_config="sol_subscription")
+        new=requests.build_plan(main,external,sol_config="sol_subscription",sol_subscription_revision="v7.0.2")
+        allocations=("development_sol_main","development_sol_external")
+        def schedules(plan):
+            return {a:[{"group":g["group"],"requests":[budget.reservation(plan["requests"][k]) for k in g["request_keys"]]}
+                       for g in plan["schedules"][a]] for a in allocations}
+        before,after=schedules(old),schedules(new)
+        frozen=budget.policy({p:"0" for p in op.PROVIDERS},{p:"1" for p in op.PROVIDERS},
+            {p:"1" for p in op.PROVIDERS},{a:{p:"0" for p in op.PROVIDERS} for a in allocations})
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);journal=root/"journal.jsonl";ledger=budget.BudgetLedger(journal,frozen)
+            for a in allocations:ledger.register_schedule(a,before[a])
+            admitted=ledger.reserve_next_group("development_sol_main")
+            for key in admitted["request_keys"][:4]:
+                ledger.mark_dispatched(key);ledger.settle(key,"0",evidence_sha256="f"*64)
+            new_sha=digest(canonical(new))
+            receipt={"version":"study-v7.0.2-sol-subscription-amendment","configuration_revision":"v7.0.2",
+                "previous_plan_sha256":digest(canonical(old)),"new_plan_sha256":new_sha,
+                "payload_revision_sha256":"c"*64,"failure_metadata_sha256":"d"*64,
+                "previous_schedules_sha256":{a:digest(canonical(before[a])) for a in allocations},
+                "new_schedules_sha256":{a:digest(canonical(after[a])) for a in allocations}}
+            receipt_path=root/"amendment.json";receipt_path.write_bytes(canonical(receipt))
+            ledger.supersede_subscription_development(receipt_path,after)
+            original=journal.read_bytes()
+            state,summary=op.read_journal(journal,new,plan_sha256=new_sha)
+            self.assertTrue(summary["verified"])
+            self.assertEqual(summary["superseded_zero_cost_subscription_entry_statuses"],{"settled":4,"cancelled_unsent":4})
+            self.assertEqual(summary["incremental_accounted_usd"],{"openai":"0","typesafe":"0"})
+            self.assertEqual(journal.read_bytes(),original)
+            with self.assertRaisesRegex(ValueError,"exact new plan"):
+                op.read_journal(journal,new,plan_sha256="e"*64)
 
     def test_scoped_development_reparse_preserves_originals_and_rejects_tampering(self):
         from scripts.study_v7 import routes

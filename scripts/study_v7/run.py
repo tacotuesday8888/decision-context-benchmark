@@ -108,6 +108,30 @@ def _check_stops(execution, receipt):
     return execution / name
 
 
+def _pause_policy(receipt):
+    name = receipt.get('pause_record_name', 'paused-sol_subscription.json')
+    acknowledged = receipt.get('acknowledged_pauses', {})
+    pattern = r'paused-sol_subscription(?:-[A-Za-z0-9_.-]+)?\.json'
+    if not isinstance(name, str) or re.fullmatch(pattern, name) is None or not isinstance(acknowledged, dict):
+        raise PermissionError('Invalid immutable subscription pause policy')
+    for old_name, sha in acknowledged.items():
+        if (not isinstance(old_name, str) or re.fullmatch(pattern, old_name) is None or old_name == name or
+                not isinstance(sha, str) or re.fullmatch(r'[0-9a-f]{64}', sha) is None):
+            raise PermissionError('Acknowledged pauses require distinct safe names and exact SHA256 hashes')
+    return name, acknowledged
+
+
+def _paused_configurations(execution, receipt):
+    _, acknowledged = _pause_policy(receipt)
+    execution = Path(execution)
+    for name, sha in acknowledged.items():
+        path = execution / name
+        if path.is_symlink() or not path.is_file() or digest(path.read_bytes()) != sha:
+            raise PermissionError('Acknowledged subscription pause is missing or changed: ' + name)
+    # Every new unacknowledged pause closes only the isolated subscription lane.
+    return {'sol_subscription'} if any(p.name not in acknowledged for p in execution.glob('paused-*.json')) else set()
+
+
 class OwnerPermit:
     """Validated immutable owner receipt; not an environment toggle or API login."""
     def __init__(self, authorization_path, manifest_path, phase):
@@ -127,6 +151,7 @@ class OwnerPermit:
     def check(self):
         r = self.receipt
         _stop_policy(r)
+        _pause_policy(r)
         if digest(self.authorization_path.read_bytes()) != self.authorization_sha256:
             raise PermissionError('Owner authorization changed during execution')
         if digest(self.manifest_path.read_bytes()) != self.manifest_sha256:
@@ -263,7 +288,7 @@ def execute(permit):
         raise PermissionError('Another v7 executor owns dispatch') from None
     stop_path = execution / _stop_policy(permit.receipt)[0]
     stop = threading.Event()
-    paused = {p.stem.removeprefix('paused-') for p in execution.glob('paused-*.json')}
+    paused = _paused_configurations(execution, permit.receipt)
     pause_lock = threading.Lock()
     runtime_cache = {}
     runtime_lock = threading.Lock()
@@ -285,6 +310,8 @@ def execute(permit):
             if stop.is_set():
                 return None
             request = permit.plan['requests'][key]
+            if request['config'] == 'sol_subscription':
+                paused.update(_paused_configurations(execution, permit.receipt))
             if request['config'] in paused:
                 return None
             state = ledger.entry(key)['status']
@@ -320,7 +347,7 @@ def execute(permit):
                 if request['config'] == 'sol_subscription':
                     with pause_lock:
                         paused.add('sol_subscription')
-                        pause_path = execution / 'paused-sol_subscription.json'
+                        pause_path = execution / _pause_policy(permit.receipt)[0]
                         if not pause_path.exists():
                             _exclusive(pause_path, {'configuration': 'sol_subscription',
                                 'reason': result['parsed'].get('status'), 'request_key': key,

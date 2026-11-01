@@ -60,6 +60,17 @@ AUDIT_SCHEMA = {'type': 'object', 'properties': {
     'additionalProperties': False}
 
 
+def model_configuration(config, configuration_revision=None):
+    if configuration_revision is None:
+        return PANEL[config]
+    if config != 'sol_subscription' or configuration_revision != 'v7.0.2':
+        raise ValueError('Unsupported explicit configuration revision')
+    return PANEL[config] | {'configuration_revision': configuration_revision,
+        'cache_control_status': 'unsupported subscription API; provider default/uncontrolled',
+        'context_tokens': 500000, 'catalog_max_context_tokens': 872000,
+        'context_capacity_basis': 'Authenticated project subscription model catalogue default context_window; no experimental context enabled'}
+
+
 def canonical(value):
     return json.dumps(value, sort_keys=True, ensure_ascii=False, allow_nan=False,
                       separators=(',', ':')).encode()
@@ -74,7 +85,7 @@ def rank(source, purpose, canonical_id):
     return digest('\0'.join((SEED, source, purpose, str(canonical_id))).encode())
 
 
-def _responses(config, state, question, schema=BOOL_SCHEMA, schema_name='injection_decision'):
+def _responses(config, state, question, schema=BOOL_SCHEMA, schema_name='injection_decision', *, configuration_revision=None):
     p = PANEL[config]
     result = {'model': p['model'], 'instructions': prompts.SYSTEM + ' ' + question,
         'input': [{'role': 'user', 'content': state}], 'store': False, 'stream': True,
@@ -85,10 +96,14 @@ def _responses(config, state, question, schema=BOOL_SCHEMA, schema_name='injecti
         # Explicit route amendment: this field is unsupported, not silently
         # removed after a provider rejection. Provider-default output is disclosed.
         result.pop('max_output_tokens')
+    if configuration_revision is not None:
+        if config != 'sol_subscription' or configuration_revision != 'v7.0.2':
+            raise ValueError('Unsupported explicit configuration revision')
+        result.pop('prompt_cache_options')
     return result
 
 
-def payload(config, row, condition=None):
+def payload(config, row, condition=None, *, configuration_revision=None):
     p = PANEL[config]
     if not isinstance(row['candidate'], str) or not row['candidate']:
         raise ValueError('Complete nonempty source text required')
@@ -116,10 +131,10 @@ def payload(config, row, condition=None):
     if p['kind'] == 'predicate':
         return {'model': p['model'], 'input': state,
                 'questions': [{'name': 'injection', 'type': 'predicate', 'instructions': question}]}
-    return _responses(config, state, question)
+    return _responses(config, state, question, configuration_revision=configuration_revision)
 
 
-def audit_payload(rows, config='sol_responses'):
+def audit_payload(rows, config='sol_responses', *, configuration_revision=None):
     if len(rows) != 2 or {r['upstream_label'] for r in rows} != {0, 1}:
         raise ValueError('Audit requires one complete original-label pair')
     if len({r['task'] for r in rows}) != 1 or len({r['group_id'] for r in rows}) != 1:
@@ -130,7 +145,7 @@ def audit_payload(rows, config='sol_responses'):
         ensure_ascii=False, sort_keys=True)
     if config not in ('sol_responses', 'sol_subscription'):
         raise ValueError('Audit requires the explicitly selected Sol route')
-    return _responses(config, state, AUDIT_INSTRUCTIONS, AUDIT_SCHEMA, 'source_pair_audit')
+    return _responses(config, state, AUDIT_INSTRUCTIONS, AUDIT_SCHEMA, 'source_pair_audit', configuration_revision=configuration_revision)
 
 
 def request_key(config, split, namespace, payload_sha256):
@@ -139,7 +154,7 @@ def request_key(config, split, namespace, payload_sha256):
     return digest(canonical([VERSION, config, split, namespace, payload_sha256]))
 
 
-def build_plan(main_rows, external_rows, selection=None, *, sol_config='sol_responses'):
+def build_plan(main_rows, external_rows, selection=None, *, sol_config='sol_responses', sol_subscription_revision=None):
     """Locked source-row references and exact hashes; no payload text in this plan.
 
     All rows must already be grouped/selected. Subsets are chosen before any output.
@@ -148,6 +163,8 @@ def build_plan(main_rows, external_rows, selection=None, *, sol_config='sol_resp
     """
     if sol_config not in ('sol_responses', 'sol_subscription', None):
         raise ValueError('Unsupported explicit Sol route')
+    if sol_subscription_revision is not None and (sol_config != 'sol_subscription' or sol_subscription_revision != 'v7.0.2'):
+        raise ValueError('Explicit Sol subscription revision requires its fixed route')
     general_configs = ('luna_responses',) + ((sol_config,) if sol_config else ())
     split_sol_lane = sol_config == 'sol_subscription'
     selection = selection or {}
@@ -195,12 +212,16 @@ def build_plan(main_rows, external_rows, selection=None, *, sol_config='sol_resp
             for row in (part[:1] if is_audit else part):
                 cs = ('audit',) if is_audit else ('candidate',) if config == 'protectai_local' else ('external',) if row['source'] == 'promptshield' else CONDITIONS
                 for condition in cs:
-                    body = audit_payload(part, config) if is_audit else payload(config, row, condition)
+                    revision = sol_subscription_revision if config == 'sol_subscription' else None
+                    body = audit_payload(part, config, configuration_revision=revision) if is_audit else payload(config, row, condition, configuration_revision=revision)
                     sha = digest(canonical(body)); key = request_key(config, split, namespace, sha)
                     record = {'key': key, 'config': config, 'source': row['source'], 'id': row['id'],
                         'group_id': row['group_id'], 'condition': condition, 'split': split,
                         'namespace': namespace, 'payload_sha256': sha, 'allocation': name,
                         'first_attempt_primary': namespace == 'first', 'audit_ids': [r['id'] for r in part] if is_audit else None}
+                    if revision is not None:
+                        record['configuration_revision'] = revision
+                        record['cache_control_status'] = 'unsupported subscription API; provider default/uncontrolled'
                     if key in requests and requests[key] != record:
                         raise ValueError('Unexpected exact-payload sharing between distinct selected groups')
                     requests[key] = record
@@ -256,12 +277,15 @@ def build_plan(main_rows, external_rows, selection=None, *, sol_config='sol_resp
         'source_rows_sha256': digest(canonical(sorted((r['id'], r.get('input_sha256'), r['group_id'], r['partition']) for r in rows))),
         'active_configurations': list(active), 'sol_config': sol_config,
         'execution_profile': 'cheap-api-sol-subscription' if split_sol_lane else 'without-sol' if sol_config is None else 'original-paid-sol-preparation',
-        'model_configurations': {c: PANEL[c] for c in active}}
+        'model_configurations': {c: model_configuration(c, sol_subscription_revision if c == 'sol_subscription' else None)
+                                 for c in active}}
 
 
 def materialize(request, rows_by_id):
-    body = audit_payload([rows_by_id[i] for i in request['audit_ids']], request['config']) if request['condition'] == 'audit' else payload(
-        request['config'], rows_by_id[request['id']], request['condition'])
+    body = audit_payload([rows_by_id[i] for i in request['audit_ids']], request['config'],
+        configuration_revision=request.get('configuration_revision')) if request['condition'] == 'audit' else payload(
+        request['config'], rows_by_id[request['id']], request['condition'],
+        configuration_revision=request.get('configuration_revision'))
     if digest(canonical(body)) != request['payload_sha256']:
         raise ValueError('Frozen source/payload changed')
     return body

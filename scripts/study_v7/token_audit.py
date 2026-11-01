@@ -89,7 +89,7 @@ def build_forecast(records, plan, historical=None):
         'authorization_reference':'docs/study-v7/RUN-AUTHORIZATION.md',
         'counts':counts, 'paid_calls':sum(v for k,v in counts.items() if PANEL[k]['provider'] is not None),
         'subscription_calls':sum(v for k,v in counts.items() if PANEL[k]['route']=='subscription'),
-        'model_configurations':{k:PANEL[k] for k in counts},'rates_usd_per_million':RATES,'cost_scenarios_usd':cases,
+        'model_configurations':plan.get('model_configurations',{k:PANEL[k] for k in counts}),'rates_usd_per_million':RATES,'cost_scenarios_usd':cases,
         'sources':sources, 'runtime_by_source':runtime,
         'native_projected_hours':str(sum(Decimal(x['historical_request_rate_extrapolation_hours']) for x in runtime.values())),
         'general_required_requests_per_second_each_for_8h':{k:str(Decimal(counts[k])/28800) for k in counts if PANEL[k]['kind']=='responses'},
@@ -122,6 +122,8 @@ def build_forecast(records, plan, historical=None):
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--plan',type=Path,default=RAW/'request-plan.json')
+    ap.add_argument('--output-version',choices=('v2','v3'),default='v2')
+    ap.add_argument('--reuse-audit',type=Path,help='Reuse unchanged exact payload measurements from the verified full-token v2 audit')
     ap.add_argument('--tokenizer',type=Path,default=Path.home()/'.cache/huggingface/hub/models--protectai--deberta-v3-base-prompt-injection-v2/snapshots/90c9989b1a342275dd0d1a95aad283c04e075671/tokenizer.json')
     args=ap.parse_args()
     import tiktoken
@@ -132,11 +134,23 @@ def main():
     rows={r['id']:r for name in ('main-selected.jsonl','external-selected-v3.jsonl')
           for r in map(json.loads,(RAW/name).read_text().splitlines())}
     records, cache, local_cache=[],{},{}
+    prior={}
+    if args.reuse_audit is not None:
+        prior_forecast=json.loads((OUT/'forecast-v2.json').read_text())
+        if (digest(args.reuse_audit.read_bytes())!=prior_forecast['token_audit_sha256'] or
+            prior_forecast.get('protectai_tokenizer_preprocessing')!={'truncation':None,'padding':None,'special_tokens':False}):
+            raise ValueError('Only the verified complete-document v2 measurement audit can be reused')
+        prior={r['key']:r for r in map(json.loads,args.reuse_audit.read_text().splitlines())}
+    reused=0
     for i,request in enumerate(plan['requests'].values()):
         config=request['config']
         body=materialize(request,rows)
         entry={key:request[key] for key in ('key','id','config','source','condition','namespace','split','payload_sha256')}
-        if config=='protectai_local':
+        old=prior.get(request['key'])
+        if old is not None and old['payload_sha256']==request['payload_sha256']:
+            entry.update({key:old[key] for key in ('serialization_proxy_tokens','serialized_utf8_bytes','candidate_tokens','windows') if key in old})
+            reused+=1
+        elif config=='protectai_local':
             sha=digest(body['candidate'].encode())
             if sha not in local_cache:
                 n=len(tok.encode(body['candidate'],add_special_tokens=False).ids)
@@ -152,12 +166,16 @@ def main():
         records.append(entry)
         if i and i%10000==0:
             print(f'Tokenized {i} frozen requests; no model forward passes.',flush=True)
-    write_rows(RAW/'token-audit-v2.jsonl',records)
+    audit_path=RAW/('token-audit-'+args.output_version+'.jsonl')
+    write_rows(audit_path,records)
     forecast=build_forecast(records,plan)
+    if args.output_version=='v3':
+        forecast.update(version='study-v7-measured-forecast-3',supersedes='forecast-v2.json: unchanged paid/local payloads and measurements; separately versioned subscription Sol omits its unsupported cache-control parameter',subscription_revision='v7.0.2')
+    forecast['measurements_reused_from_verified_v2']=reused
     forecast['tokenizer_software']={key:importlib.metadata.version(key) for key in ('tiktoken','tokenizers')}
     forecast['protectai_tokenizer_sha256']=digest(args.tokenizer.read_bytes())
     forecast['protectai_tokenizer_preprocessing']={'truncation':tok.truncation,'padding':tok.padding,'special_tokens':False}
-    forecast['token_audit_sha256']=digest((RAW/'token-audit-v2.jsonl').read_bytes())
+    forecast['token_audit_sha256']=digest(audit_path.read_bytes())
     forecast['summary_by_config']={config:summary([r.get('serialization_proxy_tokens',r.get('candidate_tokens')) for r in records if r['config']==config]) for config in forecast['counts']}
     first_main=[r for r in records if r['source']=='browsesafe' and r['namespace']=='first' and r['split']=='confirmation' and r['config']!='protectai_local']
     forecast['main_confirmation_proxy_tokens_by_condition']={config:{condition:summary([
@@ -171,9 +189,9 @@ def main():
         for config in forecast['counts'] if config!='protectai_local'}
     forecast['coverage_preflight']={config:{'native_tokenizer_count_verified':config=='protectai_local',
         'model_forward_passes':0,'coverage': 'complete_sliding_windows' if config=='protectai_local' else 'unchanged_full_input_server_gate_pending_development',
-        'proxy_count_above_native_limit_not_certified':sum(r.get('serialization_proxy_tokens',0)>PANEL[config]['context_tokens'] for r in records if r['config']==config)}
+        'proxy_count_above_native_limit_not_certified':sum(r.get('serialization_proxy_tokens',0)>forecast['model_configurations'][config]['context_tokens'] for r in records if r['config']==config)}
         for config in forecast['counts']}
-    save(OUT/'forecast-v2.json',json.dumps(forecast,indent=2,sort_keys=True).encode()+b'\n')
+    save(OUT/('forecast-'+args.output_version+'.json'),json.dumps(forecast,indent=2,sort_keys=True).encode()+b'\n')
     print(json.dumps({'paid_calls':forecast['paid_calls'],'cost_scenarios_usd':forecast['cost_scenarios_usd'],'local_windows':forecast['local_windows']}))
 
 

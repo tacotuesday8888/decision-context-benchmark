@@ -179,6 +179,103 @@ class Accounting(unittest.TestCase):
             self.assertEqual(first.snapshot()['incremental_accounted_usd']['openai'], '0.9')
 
 
+class SubscriptionSupersession(unittest.TestCase):
+    def test_explicit_zero_cost_development_supersession_preserves_every_old_attempt(self):
+        main = main_rows(1, 'development'); external = external_rows(1, 'development')
+        old = requests.build_plan(main, external, sol_config='sol_subscription')
+        new = requests.build_plan(main, external, sol_config='sol_subscription', sol_subscription_revision='v7.0.2')
+        core_old = {k: r for k, r in old['requests'].items() if r['config'] != 'sol_subscription'}
+        core_new = {k: r for k, r in new['requests'].items() if r['config'] != 'sol_subscription'}
+        self.assertEqual(core_old, core_new)
+        lookup = {r['id']: r for r in main+external}
+        for r in new['requests'].values():
+            if r['config'] == 'sol_subscription':
+                body = requests.materialize(r, lookup)
+                self.assertNotIn('prompt_cache_options', body)
+                self.assertEqual(r['configuration_revision'], 'v7.0.2')
+                self.assertEqual(body['reasoning'], {'effort': 'low'})
+                self.assertNotIn('max_output_tokens', body)
+        allocations = ('development_sol_main', 'development_sol_external')
+        def schedules(plan):
+            return {a: [{'group': g['group'], 'requests': [budget.reservation(plan['requests'][k])
+                for k in g['request_keys']]} for g in plan['schedules'][a]] for a in allocations}
+        old_schedules, new_schedules = schedules(old), schedules(new)
+        policy = budget.policy({'openai': '0', 'typesafe': '0'}, {'openai': '1', 'typesafe': '1'},
+            {'openai': '1', 'typesafe': '1'}, {a: {'openai': '0', 'typesafe': '0'} for a in allocations})
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); ledger = budget.BudgetLedger(root/'journal', policy)
+            for a in allocations:
+                ledger.register_schedule(a, old_schedules[a])
+            admitted = ledger.reserve_next_group('development_sol_main')
+            for key in admitted['request_keys'][:4]:
+                ledger.mark_dispatched(key); ledger.settle(key, '0', evidence_sha256='f'*64)
+            before = ledger.snapshot()
+            receipt = {'version': 'study-v7.0.2-sol-subscription-amendment', 'configuration_revision': 'v7.0.2',
+                'previous_plan_sha256': requests.digest(requests.canonical(old)),
+                'new_plan_sha256': requests.digest(requests.canonical(new)),
+                'payload_revision_sha256': 'c'*64, 'failure_metadata_sha256': 'd'*64,
+                'previous_schedules_sha256': {a: requests.digest(requests.canonical(old_schedules[a])) for a in allocations},
+                'new_schedules_sha256': {a: requests.digest(requests.canonical(new_schedules[a])) for a in allocations}}
+            receipt_path = root/'amendment.json'; receipt_path.write_bytes(requests.canonical(receipt))
+            in_flight = json.loads(json.dumps(before))
+            in_flight['entries'][admitted['request_keys'][0]]['status'] = 'dispatched'
+            with self.assertRaisesRegex(ValueError, 'no in-flight'):
+                budget._validate_subscription_supersession(in_flight, receipt, new_schedules,
+                    requests.digest(receipt_path.read_bytes()))
+            confirmation = json.loads(json.dumps(before))
+            confirmation['entries'][admitted['request_keys'][0]]['split'] = 'confirmation'
+            with self.assertRaisesRegex(ValueError, 'development only'):
+                budget._validate_subscription_supersession(confirmation, receipt, new_schedules,
+                    requests.digest(receipt_path.read_bytes()))
+            paid = json.loads(json.dumps(new_schedules)); paid['development_sol_main'][0]['requests'][0]['provider'] = 'openai'
+            paid_receipt = receipt | {'new_schedules_sha256': {a: requests.digest(requests.canonical(paid[a])) for a in allocations}}
+            with self.assertRaisesRegex(ValueError, 'Only zero-cost'):
+                budget._validate_subscription_supersession(before, paid_receipt, paid,
+                    requests.digest(receipt_path.read_bytes()))
+            self.assertEqual(ledger.snapshot()['entries'], before['entries'])
+            data = ledger.supersede_subscription_development(receipt_path, new_schedules)
+            after = ledger.snapshot()
+            self.assertEqual(after['policy'], before['policy'])
+            self.assertEqual(after['all_in_accounted_usd'], before['all_in_accounted_usd'])
+            for key in admitted['request_keys'][:4]:
+                self.assertEqual(after['entries'][key], before['entries'][key])
+            for key in admitted['request_keys'][4:]:
+                self.assertEqual(after['entries'][key]['status'], 'cancelled_unsent')
+                self.assertEqual(after['entries'][key]['accounted_usd'], '0')
+            self.assertEqual(data['previous_schedules']['development_sol_main']['admitted'], 1)
+            self.assertEqual(ledger.progress('development_sol_main')['admitted'], 0)
+            self.assertEqual(ledger.supersede_subscription_development(receipt_path, new_schedules), data)
+            revised = ledger.reserve_next_group('development_sol_main')
+            self.assertEqual(revised['status'], 'admitted')
+            self.assertTrue(set(revised['request_keys']).isdisjoint(admitted['request_keys']))
+            self.assertIn(':revision:v7.0.2', revised['batch_id'])
+            reopened = budget.BudgetLedger(root/'journal').snapshot()
+            self.assertEqual(reopened['subscription_schedule_supersessions'], after['subscription_schedule_supersessions'])
+            self.assertEqual(reopened['all_in_accounted_usd'], before['all_in_accounted_usd'])
+
+    def test_revision_metadata_and_pause_ack_are_explicit(self):
+        body = requests.payload('sol_subscription', main_rows(1)[0], 'task', configuration_revision='v7.0.2')
+        cov = capacity.check('sol_subscription', body, allow_server_gate=True, configuration_revision='v7.0.2')
+        self.assertEqual(cov['context_limit_tokens'], 500000)
+        self.assertIn('uncontrolled', cov['cache_control_status'])
+        parsed = routes.parse_response('sol_subscription', stream(config='sol_subscription',
+            prompt_cache_options={'mode': 'implicit'}), configuration_revision='v7.0.2')
+        self.assertTrue(parsed['valid'])
+        self.assertEqual(parsed['configuration_revision'], 'v7.0.2')
+        self.assertIn('uncontrolled', parsed['cache_control_status'])
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); old = root/'paused-sol_subscription.json'; old.write_bytes(b'old synthetic pause')
+            self.assertEqual(run._paused_configurations(root, {}), {'sol_subscription'})
+            receipt = {'acknowledged_pauses': {old.name: requests.digest(old.read_bytes())},
+                'pause_record_name': 'paused-sol_subscription-v7.0.2.json'}
+            self.assertEqual(run._paused_configurations(root, receipt), set())
+            (root/receipt['pause_record_name']).write_bytes(b'new synthetic pause')
+            self.assertEqual(run._paused_configurations(root, receipt), {'sol_subscription'})
+            old.write_bytes(b'changed')
+            with self.assertRaises(PermissionError):
+                run._paused_configurations(root, receipt)
+
+
 class CrashRecovery(unittest.TestCase):
     def _fixture(self, *, namespace='first', saved_namespace=None, status='ok', primary_override=None):
         temp = tempfile.TemporaryDirectory(); self.addCleanup(temp.cleanup)

@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - run: python -m pip install numpy==2.4.4 scipy==1.17.1 PyJWT==2.15.1 tokenizers==0.22.2
+      - run: python -m pip install numpy==2.4.4 scipy==1.17.1 PyJWT==2.15.1 tokenizers==0.22.2 matplotlib==3.10.8
       - run: python -m unittest discover -s tests/study_v7 -v
       - run: python -m scripts.study_v7.verify
       - run: git diff --check

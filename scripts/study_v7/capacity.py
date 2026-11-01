@@ -1,7 +1,7 @@
 """Tokenization-only coverage checks. Never load a model or run a forward pass."""
 from __future__ import annotations
 import math
-from scripts.study_v7.requests import PANEL, canonical, digest
+from scripts.study_v7.requests import PANEL, canonical, digest, model_configuration
 
 SOURCES = {
     'jev_firstparty': ['https://docs.typesafe.ai/models'],
@@ -12,8 +12,8 @@ SOURCES = {
 }
 
 
-def check(config, request, *, tokenizer=None, native_count=None, allow_server_gate=False):
-    p = PANEL[config]
+def check(config, request, *, tokenizer=None, native_count=None, allow_server_gate=False, configuration_revision=None):
+    p = model_configuration(config, configuration_revision)
     if request.get('model') != p['model']:
         raise ValueError('Pinned model differs')
     result = {'payload_sha256': digest(canonical(request)), 'request_bytes': len(canonical(request)),
@@ -23,6 +23,10 @@ def check(config, request, *, tokenizer=None, native_count=None, allow_server_ga
     if config == 'sol_subscription':
         result['output_limit_status'] = p['output_limit_status']
         result['fixed_max_output_supported'] = False
+        if configuration_revision is not None:
+            result['configuration_revision'] = configuration_revision
+            result['cache_control_status'] = p['cache_control_status']
+            result['context_capacity_basis'] = p['context_capacity_basis']
     if config == 'protectai_local':
         if request.get('revision') != p['revision']:
             raise ValueError('Pinned local revision differs')
