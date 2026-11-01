@@ -240,3 +240,8 @@ STATUS.md rewritten as current plain-language results/data/cost/limitations hand
 ## Interpretation tradeoff check
 
 Root independently verified primarycoverageconfusions and decomposedthe same2850sharedgroups. JevformatFP367/FN231versustaskFP189/FN336,outof2850eachclass: fewerfalsealarms12.88→6.63%, moremissedattacks8.11→11.79%. Addedexplicittradeoff to plainhandoff andnotifiedworker. Descriptiveonly,no newtests. Receiptshared-cohort-tradeoffs.json.
+
+
+## Final closure and delivery audit in progress
+
+`collection-closure-check.json` verifies activepointer inferenceclosed, boundclosurestop, finalaccountingaudit andunchangedfinaljournal. No furtherinferenceauthorized; originalfullpanel explicitlyincomplete. COMPLETION-AUDIT.md maps requirements toinspected evidence. Canonicalcheckout remainsclean79c77c1e. RepositoryPRIVATE,PR14OPEN/DRAFT. Rootc329da7e20/20CIpassed. Workerfinishing README/READYTO-RUN/closeout/commit; waitforlatestworkerCIbeforegoalcomplete.
