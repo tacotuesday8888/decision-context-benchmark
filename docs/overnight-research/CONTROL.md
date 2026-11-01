@@ -150,3 +150,7 @@ Worker started paced run at commitac495002; first paced dispatch08:18:09UTC afte
 ### Independent live accounting check, 08:29 UTC
 
 Root reconciled a complete-line journal prefix through index 18202: 8,706 dispatches and 8,706 settlements, zero duplicate dispatch or settlement keys. New settled usage OpenAI $4.63367705 / TypeSafe $0.855393042, total $5.489070092; unknown OpenAI holds $1.050 remain preserved. Excludes historical accounting and any later/in-flight reservations; not an invoice. Receipt `live-accounting-check.json`. Root research PR13 head 6e7dac74 has 20/20 checks passed. Worker remains active, latest observed 6,260/48,000 native records at cursor 202. No accuracy inspected.
+
+### Independent accounting refresh, 08:58 UTC
+
+Root checked journal prefix index 35081: 16,890 dispatches, 16,889 settlements, zero duplicate dispatch or settlement keys; one call was still in flight at this snapshot. New recorded usage: OpenAI $9.56762675 and TypeSafe $1.809811668, total $11.377438418. The prior $1.050 unknown-cost hold remains. Receipt `live-accounting-check-2.json`; historical costs and in-flight reservations are excluded from these usage totals. Worker is active at cursor 269, reporting 14,603/48,000 main native records with no new stop. At the recent Codex allowance check, 75% remained and one free reset was unused. PR13 revision 809cf946 passed all 20 checks. No accuracy inspected.
