@@ -134,3 +134,15 @@ Root inspected `stop-confirmation-v7.0.4.json` and432confirmation completions:21
 ### Core continuation running, approximately08:05UTC
 
 Worker settled all27first admitted groups, waited two minutes and resumed untouched requests under unchanged freeze. Root independently checked3,043total journal dispatches:zero duplicate keys, failed Luna key dispatched once, OpenAI unknown-cost hold0.525 preserved. At that snapshot new settled usage was OpenAI1.12791925 /TypeSafe0.182868210 (excludes old studies, holds and in-flight reservations). Worker subsequently reports more than1,200native confirmation records, no further transport error. Latest active cursor161. Root still inspects only transport/coverage/accounting, not accuracy.
+
+### Provider token-rate stop, approximately08:09UTC
+
+Root verified Luna Decisions HTTP429: gpt-6-luna TPM limit2,000,000; used1,990,581/requested10,835; Retry-After header1second. This is a throughput limit, not credit exhaustion. Failed key2c20194b396133250fabed662ecea10caa428287cf28e9187b085752b8b4176d remains a missing first attempt. Worker is preparing a documented operational pacing amendment, preserving payloads/models/cohorts/statistics/caps/deadline. Root requested shared-model accounting across Luna Decisions/Responses and conservative concurrent token reservations. No billing changes, failed-key replay or root inference. Latest active cursor168.
+
+### Pacing freeze independently verified, approximately08:16UTC
+
+Worker reports94offline tests passed. Root verified active v7.0.6manifest/authorization hashes, unchanged plan70d8606f..., all173execution-code hashes, and unchanged cumulative caps. Relative to confirmationv7.0.4, only `pacing.py` and `run.py` changed; analysis/request code hashes unchanged. Shared1.5million proxy-token budget per60seconds for both Luna routes; weights2xproxy with1024floor plus256Responses output;60second startup cooldown. Proxy limitation disclosed. Root independently passed7focused pacing tests; worker added an eighth cancellation test without changing the reviewed production files. Both failed first attempts and total1.05unknown holds retained. Latest cursor179; worker restarting single executor.
+
+### Paced continuation active, 08:19 UTC
+
+Worker started paced run at commitac495002; first paced dispatch08:18:09UTC after startup cooldown. Root checked first138pacing events: maximum observed60second proxy sum1,497,820 below1,500,000. Worker reports3,493/48,000native confirmation records without newstop. Latest cursor185.
