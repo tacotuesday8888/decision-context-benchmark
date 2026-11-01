@@ -1,0 +1,162 @@
+{
+  "audit_date": "2026-10-30",
+  "scope": "Human-written attacks, policy-aware game data, and benign detector controls; source discovery only, no model inference.",
+  "sources_reviewed": 24,
+  "sources_reviewed_definition": "Sum of numResults requested in three Exa searches (8 each), not 24 fully verified datasets or independent studies.",
+  "search_queries": [
+    "Tensor Trust human written prompt injection dataset UC Berkeley official paper github defenses attacks data",
+    "HackAPrompt PromptShield benchmark dataset university paper human prompt injection attacks release data",
+    "Lakera PINT NotInject benign prompt injection detection benchmark dataset release label methodology"
+  ],
+  "method": "Read official papers, primary repositories and dataset cards; inspected actual JSON/JSONL records when accessible; independently counted PromptShield and Tensor Trust benchmark rows. Hugging Face connector successfully returned metadata. Read-only HTTP retrieval parsed data in memory; no third-party code was executed, no paid requests were made, and no dataset payloads were saved here.",
+  "priority_order": ["promptshield", "tensor-trust", "notinject", "hackaprompt", "gandalf-ignore-instructions", "pint", "deepset-prompt-injections"],
+  "datasets": [
+    {
+      "id": "tensor-trust",
+      "name": "Tensor Trust",
+      "urls": {
+        "paper": "https://arxiv.org/abs/2311.01011",
+        "final_paper": "https://proceedings.iclr.cc/paper_files/paper/2024/file/519c51529c3544b3430bd8b17d400365-Paper-Conference.pdf",
+        "project": "https://tensortrust.ai/",
+        "repo": "https://github.com/HumanCompatibleAI/tensor-trust-data",
+        "game_code": "https://github.com/HumanCompatibleAI/tensor-trust",
+        "hugging_face": null
+      },
+      "institution": {"verified": ["University of California, Berkeley", "Georgia Institute of Technology", "Harvard University"], "source": "Final ICLR 2024 paper author affiliations; Berkeley-led collaboration."},
+      "versions": {"repo_commit": "747a75e096761ebc01bd3970158827326b4add23", "benchmarks": "v1, database snapshot 2023-09-10", "raw_dump": "v2, database snapshot 2024-02-16"},
+      "counts": [
+        {"value": 570, "unit": "extraction-robustness benchmark rows", "verification": "independently counted actual JSONL"},
+        {"value": 776, "unit": "hijacking-robustness benchmark rows", "verification": "independently counted actual JSONL"},
+        {"value": 230, "unit": "output-code-leak detection rows", "verification": "independently counted actual JSONL; not input-injection classification"},
+        {"value": 563349, "unit": "raw v2 attack attempts", "verification": "final paper reported; raw archive not independently counted"},
+        {"value": 294680, "unit": "distinct raw v2 attacker inputs", "verification": "final paper reported"},
+        {"value": 118377, "unit": "raw v2 defense records", "verification": "final paper reported"},
+        {"value": 95706, "unit": "distinct raw v2 defenses", "verification": "final paper reported"}
+      ],
+      "schema": {
+        "robustness_benchmarks": ["sample_id", "pre_prompt", "attack", "post_prompt", "access_code"],
+        "output_leak_detection": ["sample_id", "access_code", "llm_output", "is_prompt_extraction"],
+        "raw_attack_documented_fields": ["attack_id", "attacker_id_anonymized", "defender_id_anonymized", "defense_id", "opening_defense", "closing_defense", "access_code", "attacker_input", "llm_choice", "llm_output", "output_is_access_granted", "is_self_attack", "timestamp"],
+        "label_meaning": "Historical access-granted success and code-leak detection concern victim behavior; an unsuccessful adversarial attempt is still an attack, not a benign detector example. Some raw fields/defense links are missing."
+      },
+      "creation": "Human players write defenses and attacks in an access-code game. Historical outputs come from target LLMs. Curated robustness benchmarks are subsets of game data.",
+      "license": {"status": "unresolved", "source": "https://github.com/HumanCompatibleAI/tensor-trust-data", "detail": "Data repository tree has no LICENSE file and GitHub API returns license:null. Do not transfer the game-code license to the data or redistribute until rights are established."},
+      "task_context_suitability": "Authentic original game policy is present as pre/post defense plus secret. Useful separate policy-aware transfer study; this is not ordinary user-task/document context. Keep extraction and hijacking outcomes separate.",
+      "overlap_caveats": ["Early v1 paper counts 126,808 attempts and 69,906 distinct attacker inputs; these differ from final v2 counts. Specify version.", "Repeated players, defense revisions, near-duplicate attacks and fixed game mechanics reduce independence; group by player/defense/family.", "The 230 output-leak labels cannot be repurposed as candidate injection labels."],
+      "recommendation": "Prioritize a separately labeled game-policy stratum after license/provenance review. Retain authentic defense fields; do not invent normal-task instructions or count all attempts as independent tasks.",
+      "evidence_level": "actual-record verified for benchmark schema/counts; primary-paper/repository verified for raw corpus metadata; raw archive not downloaded",
+      "inspected_urls": [
+        "https://github.com/HumanCompatibleAI/tensor-trust-data",
+        "https://raw.githubusercontent.com/HumanCompatibleAI/tensor-trust-data/main/README.md",
+        "https://raw.githubusercontent.com/HumanCompatibleAI/tensor-trust-data/main/Using%20the%20Tensor%20Trust%20dataset.ipynb",
+        "https://raw.githubusercontent.com/HumanCompatibleAI/tensor-trust-data/main/benchmarks/extraction-robustness/v1/extraction_robustness_dataset.jsonl",
+        "https://raw.githubusercontent.com/HumanCompatibleAI/tensor-trust-data/main/benchmarks/hijacking-robustness/v1/hijacking_robustness_dataset.jsonl",
+        "https://raw.githubusercontent.com/HumanCompatibleAI/tensor-trust-data/main/detecting-extractions/v1/prompt_extraction_detection.jsonl",
+        "https://arxiv.org/html/2311.01011v1",
+        "https://proceedings.iclr.cc/paper_files/paper/2024/file/519c51529c3544b3430bd8b17d400365-Paper-Conference.pdf"
+      ]
+    },
+    {
+      "id": "promptshield",
+      "name": "PromptShield benchmark",
+      "urls": {"paper": "https://arxiv.org/abs/2501.15145", "project": "https://huggingface.co/datasets/hendzh/PromptShield", "repo": null, "hugging_face": "https://huggingface.co/datasets/hendzh/PromptShield"},
+      "institution": {"verified": ["University of California, Berkeley", "King Abdulaziz City for Science and Technology"], "source": "Paper PDF first-page affiliations."},
+      "versions": {"hf_commit": "a5234cb1f5cdb256600cab64b8c961195b5e8404", "paper": "v2, 2025-04-12"},
+      "counts": [
+        {"value": 18909, "unit": "training rows", "benign": 9457, "injection": 9452, "verification": "actual JSON counted"},
+        {"value": 1000, "unit": "validation rows", "benign": 497, "injection": 503, "verification": "actual JSON counted"},
+        {"value": 23516, "unit": "test rows", "benign": 17030, "injection": 6486, "verification": "actual JSON counted"},
+        {"value": 43425, "unit": "all released rows across three splits", "verification": "actual JSON counted; sums published split sizes"}
+      ],
+      "schema": {"actual_fields": ["prompt", "label"], "label_meaning": "0 benign, 1 injection; full concatenated prompt rather than separately typed trusted instruction and untrusted input."},
+      "creation": "Mixture of conversational and application-structured sources. Sources include Ultrachat, LMSYS, Alpaca, Dolly, natural-instructions, synthetic Python tasks, templated attack methods, Open PromptInject, and human HackAPrompt. Not all data are human-written or naturally occurring attacks.",
+      "license": {"status": "declared apache-2.0", "source": "https://huggingface.co/datasets/hendzh/PromptShield/raw/main/README.md", "detail": "Upstream source rights remain relevant; retain provenance."},
+      "task_context_suitability": "High-value source to audit: paper's application cases contain original instruction plus input. Release only preserves prompt/label, so recover documented upstream boundaries before context ablation; many conversational examples have no separate application task.",
+      "overlap_caveats": ["Test has 23,359 unique exact prompt strings: 71 duplicate groups, 157 excess rows, zero conflicting-label duplicate groups. Train/validation each have unique prompts; no exact prompt overlap between any split pair. This does not establish near-duplicate or task-family independence.", "HackAPrompt contributes to training; merging both resources creates source overlap.", "Source/family labels and task/input boundaries are absent from released records; source grouping needs reconstruction.", "PromptShield dataset is different from Meta Prompt Guard model family and Azure AI Prompt Shields endpoint."],
+      "file_hashes_sha256": {"train.json": "aa33c3ffcc27bd07c0a233b52f1b8c3cbdb30606ce2412da06a88b5290cdc7b6", "validation.json": "1d93d90d57d3ef44ed0c546fbc04d66324436c5fcd32e7fcb940ceed270fbe77", "test.json": "526207c2485829d9961407011d7f4cd929569e7f285dc8396b3f385e0608bc70"},
+      "recommendation": "Audit/reconstruct a provenance-backed application subset first; add a separate hard-benign detection control. Preserve published test and development separation and deduplicate/group before freezing a new evaluation.",
+      "evidence_level": "actual-record verified: all three JSON files counted, exact duplicates and label conflicts checked; primary paper read",
+      "inspected_urls": ["https://arxiv.org/pdf/2501.15145", "https://huggingface.co/datasets/hendzh/PromptShield/raw/main/README.md", "https://huggingface.co/datasets/hendzh/PromptShield/resolve/main/train.json", "https://huggingface.co/datasets/hendzh/PromptShield/resolve/main/validation.json", "https://huggingface.co/datasets/hendzh/PromptShield/resolve/main/test.json", "https://datasets-server.huggingface.co/size?dataset=hendzh%2FPromptShield"]
+    },
+    {
+      "id": "hackaprompt",
+      "name": "HackAPrompt 2023",
+      "urls": {"paper": "https://aclanthology.org/2023.emnlp-main.302/", "project": "https://www.hackaprompt.com/", "repo": null, "hugging_face": "https://huggingface.co/datasets/hackaprompt/hackaprompt-dataset"},
+      "institution": {"verified": ["University of Maryland", "Mila", "Stanford University", "Technical University of Sofia", "University of Milan", "New York University", "University of Arizona"], "other_affiliation": "Towards AI", "source": "EMNLP 2023 PDF first page."},
+      "versions": {"hf_commit": "25b87fbedfb86840abaf8cd09af7a029208a971a", "gated": "auto"},
+      "counts": [{"value": "600K+", "unit": "adversarial prompt submissions", "verification": "paper reported, not independent unique tasks or verified downloaded rows"}, {"value": "2800+", "unit": "competition participants", "verification": "paper reported"}, {"value": 3, "unit": "historical target models", "verification": "paper/card"}],
+      "schema": {"documented_fields": ["level", "user_input", "prompt", "completion", "model", "expected_completion", "token_count", "correct", "error", "score", "dataset", "timestamp"], "label_meaning": "correct/score describe competition target completion success, not benign-versus-attack intent. prompt may preserve challenge wrapper; inspect actual accessible rows before boundary extraction."},
+      "creation": "Human free-form attacks submitted through playground and competition platform for ten challenge levels; historical model outputs are included. Raw competition data are not fully curated.",
+      "license": {"status": "declared MIT; gated access", "source": "https://huggingface.co/api/datasets/hackaprompt/hackaprompt-dataset", "detail": "HF metadata accessible; raw README and dataset-server size requests returned HTTP 401. Do not bypass gate; exact file rows not verified in this audit."},
+      "task_context_suitability": "Promising authentic application/challenge instructions with human attacks. Narrow repeated challenge templates limit independent-task diversity; needs exact wrapper extraction and benign controls.",
+      "overlap_caveats": ["Many attempts by the same players and repeated challenge/model combinations; group by challenge and attack family.", "PromptShield training already includes HackAPrompt; do not claim independent pooled datasets.", "A failed attack is not benign; contest success labels cannot directly label injection detection.", "No released team/user identifiers were documented in the inspected card."],
+      "recommendation": "Obtain normal gated access if desired, then inspect records and license terms. Use as human-attack transfer stratum rather than headline scale or primary context evidence until task boundaries are verified.",
+      "evidence_level": "primary-paper and dataset-card verified; raw-record access blocked (401), no actual-row count or boundary verification",
+      "inspected_urls": ["https://aclanthology.org/2023.emnlp-main.302/", "https://aclanthology.org/2023.emnlp-main.302.pdf", "https://arxiv.org/abs/2311.16119", "https://huggingface.co/datasets/hackaprompt/hackaprompt-dataset", "https://huggingface.co/api/datasets/hackaprompt/hackaprompt-dataset"]
+    },
+    {
+      "id": "pint",
+      "name": "PINT benchmark",
+      "urls": {"paper": null, "project": "https://github.com/lakeraai/pint-benchmark", "repo": "https://github.com/lakeraai/pint-benchmark", "hugging_face": null},
+      "institution": {"verified": ["Lakera AI"], "type": "company", "source": "Official repository."},
+      "versions": {"repo_commit": "0efab3f463eae9c823130d8faffb71b2e7c06e63", "archived": true},
+      "counts": [{"value": 4314, "unit": "full benchmark inputs", "verification": "README reported; full data not public/record-verified"}, {"value": 3016, "unit": "English full-benchmark inputs", "verification": "README reported"}, {"value": 1298, "unit": "non-English full-benchmark inputs", "verification": "README reported"}],
+      "schema": {"example_fields": ["text", "category", "label"], "label_meaning": "Boolean injection/jailbreak indicator in example format; category distinguishes attacks, jailbreaks, hard negatives, chat, documents."},
+      "creation": "Aggregates attack sources and hard benign material including chat and documents. Public repo contains an illustrative YAML file, explicitly disclaimed as neither actual PINT data nor representative of it.",
+      "license": {"status": "repository MIT; actual corpus rights/access unresolved", "source": "https://github.com/lakeraai/pint-benchmark", "detail": "Do not treat MIT code/example license as full private corpus authorization. PIGuard official README independently states PINT requires an access request."},
+      "task_context_suitability": "Potential detector robustness baseline, but no separately typed legitimate-task field is established. Cannot count private corpus as currently available experiment data.",
+      "overlap_caveats": ["Public YAML example cites Gandalf, chat, and other sources; overlap with pooled resources likely.", "README leaderboard chooses best-scoring configurations, so reported scores are not an untouched held-out comparison.", "Jailbreak and injection categories must remain separate for our threat model."],
+      "recommendation": "Use methodology/example schema only until official corpus access and rights are established; do not wait on this private benchmark to build a stronger public-data experiment.",
+      "evidence_level": "primary repository and actual example YAML verified; full-corpus counts are reported-only, inaccessible in public repository",
+      "inspected_urls": ["https://github.com/lakeraai/pint-benchmark", "https://raw.githubusercontent.com/lakeraai/pint-benchmark/main/benchmark/data/example-dataset.yaml", "https://api.github.com/repos/lakeraai/pint-benchmark/git/trees/main?recursive=1", "https://raw.githubusercontent.com/leolee99/PIGuard/main/README.md"]
+    },
+    {
+      "id": "notinject",
+      "name": "NotInject (PIGuard, formerly InjecGuard)",
+      "urls": {"paper": "https://aclanthology.org/2025.acl-long.1468/", "project": "https://injecguard.github.io/", "repo": "https://github.com/leolee99/PIGuard", "hugging_face": "https://huggingface.co/datasets/leolee99/NotInject"},
+      "institution": {"verified": ["Washington University in St. Louis", "University of Wisconsin-Madison"], "source": "ACL 2025 PDF first page."},
+      "versions": {"repo_commit": "1b5751e88bf7475acbedfc8eda795ce060307c84", "hf_commit": "847ae76cf8fea5ed325429e569ae8cfef022d2e0"},
+      "counts": [{"value": 339, "unit": "benign trigger-word examples", "verification": "actual three JSON files counted"}, {"value": 113, "unit": "examples per one/two/three-trigger-word subset", "verification": "actual records counted"}],
+      "schema": {"actual_fields": ["prompt", "word_list", "category"], "label_meaning": "All samples designated benign by construction; no per-record malicious label. Categories are Common Queries, Technique Queries, Virtual Creation, Multilingual Queries."},
+      "creation": "Trigger words identified from benign/attack frequency differences, LLM-filtered and reviewed by three security experts; GPT-4o-mini generates benign sentences with one/two/three trigger words. This is model-generated text with human refinement, not a human-authored corpus.",
+      "license": {"status": "MIT declared on dataset card and repository", "source": "https://huggingface.co/datasets/leolee99/NotInject/raw/main/README.md"},
+      "task_context_suitability": "Useful separate false-positive/overdefense control; original external task context is absent. Do not invent context to turn it into a primary task-context experiment.",
+      "overlap_caveats": ["PIGuard uses samples from NotInject in its 144-example validation mixture; do not evaluate a tuned PIGuard as independent on the entire set without tracing overlap.", "Trigger-word construction changes distribution; all-benign accuracy is specificity, not balanced detection accuracy.", "Model-generated labels/claims deserve audit; existing released synthetic data must be clearly identified and must not be supplemented by new AI-generated research labels."],
+      "recommendation": "Add as an explicitly synthetic, existing benchmark for false alarms if absent from frozen evaluation; keep it secondary and check prior exposure.",
+      "evidence_level": "actual-record verified for all three files; primary paper/card verified for creation and license",
+      "inspected_urls": ["https://aclanthology.org/2025.acl-long.1468.pdf", "https://raw.githubusercontent.com/leolee99/PIGuard/main/README.md", "https://raw.githubusercontent.com/leolee99/PIGuard/main/datasets/NotInject_one.json", "https://raw.githubusercontent.com/leolee99/PIGuard/main/datasets/NotInject_two.json", "https://raw.githubusercontent.com/leolee99/PIGuard/main/datasets/NotInject_three.json", "https://huggingface.co/datasets/leolee99/NotInject/raw/main/README.md", "https://raw.githubusercontent.com/leolee99/PIGuard/main/LICENSE"]
+    },
+    {
+      "id": "gandalf-ignore-instructions",
+      "name": "Gandalf ignore-instructions subset",
+      "urls": {"paper": "https://arxiv.org/abs/2501.07927", "project": "https://gandalf.lakera.ai/", "repo": null, "hugging_face": "https://huggingface.co/datasets/Lakera/gandalf_ignore_instructions"},
+      "institution": {"verified": ["Lakera AI"], "type": "company", "source": "Official dataset card."},
+      "versions": {"hf_commit": "04737b65e90a6794ec227012e4a255a7def6344b"},
+      "counts": [{"value": 1000, "unit": "sampled human Gandalf prompts", "verification": "card and dataset-server sizes agree; first record inspected, full parquet not counted"}, {"value": 777, "unit": "training rows", "verification": "server metadata"}, {"value": 111, "unit": "validation rows", "verification": "server metadata"}, {"value": 112, "unit": "test rows", "verification": "server metadata"}],
+      "schema": {"actual_preview_fields": ["text", "similarity"], "label_meaning": "No ground-truth attack label; similarity is text-embedding-ada-002 similarity to the canonical ignore-instructions phrase, not injection probability."},
+      "creation": "Human July 2023 game submissions filtered to embedding similarity at least 0.825, PII-screened, near-deduplicated and sampled. Authors acknowledge some false positives in the automatically selected attack collection.",
+      "license": {"status": "MIT explicitly declared for dataset", "source": "https://huggingface.co/datasets/Lakera/gandalf_ignore_instructions/raw/main/README.md"},
+      "task_context_suitability": "Human attack stress test with absent per-record defender policy/task; wording filter overrepresents obvious attacks. Cannot claim subtle-task or contextual causal evidence from it alone.",
+      "overlap_caveats": ["Gandalf also appears in PINT examples/aggregated detector training.", "Embedding selection on a specific phrase creates lexical-selection bias; sample includes noisy nonattacks.", "Do not mistake similarity scores for model confidence or the game's millions of submissions for released corpus size."],
+      "recommendation": "Optional human-attack robustness stratum after blinded label audit; lower priority than authentic task/input sources.",
+      "evidence_level": "actual first-record preview and schema verified; sizes server/card verified, full parquet not independently counted",
+      "inspected_urls": ["https://huggingface.co/datasets/Lakera/gandalf_ignore_instructions", "https://huggingface.co/datasets/Lakera/gandalf_ignore_instructions/raw/main/README.md", "https://datasets-server.huggingface.co/size?dataset=Lakera%2Fgandalf_ignore_instructions", "https://datasets-server.huggingface.co/first-rows?dataset=Lakera%2Fgandalf_ignore_instructions&config=default&split=train"]
+    },
+    {
+      "id": "deepset-prompt-injections",
+      "name": "deepset/prompt-injections",
+      "urls": {"paper": null, "project": "https://huggingface.co/deepset/deberta-v3-base-injection", "repo": null, "hugging_face": "https://huggingface.co/datasets/deepset/prompt-injections"},
+      "institution": {"verified": ["deepset"], "type": "company", "source": "Official dataset/model cards; no university provenance established."},
+      "versions": {"hf_commit": "4f61ecb038e9c3fb77e21034b22511b523772cdd"},
+      "counts": [{"value": 662, "unit": "total rows", "verification": "card/server metadata, not full parquet count"}, {"value": 546, "unit": "training rows", "verification": "card/server metadata"}, {"value": 116, "unit": "test rows", "verification": "card/server metadata"}],
+      "schema": {"actual_preview_fields": ["text", "label"], "label_meaning": "Model classifies legitimate requests versus injection; preview has benign search query with label 0. Complete label mapping/annotation process is not documented in dataset card."},
+      "creation": "Insufficiently documented. Model card says legitimate class consists of questions and keyword searches, creating possible task/format confounding. Human authorship and review method are unknown.",
+      "license": {"status": "conflicting metadata", "source": "https://huggingface.co/datasets/deepset/prompt-injections/raw/main/README.md", "detail": "Top-level license is apache-2.0, but nested dataset_info.license is cc-by-4.0. Resolve before redistribution."},
+      "task_context_suitability": "No released original task field; weak provenance and narrow benign framing make it unsuitable as primary evidence for context effects.",
+      "overlap_caveats": ["The deepset detector is explicitly trained on this dataset; evaluating it here is not independent generalization.", "Small preexisting detector training set is likely included in aggregated resources; audit exact and semantic overlap.", "Published model-card accuracy is not a result of this project and cannot be imported as a comparison."],
+      "recommendation": "Low priority; use only a clearly labeled historical baseline/smoke check after license and label clarification.",
+      "evidence_level": "actual first-record preview/schema verified; card/server size verified; creation and full label mapping unresolved",
+      "inspected_urls": ["https://huggingface.co/datasets/deepset/prompt-injections/raw/main/README.md", "https://datasets-server.huggingface.co/size?dataset=deepset%2Fprompt-injections", "https://datasets-server.huggingface.co/first-rows?dataset=deepset%2Fprompt-injections&config=default&split=train", "https://huggingface.co/deepset/deberta-v3-base-injection"]
+    }
+  ]
+}
