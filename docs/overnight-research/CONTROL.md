@@ -188,3 +188,7 @@ Root inspected stop-confirmation-v7.0.7.json (recorded 11:00:44 UTC) and two fai
 ### Independent credit-deferral code review
 
 Root reviewed run.py and deferral.py, reran four corrected deferral tests (all pass, 0.110s), and independently verified original plan/prior manifest/stop/journal prefix/event count/both failure raw and completion hashes. Receipt `credit-deferral-review.json` captures exact code hashes. Initial fixture missing historical_accounting was corrected before passing. No blocker found in reviewed code; final manifest/authorization and broader regression checks remain before sole executor resumes. No empirical accuracy inspected.
+
+### V7.0.8 continuation binding verified
+
+Root verified manifest d8f76649.../authorization b0ccab8d.../deferral2c92367a..., all174execution files, all acknowledged stops, unchanged plan/caps/allocations/deadlines and amendment document. Restart correction independently passed four tests0.131s; worker reports98full offline tests. Exact reviewed code unchanged. Sole executor explicitly notified to proceed with eligible Jev/local confirmation and repeats, no further gate for this version. Deferred OpenAI/Sol denominators and first outcomes remain. Full details in credit-deferral-review.json.
