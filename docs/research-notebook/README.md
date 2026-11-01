@@ -15,7 +15,9 @@ Does giving a prompt-injection detector the user's actual task help it make fewe
 
 A task–content pair means one task linked to one piece of content. A clean/attack pair contains two examples. These counts overlap and use different units, so they should not be added together.
 
-The later experiments compared actual task information with an empty-task prompt, a generic warning and unrelated text of similar length. This helped check whether improvements came from useful context or just changing the prompt.
+The later experiments compared the published task with an empty-task prompt, a generic warning and “Context unavailable.” filler matched by character count. These controls test several explanations, but do not isolate task meaning from every other prompt difference.
+
+The main source uses public training-release pages rewritten for privacy and publisher-provided tasks. Results measure agreement with source labels, not independently human-validated task judgments.
 
 ## What happened
 
@@ -29,10 +31,9 @@ Takeaway: task context changes decisions, but it does not consistently improve d
 
 ## Still to check
 
-- Review ambiguous labels with the teacher. The AI label check flagged 23 pairs; that is not a substitute for human review.
-- Choose figures showing both types of error.
-- Check that each conclusion matches its dataset and comparison.
-- Review the claims before drafting the five-page paper. Astra review has not started.
+- Complete human label review. The prepared packet includes 24 flagged pairs (23 ambiguous plus one other disagreement) and eight comparison pairs; no human judgments have been entered.
+- Use the [error tradeoff figure](../../results/critical-review/error-tradeoffs.png) alongside the paired effects.
+- Keep the [reviewed claim boundaries](../critical-review/INITIAL-REVIEW.md#claim-to-evidence-map) when drafting. The Astra review is complete; no numerical correction is required. See the [resolution log](../critical-review/RESOLUTION.md) for accepted and rejected findings.
 
 ## Records
 

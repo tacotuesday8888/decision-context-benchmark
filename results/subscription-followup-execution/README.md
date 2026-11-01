@@ -77,6 +77,15 @@ Full prompts and transports remain in the ignored local evidence store.
 From the repository root, with the pinned analysis dependencies installed,
 this reproduces the main estimates without network or model calls:
 
+Exact seeded equality below was verified in the original macOS/arm64 environment.
+The later [portability check](../../docs/critical-review/README.md#portable-replay)
+found four secondary archived-Jev rate-interval endpoints differed on Linux/x86_64
+(maximum 0.0294 percentage points), despite matching counts, primary effects and
+bounds. For exact portable verification use
+`python -m scripts.critical_review.verify --output /tmp/dcb-review.json` on the
+review branch. It replays the original sampled draws for that one table and
+reports direct seeded-regeneration differences separately; original results remain unchanged.
+
 ```python
 import json
 from pathlib import Path
