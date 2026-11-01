@@ -12,7 +12,7 @@ A series of controlled experiments comparing detector decisions with and without
 
 Does useful task information improve detection—or do apparent gains come from other prompt changes?
 
-The larger experiments compare four conditions: actual task information, empty-task formatting, a generic warning, and unrelated text of similar length. The candidate content stays fixed across these conditions.
+The larger experiments compare four conditions: the published task, empty-task formatting, a generic warning, and repeated “Context unavailable.” filler matched by character count. The candidate content stays fixed across these conditions. The filler is not token-matched or semantically empty.
 
 ## Findings at a glance
 
@@ -24,6 +24,8 @@ The larger experiments compare four conditions: actual task information, empty-t
 | The small agent pilot demonstrated no protection benefit. | Detector accuracy alone does not establish agent safety. |
 
 Findings apply to the tested configurations and source labels. Sources are analyzed separately; no universal model ranking is claimed. Detailed results retain uncertainty estimates, failures and abstentions.
+
+The main source is a project-held-out subset of BrowseSafe++'s public training release, with privacy-rewritten pages and publisher-provided tasks. These are not untouched production requests or independently human-validated labels. [Error tradeoff figure](../results/critical-review/error-tradeoffs.png) · [Critical review and claim boundaries](../docs/critical-review/README.md)
 
 ## Experiment map
 
@@ -40,7 +42,7 @@ Findings apply to the tested configurations and source labels. Sources are analy
 
 ## Status
 
-As of **November 1, 2026**, the latest bounded experiments and computational verification are complete. Ambiguous labels and final claims remain to be reviewed. The new five-page paper has not been drafted.
+As of **November 1, 2026**, the latest bounded experiments and critical review are complete. Independent offline checks reproduce the main findings; no numerical correction is required. Human label review remains open; a blinded packet is prepared. The new five-page paper has not been drafted.
 
 [Working notes](../docs/research-notebook/README.md) summarize the history and next steps. The [editable Google Doc](https://docs.google.com/document/d/1T8pvePmYF7rYWWugGc8HkSEtiI8CK3jU_3EZer2WFmo/edit) supports discussion with the teacher.
 
