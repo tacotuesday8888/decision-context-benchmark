@@ -282,3 +282,50 @@ sequentially. Scientific code and request choices are now frozen. Use only exist
 reviewed transient continuation machinery if justified, preserving every first
 attempt and unknown hold. Terminal raw verification, independent statistics and
 checked final paper/PDF remain outstanding.
+
+## Active main execution checkpoint
+
+- Confirmation freeze/development verification commit `8f975d48` is pushed to
+  private draft PR #11; all 20 push/PR workflows passed at full head
+  `8f975d4882fe84db994d86cc258285cdcd595899`. Working tree was clean before dispatch.
+- The root sole executor started `.venv/bin/python scripts/study_v6/run.py main`.
+  Progress is append-only in ignored `execution-v1/main-progress-v1.log`; unified
+  execution session is 41540 (process 2610 at this checkpoint). Do not start a
+  competing process or rerun while it is active. Original model transports, source
+  schedule and 108 scientific file hashes are frozen.
+- A bounded independent audit of the first 32 completed confirmation records
+  passed exact request/model/usage/raw hashes and full-input flags, with both
+  providers' complete group reservations preceding dispatch. Its scope was only
+  those 32 records and it inspected no prediction, score or correctness fields.
+- At an intermediate snapshot, 55 main groups were admitted, the next group's
+  six remaining requests were held/in flight, and no STOP or cost stop existed.
+  Main conservative accounting then was OpenAI $0.69534265 / TypeSafe $0.13426686.
+  These are historical checkpoint values; live ledger state is authoritative.
+  Exact native ties remain abstentions. No correctness-based scheduling occurred.
+- An independent mathematical checker is being prepared with synthetic fixtures
+  only under ignored `execution-v1/independent-analysis-tools/`. It does not change
+  frozen analysis methods and will be hash-pinned before empirical access. Actual
+  confirmation predictions and correctness remain uninspected until terminal
+  execution; report authoring is still gated.
+
+Next: monitor the active main process for completion/cost stop or preserved
+systemic failure. Continue supporting and each fixed comparator sequentially with
+the documented environments, reserving and preserving all first attempts. The
+original intended target stays fixed. Final raw/accounting verification, literal
+baselines, independent statistics, sanitized tables/figures and checked private
+paper/PDF delivery remain required; no historical-stack merge or publication.
+- The run passed the initial 88-group reservation estimate and reached 110
+  admitted groups without a cost/systemic stop. Released holds extend the same
+  fixed order, as specified. Main accounting at that later snapshot was
+  $1.3333223 OpenAI / $0.315816228 TypeSafe, including three pending holds.
+- The independent checker was sealed on synthetic data before its author read
+  empirical predictions/label joins. Final manifest SHA:
+  `6d1f91bc94f5d6f15a5e83c0769303143da7d99c786b449a93edd12bd1465c62`;
+  core SHA `519a7f31c3a89a4a217b032469b38eda90c6f792a4c42eb2288832d490e1c3d8`.
+  Its nine unchanged files were copied to `verification/study-v6/` for private PR
+  reproducibility, with a separate relocation note. All three fixture sets passed
+  from that location; all 108 primary scientific hashes remained unchanged.
+  Empirical comparison still requires terminal authorization and exact hashes.
+- Six verified bibliography entries and their detailed source metadata are
+  prepared under ignored `report-preparation-v1/`; no empirical narrative or PDF
+  exists yet. These preparations use no experiment output or new model requests.
