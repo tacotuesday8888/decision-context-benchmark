@@ -74,6 +74,10 @@ on the same cases and reveals whether its task-context tradeoff differs.
 | Locked 50 repeat groups × two pages × four conditions | 400 | A separate fresh repeat for Sol stability |
 | **Maximum including preflight** | **4,410** | No API-key fallback; finite subscription allowance |
 
+The preflight maximum comprises two fixed synthetic canaries and one complete
+existing development group under all four conditions (eight classifications).
+They never enter the follow-up comparison or replace a failed evaluation case.
+
 The main selection lock is
 `a45c8ac045e14dcdb4e923f76a0929556ad59144747431c723e4760f7391ea39`.
 General and repeat groups were chosen before v7 results; preserve their complete
@@ -133,7 +137,11 @@ establishes Responses access, not Decisions access. A Luna Responses or Codex
 subscription run would be a newly named configuration and cannot fill this gap.
 Defer native repeats until legitimate API allowance is available and a new
 bounded execution is authorized. Keep original ties/errors in the denominator;
-do not replace them with repeated answers. The 109 valid Luna Responses main
+do not replace them with repeated answers. The archived repeat-subset baseline
+has 798 valid classifications and two length-condition ties. A later 800-call
+series measures temporal reproducibility against that archive. A new same-session
+baseline-plus-repeat study would require **1,600 native API calls** in a separate
+series. The 109 valid Luna Responses main
 outputs likewise do not constitute the planned general comparator.
 
 **A second task-bearing source:** PromptShield adds complete-request transfer
