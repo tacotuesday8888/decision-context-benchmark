@@ -4,19 +4,30 @@ Reconstructed on November 1, 2026 from saved protocols, completion audits, resul
 
 Editable discussion copy: [Google Docs notebook](https://docs.google.com/document/d/1T8pvePmYF7rYWWugGc8HkSEtiI8CK3jU_3EZer2WFmo/edit). This Git version is the source-linked snapshot; later Google edits are not automatically synchronized.
 
-## Working notes, not a finished paper
+## Quick working notes
 
-The project is still being interpreted. The useful story is what was tried, what changed, what surprised us and what needs checking. These notes are meant to make that discussion easier, not to make the project sound more finished than it is.
+Main question: does giving the detector the actual task help?
 
-A few things worth talking through:
+Started with the 761 task–content pairs. Later runs added more data and better controls. Need to keep the counts separate — the 500-pair Sol run reused part of the bigger dataset.
 
-- Giving a detector more information did not reliably make it better.
-- Jev raised fewer false alarms but missed more attacks. Which mistake matters more in a real application?
-- A longer prompt sometimes explained an apparent improvement. That is why the extra controls mattered.
-- The small agent pilot did not show a protection benefit. It also exposed a scoring rule that was too picky about answer formatting.
-- More model calls do not fix unclear labels. Some examples still need a person to read them carefully.
+Things that stand out:
 
-Space for personal notes (not filled in by the assistant): What did I expect? What surprised me? What do I still not understand? What would I change next time?
+- More context did not always help. Sol and Luna made more errors on the main source.
+- Jev: fewer false alarms, but more missed attacks. An improved average is not the whole story.
+- Length control matters. Some apparent improvement might come from changing the prompt rather than giving useful task information.
+- Agent pilot: no protection benefit demonstrated. The ungated actor already resisted the attacks.
+- Scorer was too strict about “12 units” versus “12”. Keep the original result, explain the problem.
+
+Still need to work through:
+
+- Read ambiguous examples with the teacher. AI agreement is not the same as human checking.
+- Pick figures that show both kinds of error.
+- Explain why the datasets give different results. Do not force one overall winner.
+- Five-page paper later. Not drafting it yet.
+
+Personal notes — left open: What did I expect? What surprised me? What is still confusing? What would I try differently?
+
+The detailed records below are here so these short notes can be checked.
 
 ## The question
 
