@@ -1,6 +1,9 @@
 """Behavioral fixtures for scientific boundaries and frozen allocation order."""
 import copy
 import json
+from pathlib import Path
+import subprocess
+import sys
 import unittest
 
 from scripts.study_v6 import plan
@@ -86,6 +89,31 @@ class PlanTests(unittest.TestCase):
         invalid = row('bad', exclusion_reasons=['historical_exposure'])
         with self.assertRaises(ValueError):
             plan.build([invalid])
+        supplemental = row('held', execution_group_eligible=False,
+                           execution_exclusion_reasons=['supplemental_grouping'])
+        self.assertTrue(supplemental['review_eligible'])
+        self.assertEqual(plan.build([supplemental])['requests'], [])
+
+    def test_operational_prefix_stops_without_skipping_and_deduplicates_holds(self):
+        requests = [{'key': 'a', 'provider': 'openai', 'reserved_usd': '.6'},
+                    {'key': 'b', 'provider': 'typesafe', 'reserved_usd': '.2'},
+                    {'key': 'c', 'provider': 'openai', 'reserved_usd': '.6'},
+                    {'key': 'd', 'provider': 'typesafe', 'reserved_usd': '.2'}]
+        groups = [{'batch': 'first', 'ids': ['one'], 'all_requests_supported': True, 'request_keys': ['a','b']},
+                  {'batch': 'second', 'ids': ['two'], 'all_requests_supported': True, 'request_keys': ['c','d']},
+                  {'batch': 'third-cheap', 'ids': ['three'], 'all_requests_supported': True, 'request_keys': ['a','b']}]
+        result = plan.full_reservation_prefix(groups, requests, 1)
+        self.assertEqual(result['groups'], 1)
+        self.assertEqual(result['reserved_usd']['openai'], '0.6')
+        self.assertFalse(result['is_execution_ceiling'])
+        self.assertEqual(plan.full_reservation_prefix([groups[0],groups[2]], requests, 1)['groups'], 2)
+
+    def test_execution_modules_do_not_shadow_legacy_cli_standard_statistics(self):
+        directory = Path(plan.ROOT) / 'scripts/study_v6'
+        result = subprocess.run([sys.executable, '-c',
+            'import statistics; assert hasattr(statistics, "NormalDist"); print(statistics.NormalDist().mean)'],
+            cwd=directory, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
 
 
 if __name__ == '__main__':

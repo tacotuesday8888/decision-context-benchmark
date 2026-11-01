@@ -70,7 +70,7 @@ def price_gate():
 
 
 def offline_gate(hashes):
-    receipt = load(plan.RESULTS / 'offline-verification-v2.json')
+    receipt = load(plan.RESULTS / 'offline-verification-v3.json')
     if receipt.get('checks_passed') is not True or receipt.get('scientific_hashes') != hashes:
         raise PermissionError('Offline verification is missing or stale')
     return receipt
@@ -93,11 +93,23 @@ def setup_gate():
             'native_decision_access_requires_development': True, 'nimble_identity_verified': True}
 
 
+def prefreeze_audit_gate():
+    receipt = load(plan.RESULTS / 'prefreeze-audit-v2.json')
+    if (receipt.get('checks_passed') is not True or receipt.get('new_model_calls') != 0 or
+            receipt.get('model_outputs_inspected') is not False):
+        raise PermissionError('Independent offline request/cohort audit is incomplete')
+    for source in receipt['inputs'].values():
+        if sha256((ROOT / source['path']).read_bytes()) != source['sha256']:
+            raise ValueError('Audited prefreeze input changed: ' + source['path'])
+    return receipt
+
+
 def prepare(*, protectai_tokenizer=None):
     """Save final intended requests with full-input dispositions before any calls."""
     resolved = admission()
     price_gate()
-    rows = read(RAW / 'review-resolution-v3/resolved.jsonl')
+    from scripts.study_v6.grouping_gate import finalize as finalize_grouping
+    rows, grouping = finalize_grouping()
     provisional = plan.build(rows, review_subgroups=plan.load_review_subgroups())
     audit = {(r['id'], r['condition']): r for r in read(RAW / 'laya-token-audit.jsonl')}
     coverage, lookup = [], {}
@@ -125,39 +137,64 @@ def prepare(*, protectai_tokenizer=None):
     immutable(plan.RESULTS / 'runtime-versions-v1.json', capture())
     summary = dict(plan.summary(result),
         final_resolution_sha256=sha256((ROOT / 'results/study-v6-review-resolution/resolution-final.json').read_bytes()),
+        execution_grouping_admission=grouping,
         intended_plan=file_receipt(plan.DEST / 'intended-plan.json', ROOT),
         coverage=file_receipt(plan.DEST / 'coverage.json', ROOT),
         inherited_accounting=file_receipt(plan.DEST / 'inherited-accounting.json', ROOT),
         coverage_methods=dict(collections.Counter(c['coverage_status'] for c in coverage)),
         capacity_limitation='Hosted and Nimble full unchanged inputs use explicit native server gates, not claimed preflight tokenizer certification; native overflows/failures remain separate missing dispositions.',
         preserved_byte_reservation_proxy_not_a_certified_token_bound=True,
-        final_admitted_review_rows=resolved['review_eligible_rows'])
+        final_admitted_review_rows=resolved['review_eligible_rows'],
+        final_execution_admitted_rows=sum(plan.admitted(r) for r in rows))
     immutable(plan.RESULTS / 'request-plan-v1.json', summary)
     return summary
 
 
 def development_operational_gate(intended):
     """Check access/schema, never correctness; preserve any first-attempt failures."""
-    records = []
+    records, native_records, reviewed_failures, case_failures = [], [], [], []
+    ledger = None
     by_key = {r['key']: r for r in intended['requests']}
     for request in by_key.values():
         if request['split'] != 'development' or not request['coverage_supported']:
             continue
-        path = plan.DEST / 'attempts' / request['key'] / 'completed.json'
+        folder = plan.DEST / 'attempts' / request['key']
+        path = folder / 'execution-record.json'
         if not path.exists():
             raise PermissionError('Development operational check missing: ' + request['config'])
-        result = load(path)
+        record = load(path)
+        result = record['result']
         if result['request_sha256'] != request['request_sha256']:
             raise ValueError('Development request changed')
         if result['parsed']['status'] not in ('ok', 'tie', 'unsupported_over_limit'):
-            raise PermissionError('Development route needs documented operational resolution: ' + request['config'])
+            if not routes.requires_stop(result['parsed']):
+                case_failures.append(request['key'])
+            else:
+                from scripts.study_v6.accounting import BudgetLedger
+                from scripts.study_v6.continuations import approved_failure
+                ledger = ledger or BudgetLedger(plan.DEST / 'budget.jsonl', history_root=ROOT)
+                if not approved_failure(request['key'], ledger, plan.DEST, ROOT):
+                    raise PermissionError('Development route needs documented operational resolution: ' + request['config'])
+                reviewed_failures.append(request['key'])
         records.append(file_receipt(path, ROOT))
+        native = folder / 'completed.json'
+        if native.exists():
+            native_records.append(file_receipt(native, ROOT))
     successful = {by_key[Path(r['path']).parent.name]['config'] for r in records
-                  if load(ROOT / r['path'])['parsed']['status'] in ('ok', 'tie')}
+                  if load(ROOT / r['path'])['result']['parsed']['status'] in ('ok', 'tie')}
     if successful != set(plan.CONFIGS):
         raise PermissionError('Every retained configuration needs a reviewed development interface success')
+    continuation_evidence = []
+    if ledger:
+        for event in ledger.snapshot().get('continuations', {}).values():
+            for name in ('manifest_path', 'receipt_path'):
+                continuation_evidence.append(file_receipt(ROOT / event[name], ROOT))
+            continuation_evidence.append(file_receipt(plan.DEST / 'stops' / (event['stop_sha256'] + '.json'), ROOT))
     return {'correctness_not_used': True, 'first_attempt_records': records,
-            'successful_configuration_count': len(successful)}
+            'native_completion_records': native_records, 'continuation_evidence': continuation_evidence,
+            'reviewed_transient_failures': len(reviewed_failures),
+            'retained_case_failures': len(case_failures),
+            'failed_requests_resent': False, 'successful_configuration_count': len(successful)}
 
 
 def freeze(split):
@@ -166,6 +203,9 @@ def freeze(split):
     admission()
     price_gate()
     setup = setup_gate()
+    prefreeze_audit_gate()
+    from scripts.study_v6.grouping_gate import verify as verify_grouping
+    _, grouping = verify_grouping()
     hashes = scientific_hashes()
     offline_gate(hashes)
     head = committed(hashes)
@@ -174,15 +214,19 @@ def freeze(split):
     if current_history != load(plan.DEST / 'inherited-accounting.json'):
         raise PermissionError('Spending changed after planning')
     refs = [plan.RESULTS / 'request-plan-v1.json', plan.RESULTS / 'price-verification-v2.json',
-            plan.RESULTS / 'offline-verification-v2.json',
+            plan.RESULTS / 'offline-verification-v3.json',
             plan.RESULTS / 'runtime-versions-v1.json',
+            plan.RESULTS / 'prefreeze-audit-v2.json',
             plan.DEST / 'noninference-access-v1.json', plan.DEST / 'nimble-local-metadata.json',
+            plan.RESULTS / 'grouping-admission-v1.json',
             plan.DEST / 'intended-plan.json', plan.DEST / 'coverage.json', plan.DEST / 'inherited-accounting.json',
             ROOT / 'results/study-v6-review-resolution/resolution-final.json',
             ROOT / 'results/study-v6-review-resolution/planning-final.json']
     resolution = load(ROOT / 'results/study-v6-review-resolution/resolution-final.json')
     refs += [ROOT / v['path'] for v in resolution['inputs'].values()]
     refs += [ROOT / v['path'] for v in resolution['outputs'].values()]
+    refs += [ROOT / v['path'] for v in grouping['inputs'].values()]
+    refs += [ROOT / v['path'] for v in grouping['outputs'].values()]
     refs += list((ROOT / 'results/study-v6').glob('*.json'))
     unsupported_batches = {g['batch'] for allocation in ('main', 'supporting')
         for g in intended['schedules'][allocation] if not g['all_requests_supported']}
@@ -230,7 +274,8 @@ def verify(split, *, require_committed=True):
     if split == 'confirmation':
         if sha256((plan.RESULTS / 'development-freeze-v1.json').read_bytes()) != frozen['development_freeze_sha256']:
             raise ValueError('Development freeze changed')
-        for record in frozen['development']['first_attempt_records']:
+        dev = frozen['development']
+        for record in dev['first_attempt_records'] + dev.get('native_completion_records', []) + dev.get('continuation_evidence', []):
             if sha256((ROOT / record['path']).read_bytes()) != record['sha256']:
                 raise ValueError('Development first attempt changed')
         ledger = (plan.DEST / 'budget.jsonl').read_bytes()

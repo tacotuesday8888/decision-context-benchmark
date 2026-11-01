@@ -55,12 +55,9 @@ class Executor:
                    'automatic_retry': False, 'remaining_dispatch_blocked': True}
         if not self.stop_path.exists():
             exclusive(self.stop_path, receipt)
-        # A durable dispatch intent means possibly sent, and cannot be cancelled.
-        # Positively unsent reserved entries can close at zero with this stop hash.
-        digest = sha256(self.stop_path.read_bytes())
-        for entry in self.ledger.snapshot()['entries'].values():
-            if entry['status'] == 'reserved' and not (self.directory / 'attempts' / entry['key']).exists():
-                self.ledger.cancel_reserved(entry['key'], evidence_sha256=digest)
+        # Preserve every hold until an explicit reviewed continuation or an
+        # accounting-only terminal closure. A transient failure must not force
+        # unsent members of its already-reserved whole group to disappear.
         raise PermissionError('Execution stopped: ' + reason)
 
     def check_stop(self):
@@ -139,9 +136,13 @@ class Executor:
 
     def _terminal_gate(self, record, key):
         if record['result']['stop_required']:
-            self.stop('Preserved first-attempt route failure', key)
+            from scripts.study_v6.continuations import approved_failure
+            if not approved_failure(key, self.ledger, self.directory, ROOT):
+                self.stop('Preserved first-attempt route failure', key)
         if record['costs'].get('unexpected_pricing_tier'):
             self.stop('Unexpected long-input pricing tier; actual multiplier accounted', key)
+        if record['config'] in plan.PROVIDERS and record['costs']['accounted_usd'] is None and record['result']['parsed']['status'] in ('ok', 'tie'):
+            self.stop('Completed paid decision has unresolved usage accounting; reservation retained', key)
 
     def dispatch(self, key):
         self.check_stop()
@@ -229,13 +230,16 @@ class Executor:
     def development(self):
         self.check_stop()
         requests = [r for r in self.requests.values() if r['split'] == 'development']
-        if requests:
-            self.ledger.reserve_batch('development:first-attempts', 'development', [spec(r) for r in requests])
         # Keep only one Python local model resident. No extra inference or model
         # API request is used for unloading; native keep_alive remains fixed.
         for config in plan.CONFIGS:
             for request in requests:
                 if request['config'] == config:
+                    # Development has a smaller envelope than its aggregate byte
+                    # holds. Reserve each fixed request immediately before its
+                    # first attempt, settling it before the next admission.
+                    self.ledger.reserve_batch('development:request:' + request['key'],
+                                              'development', [spec(request)])
                     self.dispatch(request['key'])
             self.runtimes.pop(config, None)
             gc.collect()

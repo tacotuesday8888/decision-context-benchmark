@@ -7,7 +7,10 @@ from __future__ import annotations
 
 import collections
 import csv
+from decimal import Decimal
 import json
+import math
+import statistics
 from pathlib import Path
 
 from scripts.study_v6.common import ROOT, RAW, rank, sha256, canonical_bytes, read
@@ -28,6 +31,10 @@ SOURCES = ('aib', 'spml', 'infuse', 'nvidia', 'scope')
 LEXICAL_PHRASES = ('ignore previous', 'system prompt', 'do not tell', 'new task')
 
 
+def admitted(row):
+    return row['review_eligible'] and row.get('execution_group_eligible', True)
+
+
 def request(config, row, condition):
     if config == 'protectai_local':
         from scripts.study_v6.routes import payload
@@ -39,7 +46,7 @@ def development_rows(rows):
     """Longest per label, then hash-first new groups; at most four per source."""
     selected = []
     for source in sorted({r['source'] for r in rows}):
-        part = [r for r in rows if r['source'] == source and r['review_eligible']
+        part = [r for r in rows if r['source'] == source and admitted(r)
                 and r['split_proposal'] == 'development']
         chosen = []
         for label in (0, 1):
@@ -63,8 +70,8 @@ def group_order(rows):
 
 
 def fixed_schedules(rows):
-    admitted = [r for r in rows if r['review_eligible']]
-    confirmation = [r for r in admitted if r['split_proposal'] == 'confirmation']
+    eligible = [r for r in rows if admitted(r)]
+    confirmation = [r for r in eligible if r['split_proposal'] == 'confirmation']
     main = [r for r in confirmation if r['source'] == 'browsesafe']
     primary = [{'group': g, 'source': 'browsesafe', 'kind': 'main',
                 'ids': sorted(r['id'] for r in main if r['group'] == g)}
@@ -76,7 +83,7 @@ def fixed_schedules(rows):
     supporting = [by_source[s][i] for i in range(12) for s in SOURCES if i < len(by_source[s])]
     extras = [dict(g, kind='main_extras') for g in primary[:100]]
     dev = collections.defaultdict(list)
-    for row in development_rows(admitted):
+    for row in development_rows(eligible):
         dev[(row['source'], row['group'])].append(row['id'])
     return {'main': primary, 'supporting': supporting + extras,
             'comparators': [dict(g) for g in primary[:100] + supporting],
@@ -215,8 +222,38 @@ def load_review_subgroups():
                 for r in csv.DictReader(handle)}
 
 
+def full_reservation_prefix(schedule, requests, cap):
+    """Up-front holds only; released actual usage may extend this fixed order."""
+    lookup = {r['key']: r for r in requests}
+    used = {p: Decimal(0) for p in RATES}
+    charged, selected, ids = set(), [], set()
+    for group in schedule:
+        if not group['all_requests_supported']:
+            continue
+        addition = {p: sum((Decimal(lookup[k]['reserved_usd']) for k in group['request_keys']
+                           if k not in charged and lookup[k]['provider'] == p), Decimal(0)) for p in used}
+        if any(used[p] + addition[p] > Decimal(str(cap)) for p in used):
+            break
+        selected.append(group['batch'])
+        ids.update(group['ids'])
+        charged.update(group['request_keys'])
+        used = {p: used[p] + addition[p] for p in used}
+    return {'groups': len(selected), 'rows': len(ids), 'reserved_usd': {p: str(v) for p, v in used.items()},
+            'is_execution_ceiling': False, 'budget_each_provider_usd': cap}
+
+
 def summary(plan):
     cells = plan['cells']
+    prefix = full_reservation_prefix(plan['schedules']['main'], plan['requests'], 9)
+    normal = statistics.NormalDist()
+    n_values = {prefix['groups'], sum(g['all_requests_supported'] for g in plan['schedules']['main'])} - {0}
+    precision = [{'independent_equal_units_assumed': n, 'discordance_assumed': q,
+                  'six_test_approx_80pct_power_delta_pp': 100 * (normal.inv_cdf(1 - .05/12) + normal.inv_cdf(.8)) * math.sqrt(q/n),
+                  'six_test_approx_simultaneous_95_halfwidth_pp': 100 * normal.inv_cdf(1 - .05/12) * math.sqrt(q/n),
+                  'achieved_power': False} for n in sorted(n_values) for q in (.1, .25, .5)]
+    from scripts.study_v6.analyze import coverage_intersections
+    common = coverage_intersections([c for c in cells if c['split'] == 'confirmation' and c['config'] in COMPARATORS])
+    common = [{k: v for k, v in r.items() if 'valid' not in k and k != 'meaning'} for r in common]
     return {'version': VERSION, 'planned_cells': len(cells), 'unique_requests': len(plan['requests']),
             'deduplicated_references': len(cells) - len(plan['requests']),
             'by_split_configuration': {':'.join(k): {'planned_cells': len(v),
@@ -224,6 +261,9 @@ def summary(plan):
                 for k, v in _parts(cells, ('split', 'config')).items()},
             'schedules': {k: {'groups': len(v), 'rows': len({rid for g in v for rid in g['ids']})}
                           for k, v in plan['schedules'].items()},
+            'main_upfront_full_reservation_prefix': prefix, 'precision_scenarios': precision,
+            'preflight_four_comparator_common_intersections': common,
+            'preflight_interpretation': 'Supported intersections include explicitly conditional native server gates; no model output or achieved power is implied.',
             'inference_ready': False, 'new_model_calls': 0}
 
 

@@ -3,7 +3,7 @@ import json
 import unittest
 
 from scripts.study_v6 import analyze
-from scripts.study_v6 import statistics as stats
+from scripts.study_v6 import metrics as stats
 
 
 def cell(identity, group, gold, condition, prediction, *, config='jev_firstparty', source='browsesafe', **extra):

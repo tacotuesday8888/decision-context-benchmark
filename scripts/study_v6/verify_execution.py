@@ -91,7 +91,8 @@ def _audit_attempt(request, entry, directory, stop_hash):
     folder = directory / 'attempts' / request['key']
     if entry['status'] == 'cancelled_unsent':
         require(not folder.exists(), 'Cancelled-unsent reservation has possibly sent attempt artifacts')
-        require(stop_hash is not None and entry['evidence_sha256'] == stop_hash,
+        known_stops = stop_hash if isinstance(stop_hash, (set, list, tuple)) else {stop_hash}
+        require(entry['evidence_sha256'] in known_stops and entry['evidence_sha256'] is not None,
                 'Cancelled-unsent entry lacks its exact immutable stop')
         require(money(entry['accounted_usd']) == money(entry['actual_usd']) == 0,
                 'Cancelled-unsent reservation was charged')
@@ -146,7 +147,7 @@ def _audit_attempt(request, entry, directory, stop_hash):
         require(request_path.read_bytes() == canonical_bytes(request['payload']), 'Interrupted request bytes differ')
     parsed = _reparse(request, result, folder)
     require(parsed == result['parsed'], 'Independent native reparse disagrees with retained prediction')
-    require(result['stop_required'] is (parsed['status'] not in ('ok', 'tie', 'unsupported_over_limit')),
+    require(result['stop_required'] is routes.requires_stop(parsed),
             'Systemic route failure did not require a global stop')
     if request['config'] == 'laya_local' and parsed['status'] in ('ok', 'tie'):
         audit = result.get('token_audit') or {}
@@ -267,21 +268,37 @@ def _audit_cost_order(journal_path, requests, expected_schedules):
             require(reasons and data['reason'] == ', '.join(reasons), 'Saved cost stop was affordable or had incorrect cap reasons')
             require(data['unrun_groups'] == len(schedules[allocation]) - index, 'Saved unrun-group denominator changed')
             cost_stops[allocation] = data
+        elif kind == 'continuation':
+            entry = entries[data['failed_key']]
+            require(entry['status'] in ('settled', 'unknown_usage'), 'Continuation was journaled before terminal failure accounting')
         else:
             raise VerificationError('Unknown primary accounting event')
     return entries, dict(admitted), cost_stops
 
 
-def _unrun_scopes(directory, supplied):
+def _stop_hashes(directory):
+    values = set()
+    active = directory/'STOP.json'
+    if active.exists():
+        values.add(sha256(active.read_bytes()))
+    for path in (directory/'stops').glob('*.json'):
+        digest = sha256(path.read_bytes())
+        require(path.stem == digest, 'Archived stop filename/content hash changed')
+        values.add(digest)
+    return values
+
+
+def _unrun_scopes(directory, supplied, known_stops, continuations):
     path = directory / 'terminal-unrun.json'
     receipt = load(path) if supplied is None and path.exists() else supplied
     if receipt is None:
         return []
-    stop = directory / 'STOP.json'
     require(receipt.get('version') == plan.VERSION and isinstance(receipt.get('reason'), str) and receipt['reason'],
             'Terminal unrun receipt lacks a version/reason')
-    require(stop.exists() and receipt.get('stop_sha256') == sha256(stop.read_bytes()),
+    require(receipt.get('stop_sha256') in known_stops,
             'Terminal unrun receipt must bind the exact immutable systemic stop')
+    require(receipt['stop_sha256'] not in {v['stop_sha256'] for v in continuations.values()},
+            'An activated continuation cannot also mark that stop as terminal unrun')
     scopes = receipt.get('scope')
     require(isinstance(scopes, list) and scopes, 'Terminal unrun receipt needs explicit allocation/config scopes')
     for scope in scopes:
@@ -336,7 +353,8 @@ def _token_diagnostics(requests, parsed, eligible_cells):
     return result
 
 
-def verify_bundle(frozen_by_split, ledger_path, directory, terminal_receipts=None):
+def verify_bundle(frozen_by_split, ledger_path, directory, terminal_receipts=None, *,
+                  project_root=ROOT, continuation_freeze_checker=None):
     """Read-only audit returning aggregate receipt, normalized records, raw detail.
 
     Incomplete (but intact) execution returns ready=False. Corrupt evidence raises
@@ -382,9 +400,8 @@ def verify_bundle(frozen_by_split, ledger_path, directory, terminal_receipts=Non
         actual = ledger['entries'][key]
         require(entry['status'] == actual['status'] and _decimal_equal(entry['accounted_usd'], actual['accounted_usd']),
                 'Independent replay differs from journal accounting')
-    stop = directory / 'STOP.json'
-    stop_hash = sha256(stop.read_bytes()) if stop.exists() else None
-    scopes = _unrun_scopes(directory, terminal_receipts)
+    known_stops = _stop_hashes(directory)
+    scopes = _unrun_scopes(directory, terminal_receipts, known_stops, ledger['continuations'])
     attempt_root = directory / 'attempts'
     if attempt_root.exists():
         require(all(p.is_dir() and p.name in requests and p.name in ledger['entries'] for p in attempt_root.iterdir()),
@@ -397,15 +414,39 @@ def verify_bundle(frozen_by_split, ledger_path, directory, terminal_receipts=Non
         if entry['status'] in ('reserved', 'dispatched'):
             incomplete.append('nonterminal_attempt')
             continue
-        parsed[key], record = _audit_attempt(request, entry, directory, stop_hash)
+        parsed[key], record = _audit_attempt(request, entry, directory, known_stops)
         if record is not None:
             records[key] = record
-    dispatch_order = [e['data']['key'] for e in (json.loads(line) for line in Path(ledger_path).read_text().splitlines())
-                      if e['kind'] == 'dispatch' and not records.get(e['data']['key'], {}).get('result', {}).get('reserved_raw_conflict_retained')]
-    for i, key in enumerate(dispatch_order):
-        if key in records and (records[key]['result']['stop_required'] or
-                               records[key]['costs'].get('unexpected_pricing_tier')):
-            require(i == len(dispatch_order)-1, 'Another native first attempt was dispatched after a systemic failure')
+    manifests = {}
+    if ledger['continuations']:
+        from scripts.study_v6.continuations import approved_failure, validate_link
+        for key, event in ledger['continuations'].items():
+            require(approved_failure(key, ledger, directory, project_root=project_root,
+                freeze_checker=continuation_freeze_checker), 'Invalid reviewed continuation')
+            manifests[key], _, _ = validate_link(Path(project_root)/event['manifest_path'], directory=directory,
+                project_root=project_root, freeze_checker=continuation_freeze_checker, require_archive=True)
+    pending_failure, authorized = None, []
+    for event in (json.loads(line) for line in Path(ledger_path).read_text().splitlines()):
+        data = event['data']
+        if event['kind'] == 'continuation':
+            require(pending_failure == data['failed_key'] and data['failed_key'] in manifests,
+                    'Continuation does not follow the outstanding systemic first-attempt failure')
+            authorized.append(manifests[data['failed_key']])
+            pending_failure = None
+        elif event['kind'] == 'dispatch':
+            key = data['key']
+            if records.get(key, {}).get('result', {}).get('reserved_raw_conflict_retained'):
+                continue
+            require(pending_failure is None, 'Another native first attempt was dispatched after a systemic failure without reviewed continuation')
+            for manifest in authorized:
+                if requests[key]['split'] == manifest['split']:
+                    require(key in manifest['remaining_request_keys'], 'A post-continuation dispatch lies outside its frozen first-attempt scope')
+            if key in records and (records[key]['result']['stop_required'] or
+                    records[key]['costs'].get('unexpected_pricing_tier') or
+                    (records[key]['config'] in plan.PROVIDERS and
+                     records[key]['costs']['accounted_usd'] is None and
+                     records[key]['result']['parsed']['status'] in ('ok', 'tie'))):
+                pending_failure = key
     # Every scheduled allocation/config must finish, cost-stop, or have an exact
     # STOP-linked unrun receipt. Absence of an attempted route is never completion.
     for allocation in ('main', 'supporting'):
@@ -474,6 +515,7 @@ def verify_bundle(frozen_by_split, ledger_path, directory, terminal_receipts=Non
         'first_attempt_unique_reserved_requests': len(ledger['entries']),
         'first_attempt_raw_execution_records_reparsed': len(records),
         'accounting_only_reserved_raw_conflicts_retained': sum(r['result'].get('reserved_raw_conflict_retained') is True for r in records.values()),
+        'reviewed_remaining_first_attempt_continuations': len(manifests),
         'confirmation_normalized_eligible_cells': len(normalized), 'source_denominators': by_source,
         'main_target_reviewed_groups': len(main_target),
         'main_target_runnable_groups': len(expected_schedules['main']),

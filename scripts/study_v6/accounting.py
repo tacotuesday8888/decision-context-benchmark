@@ -291,7 +291,7 @@ class BudgetLedger:
                               policy["v6_caps_usd"], policy["allocations_usd"])
             if policy != checked:
                 raise AccountingError("Invalid immutable policy")
-            return {"policy": policy, "entries": {}, "batches": {}, "schedules": {}}
+            return {"policy": policy, "entries": {}, "batches": {}, "schedules": {}, "continuations": {}}
         if kind == "register_schedule":
             allocation = data["allocation"]
             if allocation in state["schedules"]:
@@ -336,6 +336,14 @@ class BudgetLedger:
             if schedule["stopped"] is not None:
                 raise AccountingError("Duplicate schedule stop")
             schedule["stopped"] = data
+        elif kind == "continuation":
+            key = data["failed_key"]
+            entry = state["entries"][key]
+            if key in state["continuations"] or entry["status"] not in ("settled", "unknown_usage"):
+                raise AccountingError("Continuation requires a unique terminal first-attempt failure")
+            if entry["evidence_sha256"] != data["failure_evidence_sha256"]:
+                raise AccountingError("Continuation failure evidence differs from terminal accounting")
+            state["continuations"][key] = data
         else:
             raise AccountingError("Unknown journal event")
         return state
@@ -549,3 +557,56 @@ class BudgetLedger:
                 raise AccountingError("No durable dispatch intent for settlement")
             return dict(self._append(state, "settle", {"key": key, "actual_usd": actual,
                                 "evidence_sha256": evidence_sha256})["entries"][key])
+
+    def record_continuation(self, failed_key, *, failure_record, failure_evidence_sha256,
+                            stop_sha256, manifest_sha256, manifest_path,
+                            receipt_path, receipt_sha256, activated_at_epoch):
+        """Journal reviewed continuation of remaining first attempts, never a retry.
+
+        The activation module independently validates retained native bytes,
+        committed receipt, frozen scope, cooldown and archived stop. This final
+        ledger gate additionally rejects any valid prediction and binds the exact
+        terminal raw first attempt. No reservation or settlement is changed.
+        """
+        hashes = (failure_evidence_sha256, stop_sha256, manifest_sha256, receipt_sha256)
+        if any(not isinstance(v, str) or len(v) != 64 or any(c not in "0123456789abcdef" for c in v) for v in hashes):
+            raise AccountingError("Continuation evidence requires exact SHA-256 values")
+        for value in (manifest_path, receipt_path):
+            if not isinstance(value, str) or Path(value).is_absolute() or ".." in Path(value).parts:
+                raise AccountingError("Continuation evidence paths must stay inside the project")
+        if isinstance(activated_at_epoch, bool) or not isinstance(activated_at_epoch, (int, float)) or not money(activated_at_epoch) > 0:
+            raise AccountingError("Continuation requires an explicit activation time")
+        if digest(canonical(failure_record) + b"\n") != failure_evidence_sha256:
+            raise AccountingError("Continuation does not bind the exact retained failure record")
+        parsed = failure_record.get("result", {}).get("parsed", {})
+        observation = failure_record.get("result", {}).get("observation", {})
+        http = observation.get("http_status")
+        interrupted = (parsed.get('status') == 'interrupted_unknown' and
+            failure_record.get('result', {}).get('interrupted_dispatch_intent_preserved') is True and
+            not failure_record.get('result', {}).get('reserved_raw_conflict_retained') and
+            {'request.json', 'started.json'} <= set(failure_record.get('result', {}).get('raw_hashes', {})))
+        transport = (parsed.get('status') in ('transport_error', 'http_error') and
+            type(http) is int and http in (0, 200, 500, 502, 503, 504) and
+            (http not in (0, 200) or bool(observation.get('transport_exit_code'))) and
+            (http != 200 or parsed.get('status') == 'transport_error'))
+        if (failure_record.get("key") != failed_key or failure_record.get("attempt") != 0 or
+                failure_record.get("first_attempt_primary") is not True or
+                failure_record.get("result", {}).get("stop_required") is not True or
+                parsed.get("valid") is not False or parsed.get("prediction") is not None or
+                parsed.get("score") is not None or not (transport or interrupted)):
+            raise AccountingError("Only an invalid transient transport first attempt can permit continuation")
+        data = dict(failed_key=failed_key, failure_evidence_sha256=failure_evidence_sha256,
+                    stop_sha256=stop_sha256, manifest_sha256=manifest_sha256,
+                    manifest_path=manifest_path, receipt_path=receipt_path, receipt_sha256=receipt_sha256,
+                    activated_at_epoch=activated_at_epoch)
+        with self._locked() as state:
+            self._check_guard(state)
+            entry = state["entries"][failed_key]
+            if entry["status"] not in ("settled", "unknown_usage") or entry["evidence_sha256"] != failure_evidence_sha256:
+                raise AccountingError("Continuation requires the unchanged terminal failure and retained hold")
+            if failed_key in state["continuations"]:
+                old = state["continuations"][failed_key]
+                if any(old[k] != data[k] for k in data if k != 'activated_at_epoch'):
+                    raise AccountingError("A failed first attempt already has a different immutable continuation")
+                return dict(old)
+            return dict(self._append(state, "continuation", data)["continuations"][failed_key])

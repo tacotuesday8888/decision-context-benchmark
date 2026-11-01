@@ -59,3 +59,59 @@ paper/PDF. No new inference costs as of this record.
   Existing API and subscription catalogues authenticated without inference;
   neither catalogue access nor local metadata is counted as native model access
   or experiment results. Their receipts remain local and are frozen as setup input.
+- B completed all 1,749 judgments and its full lock/handoff. Original final v3
+  resolution/planning and all required read-only verification commands passed:
+  1,665 review-eligible rows, including 492 main groups / 998 pages. These are
+  original helper counts, before the supplemental execution grouping gate.
+- The complete grouping sidecar has 54 pairs reconstructed from 88 observations;
+  six pairs were present only in concern logs. Added a separate conservative
+  execution gate over every touched final component. It preserves v3 and all
+  labels/source fields, removes 12 additional rows, and admits 1,653 rows for
+  execution planning. Main target: 487 groups / 988 complete pages. NVIDIA shrinks
+  to 10 rows / five groups; it remains descriptive.
+- Exact current-rate planning contains 24,445 cells / 23,821 unique requests.
+  Initial fully held main prefix is 88 groups / 176 pages at $8.969654 OpenAI and
+  $1.506133104 TypeSafe; settling actual usage may extend it under fixed caps.
+  No predictions or accuracy were inspected for that schedule.
+- Development now reserves each fixed request before dispatch and settles before
+  the next admission, so its $0.50 envelope can release completed holds. Added
+  a CLI regression and renamed the new estimator module to `metrics.py` so it
+  cannot shadow the standard-library `statistics` needed by preserved helpers.
+- Independent full prefreeze audit passed all 23,821 unique requests and 24,445
+  references, including exact source/annotation boundaries, scheduling, dedup,
+  reservation arithmetic and all 18,468 cached Laya token assemblies. The main
+  four-comparator provisional common intersection is 69 intact pairs / 138 rows;
+  server-gated routes still need actual native acceptance. Audit receipt is
+  `results/study-v6-execution/prefreeze-audit-v1.json`.
+- Before first inference, finishing explicit continuation of unattempted frozen
+  requests after a reviewed transient transport failure. Failed first attempts
+  stay primary and are never resent; reservations remain held until an approved
+  continuation or explicit accounting-only terminal closure. This is separate
+  from a linked fresh-reservation recovery batch and does not consume recovery
+  funds or change scientific requests/cohorts.
+- Continuation and case-disposition integration now passes 183 offline tests.
+  Non-systemic refusals/format failures/output truncation remain invalid first
+  attempts while the fixed schedule continues; systemic/input/accounting failures
+  stop. A committed, cooldown-bound transport continuation journals before exact
+  STOP archival and never resends a failed key. All prefreeze request checks were
+  rerun against the updated route file in `prefreeze-audit-v2.json`; payloads,
+  cohort, coverage and reservations are unchanged.
+
+## Current durable checkpoint
+
+No v6 experimental inference has started and `execution-v1/budget.jsonl` does not
+yet exist. Remote checkpoint is `3d6cc7fd`; working execution branch contains the
+final admission/grouping/planning receipts and final prefreeze implementation
+updates. Original final v3 helpers and supplemental group gate have passed their
+full local verify commands. Exact prepared execution manifests are ignored under
+`data/raw/study-v6/execution-v1/`. Existing Ollama server was started by this chat;
+its ignored PID receipt identifies the owned process for eventual cleanup.
+
+Next: record `offline-verification-v3.json` binding current scientific hashes; inspect/stage only
+code/docs/aggregate receipts and commit/push to PR #11, obtain green CI. Create and
+commit development freeze before bounded development. Verify access/parsing and
+accounting without accuracy optimization, then create/commit confirmation freeze.
+Run main, supporting and fixed comparators under the sole executor lock. Inspect
+only operational dispositions/costs for continuation; no output-driven cohort or
+prompt changes. Independently verify raw terminal execution/accounting, then
+recompute analysis/tables/figures and author/check the final five-page paper/PDF.

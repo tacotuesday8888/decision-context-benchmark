@@ -89,6 +89,41 @@ class Parsers(unittest.TestCase):
         self.assertEqual(routes.parse_response('luna_chat', stream() + stream())['status'], 'invalid_terminal_events')
         self.assertEqual(routes.parse_response('luna_chat', 'data: {"type":"error"}\n\n')['status'], 'provider_failed')
 
+    def test_input_and_output_truncation_have_distinct_stop_policy(self):
+        output = routes.parse_response('luna_chat', stream(status='incomplete',
+            incomplete_details={'reason': 'max_output_tokens'}))
+        self.assertEqual((output['status'], output['truncation_scope']), ('truncated', 'output'))
+        self.assertFalse(output['valid'])
+        self.assertIsNone(output['prediction'])
+        self.assertFalse(routes.requires_stop(output))
+        for body in (stream(truncation='auto'), stream(status='incomplete',
+                incomplete_details={'reason': 'max_output_tokens'},
+                usage={'input_tokens': 100, 'input_truncated': True})):
+            parsed = routes.parse_response('luna_chat', body)
+            self.assertEqual(parsed['truncation_scope'], 'input')
+            self.assertTrue(routes.requires_stop(parsed))
+        native_input = routes.parse_response('jev_firstparty', json.dumps(native(
+            usage={'input_tokens': 100, 'state_tokens_dropped': 1})))
+        self.assertEqual(native_input['truncation_scope'], 'input')
+        self.assertTrue(routes.requires_stop(native_input))
+
+    def test_case_failures_abstain_without_stopping_and_missing_usage_still_stops(self):
+        cases = [stream(output=[{'content': [{'type': 'refusal'}]}]),
+            stream('invalid Boolean'), stream(output=[{'content': [{'type': 'output_text', 'text': 'Not JSON'}]}]),
+            stream(status='incomplete', incomplete_details={'reason': 'content_filter'})]
+        self.assertEqual([routes.parse_response('luna_chat', b)['status'] for b in cases],
+            ['refusal', 'invalid_format', 'invalid_format', 'provider_incomplete'])
+        for body in cases:
+            parsed = routes.parse_response('luna_chat', body)
+            self.assertFalse(parsed['valid'])
+            self.assertIsNone(parsed['prediction'])
+            self.assertFalse(routes.requires_stop(parsed))
+            self.assertTrue(routes.requires_stop(dict(parsed, usage={})))
+        for status in ('parse_error', 'transport_error', 'http_error', 'authentication_error',
+                'model_mismatch', 'settings_mismatch', 'missing_usage', 'runtime_error',
+                'context_limit_mismatch', 'provider_failed'):
+            self.assertTrue(routes.requires_stop({'status': status, 'usage': {'input_tokens': 100}}))
+
     def test_chat_returned_settings_mismatches_stop(self):
         for extra, field in (({'reasoning': {'effort': 'high'}}, 'reasoning.effort'),
                 ({'max_output_tokens': 123}, 'max_output_tokens'), ({'service_tier': 'priority'}, 'service_tier')):
@@ -171,6 +206,20 @@ class Accounting(unittest.TestCase):
 
 
 class DurableAttempts(unittest.TestCase):
+    def test_case_behavior_does_not_stop_invoke_or_trigger_retry(self):
+        request = routes.payload('luna_chat', row(), 'task')
+        bodies = [stream(output=[{'content': [{'type': 'refusal'}]}]), stream('not a Boolean'),
+            stream(status='incomplete', incomplete_details={'reason': 'max_output_tokens'}),
+            stream(status='incomplete', incomplete_details={'reason': 'content_filter'})]
+        with tempfile.TemporaryDirectory() as temp, patch.object(routes, '_credential', return_value='test-only'):
+            for i, body in enumerate(bodies):
+                with patch.object(routes, '_post', return_value=({'http_status': 200, 'transport_exit_code': 0}, body)) as post:
+                    result = routes.invoke('luna_chat', request, temp, str(i))
+                    self.assertFalse(result['stop_required'])
+                    self.assertFalse(result['parsed']['valid'])
+                    self.assertIsNone(result['parsed']['prediction'])
+                    post.assert_called_once()
+
     def test_first_attempt_exclusive_and_no_automatic_retry(self):
         request = routes.payload('jev_firstparty', row(), 'task')
         calls = []

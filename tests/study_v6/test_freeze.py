@@ -121,6 +121,7 @@ class CoverageTests(unittest.TestCase):
 
         with patch.object(freeze, 'admission', return_value={'review_eligible_rows': 1}), \
                 patch.object(freeze, 'price_gate'), patch.object(freeze, 'read', side_effect=read), \
+                patch('scripts.study_v6.grouping_gate.finalize', return_value=([source], {'fixture': 'synthetic'})), \
                 patch.object(plan, 'load_review_subgroups', return_value={}), \
                 patch.object(freeze.routes, 'coverage', side_effect=pending), \
                 patch.object(freeze, 'immutable') as save:
@@ -229,6 +230,79 @@ class SetupTests(unittest.TestCase):
         with patch.object(freeze, 'load', side_effect=[access, local]):
             with self.assertRaises(PermissionError):
                 freeze.setup_gate()
+
+    def test_prefreeze_audit_requires_no_output_exposure_and_complete_checks(self):
+        for values in ({'checks_passed': False, 'new_model_calls': 0, 'model_outputs_inspected': False},
+                       {'checks_passed': True, 'new_model_calls': 1, 'model_outputs_inspected': False},
+                       {'checks_passed': True, 'new_model_calls': 0, 'model_outputs_inspected': True}):
+            with patch.object(freeze, 'load', return_value=values):
+                with self.assertRaises(PermissionError):
+                    freeze.prefreeze_audit_gate()
+
+
+class DevelopmentOperationalTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.dest = self.root / 'raw'
+        self.enterContext(patch.object(freeze, 'ROOT', self.root))
+        self.enterContext(patch.object(plan, 'DEST', self.dest))
+        self.requests = []
+        for config in plan.CONFIGS:
+            self.add(config, config, 'ok')
+
+    def add(self, key, config, status):
+        request = {'key': key, 'config': config, 'split': 'development',
+                   'coverage_supported': True, 'request_sha256': 'a' * 64,
+                   'semantic_gold': 1}
+        result = {'request_sha256': request['request_sha256'],
+                  'parsed': {'status': status, 'valid': status == 'ok',
+                             'prediction': 0 if status == 'ok' else None,
+                             'usage': {'input_tokens': 100}}}
+        write(self.dest / 'attempts' / key / 'execution-record.json', {'result': result})
+        write(self.dest / 'attempts' / key / 'completed.json', result)
+        self.requests.append(request)
+
+    def test_operational_success_does_not_optimize_or_require_correct_answers(self):
+        result = freeze.development_operational_gate({'requests': self.requests})
+        self.assertEqual(result['successful_configuration_count'], 7)
+        self.assertEqual(len(result['first_attempt_records']), 7)
+        self.assertTrue(result['correctness_not_used'])
+
+    def test_no_supported_interface_success_for_one_configuration_blocks_confirmation(self):
+        self.requests[-1]['coverage_supported'] = False
+        with self.assertRaisesRegex(PermissionError, 'Every retained configuration'):
+            freeze.development_operational_gate({'requests': self.requests})
+
+    def test_reviewed_transient_failure_stays_frozen_with_other_interface_successes(self):
+        self.add('failed', 'luna_decisions', 'http_error')
+        with patch('scripts.study_v6.accounting.BudgetLedger') as ledger, \
+                patch('scripts.study_v6.continuations.approved_failure', return_value=True):
+            ledger.return_value.snapshot.return_value = {'continuations': {}}
+            result = freeze.development_operational_gate({'requests': self.requests})
+        self.assertEqual(result['reviewed_transient_failures'], 1)
+        self.assertEqual(len(result['first_attempt_records']), 8)
+        self.assertFalse(result['failed_requests_resent'])
+
+    def test_case_refusal_is_retained_without_accuracy_or_prompt_optimization(self):
+        self.add('refused', 'astra_chat', 'refusal')
+        result = freeze.development_operational_gate({'requests': self.requests})
+        self.assertEqual(result['retained_case_failures'], 1)
+        self.assertEqual(result['successful_configuration_count'], 7)
+        self.assertEqual(len(result['first_attempt_records']), 8)
+
+    def test_prefreeze_audit_binds_actual_payload_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'plan.json'
+            path.write_bytes(b'exact bytes')
+            receipt = {'checks_passed': True, 'new_model_calls': 0, 'model_outputs_inspected': False,
+                       'inputs': {'plan': {'path': 'plan.json', 'sha256': sha256(path.read_bytes())}}}
+            with patch.object(freeze, 'ROOT', Path(directory)), patch.object(freeze, 'load', return_value=receipt):
+                self.assertEqual(freeze.prefreeze_audit_gate(), receipt)
+                path.write_bytes(b'changed bytes')
+                with self.assertRaises(ValueError):
+                    freeze.prefreeze_audit_gate()
 
 
 if __name__ == '__main__':

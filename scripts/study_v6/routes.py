@@ -97,6 +97,24 @@ def _truncated(value):
         value.get('state_tokens_dropped', 0))
 
 
+def requires_stop(parsed):
+    """Separate retained case behavior from violations of the execution contract.
+
+    A refusal, unusable answer or exhausted output allowance is missing outcome
+    evidence, not a reason to select a different cohort. Missing native usage is
+    still systemic: preserve the case disposition and retain its reservation.
+    """
+    status = parsed.get('status')
+    if status in ('ok', 'tie', 'unsupported_over_limit'):
+        return False
+    case_failure = status in ('refusal', 'invalid_format', 'provider_incomplete') or (
+        status == 'truncated' and parsed.get('truncation_scope') == 'output')
+    if case_failure:
+        usage = parsed.get('usage') or {}
+        return not isinstance(usage, dict) or not _valid_count(usage.get('input_tokens'), minimum=1)
+    return True
+
+
 def _stream_events(body):
     for event in body.replace('\r\n', '\n').split('\n\n'):
         data = '\n'.join(line[5:].lstrip(' ') for line in event.splitlines() if line.startswith('data:'))
@@ -135,20 +153,27 @@ def parse_response(config, body):
                 settings_mismatches.append('service_tier')
             if settings_mismatches:
                 return _failure('settings_mismatch', settings_mismatch_fields=settings_mismatches, **metadata)
+            # Input integrity takes precedence even if the output also exhausted
+            # its allowance: a full-input gate violation must stop the route.
+            if response.get('truncation') not in (None, 'disabled') or _truncated(response.get('usage') or {}):
+                return _failure('truncated', truncation_scope='input', **metadata)
             if metadata.get('termination') == 'incomplete':
                 reason = (metadata.get('incomplete_details') or {}).get('reason')
-                return _failure('truncated' if reason == 'max_output_tokens' else 'provider_incomplete', **metadata)
+                if reason == 'max_output_tokens':
+                    return _failure('truncated', truncation_scope='output', **metadata)
+                return _failure('provider_incomplete', **metadata)
             if metadata.get('termination') != 'completed':
                 return _failure('provider_failed', **metadata)
-            if response.get('truncation') not in (None, 'disabled') or _truncated(response.get('usage') or {}):
-                return _failure('truncated', **metadata)
             if any(c.get('type') == 'refusal' for item in response.get('output', []) for c in item.get('content', [])):
                 return _failure('refusal', **metadata)
             # Reuse the established SSE assembly, including terminal output fallback.
             sys.path.insert(0, str(ROOT / 'scripts'))
             from smoke_access import parse_openai_stream
             text = parse_openai_stream(body)['stream_output_text']
-            answer = json.loads(text)
+            try:
+                answer = json.loads(text)
+            except (ValueError, TypeError):
+                return _failure('invalid_format', **metadata)
             if not isinstance(answer, dict) or set(answer) != {'injection'} or not isinstance(answer['injection'], bool):
                 return _failure('invalid_format', **metadata)
             result = dict(metadata, status='ok', valid=True, prediction=int(answer['injection']))
@@ -161,7 +186,7 @@ def parse_response(config, body):
             if raw.get('model') != expected:
                 return _failure('model_mismatch', **metadata)
             if _truncated(raw) or _truncated(metadata['usage']):
-                return _failure('truncated', **metadata)
+                return _failure('truncated', truncation_scope='input', **metadata)
             answers = raw['answers']
             if p['kind'] == 'predicate':
                 if not isinstance(answers, list) or len(answers) != 1 or answers[0].get('name') != 'injection':
@@ -425,7 +450,7 @@ def invoke(config, request, raw_directory, attempt_key, *, runtime=None):
             'elapsed_seconds': round(time.perf_counter()-start, 4), 'access_route': ROUTES[config],
             'paid_request': ROUTES[config] == 'api_key', 'attempt_key': attempt_key,
             'request_sha256': digest(canonical(request)),
-            'stop_required': parsed['status'] not in ('ok', 'tie', 'unsupported_over_limit'),
+            'stop_required': requires_stop(parsed),
             'raw_directory': str(directory)}
     except Exception as error:
         result = {'parsed': _failure('runtime_error'), 'error_type': type(error).__name__,

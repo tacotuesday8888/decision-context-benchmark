@@ -12,7 +12,8 @@ class PricingTests(unittest.TestCase):
         self.assertIsNone(c['actual_billed_usd'])
 
     def test_missing_usage_cannot_release_reservation(self):
-        for u in (None, {}, {'input_tokens': True}, {'input_tokens': -1},
+        for u in (None, {}, {'input_tokens': True}, {'input_tokens': -1}, {'input_tokens': 0},
+                  {'input_tokens': 100, 'input_tokens_details': []},
                   {'input_tokens': 1, 'input_tokens_details': {'cached_tokens': 2}}):
             self.assertIsNone(usage_cost('openai', u)['accounted_usd'])
 

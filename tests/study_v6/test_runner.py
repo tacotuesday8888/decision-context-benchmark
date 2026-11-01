@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from scripts.study_v6.accounting import BudgetLedger
 from scripts.study_v6.common import canonical_bytes, sha256
@@ -19,6 +20,9 @@ def request(key='a', config='jev_firstparty', provider='typesafe', split='develo
 
 class RunnerTests(unittest.TestCase):
     def setUp(self):
+        quiet = patch('builtins.print')
+        quiet.start()
+        self.addCleanup(quiet.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.ledger = BudgetLedger(self.root / 'budget.jsonl', {
@@ -71,7 +75,9 @@ class RunnerTests(unittest.TestCase):
         entries = self.ledger.snapshot()['entries']
         self.assertEqual(entries['a']['status'], 'unknown_usage')
         self.assertEqual(entries['a']['accounted_usd'], '0.01')
-        self.assertEqual(entries['b']['status'], 'cancelled_unsent')
+        self.assertEqual(entries['b']['status'], 'reserved')
+        self.executor([req, other]).close_stopped()
+        self.assertEqual(self.ledger.snapshot()['entries']['b']['status'], 'cancelled_unsent')
         self.assertEqual((folder / 'response.partial').read_bytes(), b'data: {"partial":')
         with self.assertRaises(PermissionError):
             self.executor([req, other]).dispatch('b')
@@ -86,7 +92,7 @@ class RunnerTests(unittest.TestCase):
             self.executor([req]).dispatch('a')
         self.assertEqual(self.calls, 0)
 
-    def test_failure_preserved_and_remaining_positive_unsent_cancelled(self):
+    def test_failure_preserved_and_remaining_unsent_hold_requires_explicit_closure(self):
         first, second = request(), request('b')
         self.ledger.reserve_batch('dev', 'development', [spec(first), spec(second)])
         def fail(config, payload, raw, key, runtime=None):
@@ -97,6 +103,8 @@ class RunnerTests(unittest.TestCase):
         with self.assertRaises(PermissionError):
             self.executor([first, second], fail).dispatch('a')
         self.assertEqual(self.calls, 1)
+        self.assertEqual(self.ledger.snapshot()['entries']['b']['status'], 'reserved')
+        self.executor([first, second]).close_stopped()
         self.assertEqual(self.ledger.snapshot()['entries']['b']['status'], 'cancelled_unsent')
         self.assertIsNone(load(self.root / 'attempts/a/execution-record.json')['costs']['accounted_usd'])
 
@@ -173,6 +181,33 @@ class RunnerTests(unittest.TestCase):
         (self.root / 'STOP.json').unlink()
         with self.assertRaises(PermissionError):
             self.executor([req], long_input).dispatch('a')
+        self.assertEqual(self.calls, 1)
+
+    def test_development_releases_completed_holds_before_next_fixed_request(self):
+        first, second = request(), request('b')
+        first['reserved_usd'] = second['reserved_usd'] = '.4'
+        executor = self.executor([first, second])
+        executor.development()
+        state = self.ledger.snapshot()
+        self.assertEqual(self.calls, 2)
+        self.assertTrue(state['terminal'])
+        self.assertTrue(all(e['status'] == 'settled' for e in state['entries'].values()))
+        self.assertLess(float(state['allocation_accounted_usd']['development']['typesafe']), .5)
+
+    def test_valid_score_with_malformed_paid_cache_usage_retains_hold_and_stops(self):
+        req = request(config='luna_decisions', provider='openai')
+        self.ledger.reserve_batch('dev', 'development', [spec(req)])
+        def bad_usage(config, payload, raw, key, runtime=None):
+            result = self.fake(config, payload, raw, key)
+            result['parsed']['usage'] = {'input_tokens': 100, 'input_tokens_details': []}
+            return result
+        with self.assertRaises(PermissionError):
+            self.executor([req], bad_usage).dispatch('a')
+        state = self.ledger.snapshot()
+        self.assertEqual(state['entries']['a']['status'], 'unknown_usage')
+        self.assertEqual(state['entries']['a']['accounted_usd'], '0.01')
+        record = load(self.root / 'attempts/a/execution-record.json')
+        self.assertTrue(record['result']['parsed']['valid'])
         self.assertEqual(self.calls, 1)
 
 

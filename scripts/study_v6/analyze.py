@@ -16,7 +16,7 @@ from itertools import combinations
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from scripts.study_v6 import statistics as stats
+from scripts.study_v6 import metrics as stats
 
 PRIMARY_CONFIGS = ('jev_firstparty', 'luna_decisions')
 PRIMARY_CONTROLS = ('format', 'reminder', 'length')

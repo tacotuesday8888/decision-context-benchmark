@@ -15,12 +15,25 @@ both with `--verify`, and run `verify_resolution.py --with-adjudication
 Original v1/v2 snapshots and every A/B judgment remain unchanged. Quarantine
 unresolved judgments, pair partners and components touched by unresolved links.
 
+The complete B handoff also contains a hash-pinned grouping sidecar: its 54 pairs
+include six absent from the CSV. The coordinator's original v3 helper handles
+the CSV fields. A separate `grouping_gate.py` execution gate therefore quarantines
+every final component touched by all sidecar proposals, without restoring any
+original exclusion or changing labels, groups, splits or source fields. It
+retains the original v3 files and adds separate execution-group eligibility.
+Both gates and their full attrition must be reported. Operational targets and
+reservation/precision planning are recomputed after this final gate using current
+rates; the coordinator planning receipt remains the preserved earlier-price view.
+
 `freeze.py prepare` saves exact requests and every row reference below ignored
 `data/raw/study-v6/execution-v1/`. Every prepared flag remains false. Development
 selects the longest complete candidate in UTF-8 bytes per source/label, ties by
 `rank('development:' + id)`, then hash-first distinct groups to at most four rows
 per source. Sources without development groups receive no calls. These choices
 precede outputs and are for interface/access/coverage checks only.
+Development reserves each request in the fixed configuration/source order just
+before dispatch and settles it before the next reservation, under the unchanged
+$0.50/provider total. Aggregate up-front byte holds do not define its call quota.
 
 Freeze code, tests, licensed source/review/adjudication receipts, grouping, splits,
 exposure, exact requests, coverage, prices, inherited accounting and this analysis
@@ -113,6 +126,21 @@ new reservations. Accounting-only closure can preserve interrupted intents as
 unknown and cancel positively unsent reservations at zero. Neither permits resend
 or silently advancing a failed cohort.
 
+Refusals, invalid Boolean answers and output-limit truncation remain failed case
+dispositions and continue the fixed schedule when returned input accounting is
+valid. Input cropping, missing accounting and systemic route failures stop
+dispatch. No case failure changes prompts, thresholds, model choice or source
+selection.
+
+A separately reviewed transient transport stop can continue only the remaining
+frozen first attempts. `continuations.py prepare` pins the failure, freeze, held
+budget, remaining scope and a cooldown of at least 60 seconds. Commit its tracked
+receipt before `activate`; activation journals authorization before moving the
+exact active STOP into its immutable archive. Failed keys are read and skipped,
+never resent, and unknown-usage holds stay accounted. Explicit terminal closure
+prevents later continuation of a cancelled cohort. Authentication, model, price,
+quota and evidence failures cannot use this transport continuation mechanism.
+
 ## Local commands after final admission
 
 Use existing `.venv` for ordinary analysis, `.venv-laya` for local model execution
@@ -124,6 +152,8 @@ python3 scripts/study_v6/resolved_plan.py --with-adjudication
 python3 scripts/study_v6/resolve_review.py --with-adjudication --verify
 python3 scripts/study_v6/resolved_plan.py --with-adjudication --verify
 python3 scripts/study_v6/verify_resolution.py --with-adjudication --require-cache
+python3 scripts/study_v6/grouping_gate.py
+python3 scripts/study_v6/grouping_gate.py --verify
 .venv/bin/python scripts/study_v6/freeze.py prepare
 # Run/review offline verification, then commit code and aggregate receipts.
 .venv/bin/python scripts/study_v6/freeze.py freeze-development
@@ -138,6 +168,16 @@ python3 scripts/study_v6/verify_resolution.py --with-adjudication --require-cach
 .venv-laya/bin/python scripts/study_v6/run.py comparator --config laya_local
 .venv-laya/bin/python scripts/study_v6/run.py comparator --config nimble_local
 .venv/bin/python scripts/study_v6/run.py comparator --config protectai_local
+```
+
+For a qualifying saved transient stop only:
+
+```sh
+.venv/bin/python scripts/study_v6/continuations.py prepare --reason 'Document the verified transient transport cause and remaining frozen scope'
+# Inspect and commit only the returned aggregate receipt; preserve raw evidence.
+# After the required cooldown, activate the returned ignored manifest path.
+.venv/bin/python scripts/study_v6/continuations.py activate PATH_FROM_PREPARE
+# Resume the same run action. No failed request is resent.
 ```
 
 After terminal evidence, independently reparse retained raw responses, verify

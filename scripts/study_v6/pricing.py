@@ -21,7 +21,7 @@ def usage_cost(provider, usage):
     if not isinstance(usage, dict):
         return {'accounted_usd': None, 'actual_billed_usd': None}
     n = usage.get('input_tokens')
-    if type(n) is not int or n < 0:
+    if type(n) is not int or n <= 0:
         return {'accounted_usd': None, 'actual_billed_usd': None}
     if provider == 'typesafe':
         cost = Decimal(n) * BASE_RATES[provider] / Decimal(1000000)
@@ -30,7 +30,11 @@ def usage_cost(provider, usage):
     if provider != 'openai':
         raise ValueError('Unknown paid provider')
     multiplier = 2 if n > OPENAI_SHORT_INPUT_MAX else 1
-    details = usage.get('input_tokens_details') or {}
+    details = usage.get('input_tokens_details')
+    if details is None:
+        details = {}
+    elif not isinstance(details, dict):
+        return {'accounted_usd': None, 'actual_billed_usd': None, 'basis': 'invalid cache usage'}
     reads, writes = details.get('cached_tokens', 0), details.get('cache_write_tokens', 0)
     if any(type(x) is not int or x < 0 for x in (reads, writes)) or reads + writes > n:
         return {'accounted_usd': None, 'actual_billed_usd': None, 'basis': 'invalid cache usage'}
