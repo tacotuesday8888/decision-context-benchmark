@@ -116,9 +116,10 @@ Tracked artifacts: [main selection](results/study-v7/main-selection.json),
 [run manifest](results/study-v7/run-manifest.json),
 [synthetic validation](results/study-v7/statistical-simulation.json), and
 [statistics methods](docs/study-v7/STATISTICS.md). Restricted source text, complete
-request plan, token audit and future raw attempts stay only under ignored
-`data/raw/study-v7/`. The dependent private draft PR will be linked here after
-delivery; it targets [planning PR12](https://github.com/tacotuesday8888/decision-context-benchmark/pull/12).
+request plan, token audit and raw attempts stay only under ignored
+`data/raw/study-v7/`. Delivery is in [private draft PR14](https://github.com/tacotuesday8888/decision-context-benchmark/pull/14),
+dependent on [planning PR12](https://github.com/tacotuesday8888/decision-context-benchmark/pull/12).
+Preparation commit: `975106875047d08756a10e61c5cb8a3e93e0e58c`.
 
 The Scientific Agent Skills procedural assistance is cited in the
 [software provenance outline](docs/study-v7/PAPER-OUTLINE.md); it does not certify
