@@ -2,3 +2,8 @@
 # Generated scientific artifacts are preserved byte-for-byte.
 *.pdf binary
 results/expanded-execution/paper-figures/*.svg -whitespace
+
+# Frozen v7 generator bytes: CSV CRLF and SVG path whitespace are intentional.
+# https://git-scm.com/docs/gitattributes#_checking_whitespace_errors
+results/study-v7-execution/**/*.csv -text whitespace=cr-at-eol
+results/study-v7-execution/**/*.svg -text whitespace=-blank-at-eol

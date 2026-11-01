@@ -154,3 +154,49 @@ passed; all104231events/70333037bytes match the original credit-stop prefix. No
 executor is active until the requested final binding review completes. Then one
 rootexecutor may continue eligibleconfirmation followed byeligible repeats, with
 same14:00UTCadmission cutoff/16:06window end. Sol remains separatelydeferred.
+
+
+Final binding review passed. Eligible-only continuation launched11:17:38UTC from
+commitc187d46c, single roottoolsession78194, using v7.0.8manifest/owner receipt.
+It chains eligibleconfirmation then original eligible repeats. Logs: ignored
+confirmation-run-v7.0.8.log/repeat-run-v7.0.8.log. No paidOpenAIprobes/dispatch or
+Solsubstitution; receipt-bound cancellations are only reserved-never-sent paid
+entries. Originalprefix/unknownholds/outcomes/plan remain. No competingexecutor.
+
+
+## Eligible collection ended12:45UTC
+
+Session78194EXIT0; both phases bounded_phase_finished. No liveexecutor. All48000
+native main terminal47840ok/157ties/3HTTP; all1000local main valid; generalRsp109ok/
+2billingfailures/remainderdeferred. ExternalJev+local8000terminal7990ok/10ties;
+Jevrepeat800terminal797ok/3ties. OtherpaidOpenAI/Sol cells remain planned/unattempted
+or receipt-canceled never-sent. All prior failures/unknownholds preserved.
+
+Rootisrunningfrozen analyze_run.py then repeat_analysis.py to results/study-v7-execution.
+Code/statistics/sourcefiles are NOTtochange; no further model/APIcalls. Independent
+primary/descriptive/repeat/raw-accounting audits are delegated. NextinspectPNGs,
+resolveactualfindingswithoutchangingfrozenmethods, create technicalresultsnote,
+secret-scan intendedartifacts, updateprivatePR14/greenCI. No paper/PDF/merge/publicrelease.
+
+
+## Final verified closeout 2026-11-01T13:09:18.128825+00:00
+
+All eligible collection and the frozen first/repeat analyses finished. Primary
+sharedN2850/3000; six paired contrasts/JevFP-FNtradeoff/source metrics/matchedcohorts/
+repeatstability and raw-evidence/accounting all independently verify. Numerical
+artifacts are unchanged. Reviewed rendering repairs only layout; originalrenders
+remain archival. Technicalhandoff is results/study-v7-execution/README.md.
+
+Finaljournal135053events/88347623bytes SHA
+1f1df34267511c35addba2591c1def6f4aae1a4d07387f657283b7f75944f3e8.
+60186actualattempts(eachdispatchedonce),60181settled/5unknown,8693unsentcancels,
+noreserved/dispatched. Currentplan60182actualattempts;4legacySolerrorsseparate.
+Native48000, localmain1000/external4000, Jevexternal4000/repeat800allcomplete.
+PaidOpenAIremainder andSolremain explicitdeferred; fullfive-configexperimentfalse.
+Knownv7usageOA29.69410125/TS5.951424192, unknownOA1.9952816preserved. No purchases,
+reset,recharge or furthermodelcalls. Last response12:43:45.323518UTC.
+
+Collectionis sealed by ignored stop-study-v7-closed.json, bound in collection-closeout.json.
+Existingownerreceipt read-onlyguardtest confirms furtherdispatchblocked. Source/
+plan/all174frozenexecutionhashes remain intact. Only postcollection reviewed_figures.py
+was added for presentation. Nextprivatecommit/PR14CI/cleanworktreecheck; no merge/publicrelease.
