@@ -1,6 +1,9 @@
 # Subscription follow-up recommendation
 
-November 1, 2026. **Preparation only; no new inference is authorized by this note.**
+November 1, 2026. **Historical preparation recommendation.** The owner subsequently
+authorized separately versioned execution; see [coordination](COORDINATION.md)
+and the [new prospective protocol](PROTOCOL-v1.md). This earlier note itself
+does not authorize inference or establish present readiness.
 This follow-up is separate from the closed v7 delivery at `73d7a8a8` and private
 [PR14](https://github.com/tacotuesday8888/decision-context-benchmark/pull/14).
 Its results, accounting, stop seal, missing cells and original analysis stay frozen.
