@@ -64,6 +64,21 @@ class ReviewChecks(unittest.TestCase):
                 verify.write_new(path, {'a': 2})
             self.assertEqual(verify.read(path), {'a': 1})
 
+    def test_archived_sampling_reproduces_original_intervals(self):
+        from scripts.critical_review.sampling_replay import replay
+        actual, diagnostics = replay()
+        saved = verify.read(verify.ROOT / 'results/subscription-followup-execution/core-analysis-v1.json')
+        expected = saved['main']['all_planned_available_output_metrics']['jev_firstparty']['task']['rate_intervals']
+        for metric, value in actual.items():
+            self.assertEqual(value, expected[metric]['pointwise_95'])
+        self.assertTrue(diagnostics['identical_support_counts_and_probability_bits'])
+
+    def test_replay_diff_rejects_real_value_and_structural_changes(self):
+        with self.assertRaises(AssertionError):
+            verify.check_replay({'n': 5}, {'n': 6})
+        with self.assertRaises(AssertionError):
+            verify.check_replay({'mean': .1}, {'mean': .2})
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -8,6 +8,7 @@ from collections import Counter, defaultdict
 import hashlib
 import json
 from pathlib import Path
+import platform
 
 import numpy as np
 import scipy
@@ -174,7 +175,16 @@ def compact_review():
     source_rows = lines(source_dir / 'source-first-outcomes.jsonl')
     core = read(core_dir / 'core-analysis-v1.json')
     source = read(source_dir / 'source.json')
-    check_replay(analyze_core.analyze_main(rows), core['main'])
+    regenerated_core = analyze_core.analyze_main(rows)
+    seeded_differences = replay_differences(regenerated_core, core['main'])
+    from scripts.critical_review.sampling_replay import replay
+    original_intervals, sampling = replay()
+    # A new, explicitly archived-draw replay; never mutate the frozen estimator or JSON.
+    # Every other field still has to match exactly, including all primary intervals.
+    target = regenerated_core['all_planned_available_output_metrics']['jev_firstparty']['task']['rate_intervals']
+    for metric, endpoints in original_intervals.items():
+        target[metric]['pointwise_95'] = endpoints
+    check_replay(regenerated_core, core['main'])
     check_replay(extension_math.analyze_source(source_rows), source)
     repeats = lines(core_dir / 'repeat-outcomes.jsonl')
     repeated = {}
@@ -193,9 +203,13 @@ def compact_review():
     assert len(actors) == 48 and all(r['answer']['action'] == 'none' for r in actors)
     procurement = [r for r in actors if r['task_id'] == 'procurement' and r.get('gate_disposition') != 'block']
     assert len(procurement) == 3 and all(r['answer']['final_answer'] == '12 units; 5 business days' for r in procurement)
-    return {'version': 'critical-review-offline-verification-1', 'input_hashes': hashes,
-            'software': {'numpy': np.__version__, 'scipy': scipy.__version__},
+    return {'version': 'critical-review-offline-verification-2', 'input_hashes': hashes,
+            'software': {'numpy': np.__version__, 'scipy': scipy.__version__, 'platform': platform.platform(),
+                         'python': platform.python_version()},
             'exact_frozen_core_and_source_replays': True,
+            'seeded_core_replay_exact': not seeded_differences,
+            'seeded_core_replay_differences': seeded_differences,
+            'core_sampling_replay': sampling,
             'independent_core_effects': independent_effects(rows, core['main']),
             'independent_source_effects': independent_effects(source_rows, source, source=True),
             'repeat_counts': repeated, 'human_review_flagged_groups': flagged,
@@ -319,6 +333,8 @@ def main():
         result['native_arithmetic'] = native_review(args.v7_root)
     write_new(args.output, result)
     print('Offline review passed; wrote', args.output)
+    print('Sampling diagnostics:', json.dumps(result['core_sampling_replay'], sort_keys=True))
+    print('Seeded core replay differences:', json.dumps(result['seeded_core_replay_differences'], sort_keys=True))
 
 
 if __name__ == '__main__':
