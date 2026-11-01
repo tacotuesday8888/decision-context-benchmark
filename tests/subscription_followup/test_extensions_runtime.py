@@ -97,6 +97,11 @@ class RuntimeTests(unittest.TestCase):
         self.manifest=self.root/"manifest.json";self.authpath=self.root/"authorization.json";self.reviewpath=self.root/"review.json"
         self.bind_manifest()
         self.now=b._utc(ORIGINAL_START)+timedelta(hours=1)
+        # Keep permit checks on the same synthetic clock as the fixture ledger.
+        # Real wall time must not expire offline tests after the frozen run ends.
+        patcher=patch.object(x,"datetime",wraps=datetime)
+        self.permit_clock=patcher.start();self.addCleanup(patcher.stop)
+        self.permit_clock.now.side_effect=lambda tz=None:self.now.astimezone(tz)
 
     def bind_manifest(self):
         write(self.manifest,self.m);sha=digest(self.manifest.read_bytes())
