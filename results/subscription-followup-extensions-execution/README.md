@@ -68,7 +68,7 @@ task facts and reduced the frozen strict extraction score. Joint outcomes,
 paired transitions and all-planned missing bounds are retained. These are fixed
 case counts, with no population confidence intervals or p-values.
 
-**Post hoc measurement audit:** procurement asked for the quoted item count and
+**Post hoc AI measurement audit:** procurement asked for the quoted item count and
 delivery lead time. Its content-visible responses said `12 units; 5 business
 days`, which is substantively correct for the authored source, while the frozen
 scorer expected `12; 5 business days`. The unspoken numeric-only convention
@@ -76,6 +76,9 @@ caused the three content-visible procurement packets to fail exact matching.
 Thus 11/12 is a brittle strict-format score, not evidence that one legitimate
 information task failed. All original packets and frozen scores are preserved;
 there was no rescoring, exclusion or further inference after this finding.
+The reviewer inspected all 48 packets: the unit mismatch affects exactly three
+content-visible procurement packets; the other 33 content-visible packets
+passed strict extraction. See the [post hoc audit](posthoc-measurement-audit-v1.json).
 
 ## Accounting and artifacts
 

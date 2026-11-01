@@ -6,8 +6,8 @@ in draftPR15; no merge, public release, submission or manuscript was performed.
 
 The combined follow-up sent5,638 scheduled requests exactly once:4,510 core
 requests plus1,128 extension requests. All are terminal, with no pending,
-inflight, unattempted or replayed cell. The retained outcomes are5,629 valid
-schemas, three core service failures and six native Jev source abstentions.
+inflight, unattempted or replayed cell. The retained outcomes are5,629 parsed
+status-ok outputs, three core service failures and six native Jev source abstentions.
 The original global window14:57:56.429131–19:57:56.429131UTC was never reset;
 last experimental completion was16:53:42.567168UTC. Both model executors exited0.
 
