@@ -1,0 +1,27 @@
+{
+  "gate": "All other development cells must succeed operationally. This one reviewed 503 may remain missing; no repeated successful or failed request. No confirmation has occurred.",
+  "official_runtime_source": "https://github.com/ollama/ollama/releases/tag/v0.40.13",
+  "original_changed_files": {
+    "results/controls-v4/development-original-inputs/PROTOCOL-v4.0.md": "fc04a98daa1a6e0337180d0753a2063859aee385b2e47d31fb638b048b0e6abf",
+    "results/controls-v4/development-original-inputs/preserved_adapters.py": "2d645cb19fe1e8da297f11fb0b670c22ba1c01ac80ab0a5681947abf681c65d8",
+    "results/controls-v4/development-original-inputs/prompts-v1.json": "ee0ecce16b1b159b6971f37cdc6db5f7b84ffc9b5de34b205a218d3e29ed60c5",
+    "results/controls-v4/development-original-inputs/request-plan-v1.json": "df346b2c07bd300444b1c9dea99a0483217c23dd7db08e9a281ed640e73b547c",
+    "results/controls-v4/development-original-inputs/run.py": "664ee1c1157fe57f980aa6b21e905804f369aa2a2e94c98820832f14cdc4925b"
+  },
+  "prior_freeze_sha256": "dc670757f2924a15c6906b13a1346d0e945e2fe85576e69b7fa1bc60db162028",
+  "reason": "Ollama externally updated to 0.40.13 before any Nimble call. Pin actual runtime with unchanged model digest and requests; revalidate on planned development. Decisions HTTP503 is a provider unavailable response, not a semantic/format/truncation error; retain failed cell and full unknown-cost reservation, continue only untouched development jobs.",
+  "replacement_hashes": {
+    "results/controls-v4/prompts-v1.json": "d5800fdcfb948a51f6deb5574c3e81db2a23c53191e11de2ab83a1c68514f7bc",
+    "results/controls-v4/request-plan-v1.json": "e78a7c5ea494212797546215c8d7c80e42f0366a76b0cc5c77727b190cdcccbb",
+    "scripts/controls_v4/nimble_runtime.py": "e62e25ee1d3ba2d7bbfb44dc0c9a28bd02e3c466dc7d081f2f83672f807af9bf",
+    "scripts/controls_v4/preserved_adapters.py": "942b69e5a4c34c176c42a2ab1305037ce272efbf16b92690e89db311adf389ac",
+    "scripts/controls_v4/run.py": "646fff7bab75702e546eb783d5e1a3de1f7fd2640521219088009545453c01f6"
+  },
+  "reviewed_development_transport_failure": {
+    "record": "results/controls-v4/development/luna_decisions/746562dba63bc4787bbfe186.json",
+    "record_sha256": "4b4564d1bde3426c8371b8dcab3ea97f45151defde9a39b32f9575314a6396fa",
+    "reservation_usd": 0.0010884,
+    "status": 503
+  },
+  "version": "controls-development-v4.0.1"
+}

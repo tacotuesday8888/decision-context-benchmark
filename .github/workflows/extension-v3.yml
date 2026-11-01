@@ -1,0 +1,55 @@
+name: Extension v3 offline checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  offline-extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install numpy==2.4.4
+      - run: python scripts/extension_v3/integrity.py
+      - run: python -m unittest discover -s tests/extension_v3 -v
+      - run: python scripts/extension_v3/analyze_diagnostic.py
+      - run: git diff --exit-code -- results/extension-v3/local-diagnostic-v1/summary.json
+      - name: Independently verify completed confirmation analyses
+        run: |
+          python scripts/extension_v3/verify_analysis.py --config jev_firstparty
+          python scripts/extension_v3/verify_analysis.py --config luna_decisions
+          python scripts/extension_v3/verify_analysis.py --config laya_local
+          python scripts/extension_v3/verify_analysis.py --config nimble_local
+          python scripts/extension_v3/verify_analysis.py --config luna_chat
+          python scripts/extension_v3/verify_analysis.py --config astra_chat
+          python scripts/extension_v3/verify_analysis.py --config protectai_local
+          git diff --exit-code -- results/extension-v3/analysis/*-verification.json
+      - name: Independently reconstruct primary and control grouped intervals
+        run: |
+          python scripts/extension_v3/verify_bootstrap.py --config jev_firstparty
+          python scripts/extension_v3/verify_bootstrap.py --config luna_decisions
+          python scripts/extension_v3/verify_bootstrap.py --config laya_local
+          python scripts/extension_v3/verify_bootstrap.py --config nimble_local
+          python scripts/extension_v3/verify_bootstrap.py --config luna_chat
+          python scripts/extension_v3/verify_bootstrap.py --config astra_chat
+          git diff --exit-code -- results/extension-v3/analysis/*-bootstrap-verification.json
+      - name: Audit exact requests and raw responses
+        run: |
+          python scripts/extension_v3/audit_records.py --config jev_firstparty
+          python scripts/extension_v3/audit_records.py --config luna_decisions
+          python scripts/extension_v3/audit_records.py --config laya_local
+          python scripts/extension_v3/audit_records.py --config nimble_local
+          python scripts/extension_v3/audit_records.py --config luna_chat
+          python scripts/extension_v3/audit_records.py --config astra_chat
+          python scripts/extension_v3/audit_records.py --config protectai_local
+          git diff --exit-code -- results/extension-v3/analysis/*-record-audit.json
+      - name: Reproduce source-specific summary tables
+        run: |
+          python scripts/extension_v3/tables.py
+          git diff --exit-code -- results/extension-v3/analysis/primary-effects.csv results/extension-v3/analysis/control-effects.csv results/extension-v3/analysis/source-metrics.csv results/extension-v3/analysis/table-inputs.json
+      - name: Verify final closure and reproduce report
+        run: |
+          python scripts/extension_v3/closure.py --require-terminal
+          python scripts/extension_v3/report.py
+          git diff --exit-code -- results/extension-v3/execution-closure-v1.json results/extension-v3/report.md results/extension-v3/report-inputs-v1.json

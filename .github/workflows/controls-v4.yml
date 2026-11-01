@@ -1,0 +1,27 @@
+name: Controls v4 offline checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  offline-controls:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install numpy==2.4.4
+      - run: python -m unittest discover -s tests/controls_v4 -v
+      - name: Reproduce shared-document diagnostics
+        run: |
+          python scripts/controls_v4/group_audit.py
+          git diff --exit-code -- results/controls-v4/tau-group-audit-v1.json
+      - name: Verify preserved baseline receipts
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          receipt = json.loads(Path('results/controls-v4/baseline-receipt-v1.json').read_text())
+          for path, expected in receipt['baseline_files_sha256'].items():
+              assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == expected, path
+          PY

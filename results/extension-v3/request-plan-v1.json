@@ -1,0 +1,173 @@
+{
+  "automatic_retries": 0,
+  "by_configuration": {
+    "astra_chat": {
+      "maximum_payload_bytes": 5349,
+      "payload_bytes": 3640675,
+      "requests": 1771,
+      "sum_full_reservations_usd": 0.0
+    },
+    "jev_firstparty": {
+      "maximum_payload_bytes": 4968,
+      "payload_bytes": 2965924,
+      "requests": 1771,
+      "sum_full_reservations_usd": 0.8584749600000017
+    },
+    "laya_local": {
+      "maximum_payload_bytes": 5176,
+      "payload_bytes": 3334292,
+      "requests": 1771,
+      "sum_full_reservations_usd": 0.0
+    },
+    "luna_chat": {
+      "maximum_payload_bytes": 5348,
+      "payload_bytes": 3638904,
+      "requests": 1771,
+      "sum_full_reservations_usd": 0.0
+    },
+    "luna_decisions": {
+      "maximum_payload_bytes": 4981,
+      "payload_bytes": 2988947,
+      "requests": 1771,
+      "sum_full_reservations_usd": 2.048592600000004
+    },
+    "nimble_local": {
+      "maximum_payload_bytes": 4994,
+      "payload_bytes": 3011970,
+      "requests": 1771,
+      "sum_full_reservations_usd": 0.0
+    },
+    "protectai_local": {
+      "maximum_payload_bytes": 4212,
+      "payload_bytes": 865167,
+      "requests": 761,
+      "sum_full_reservations_usd": 0.0
+    }
+  },
+  "control_interpretation": "Constructed information interventions; same published scenario labels. Scrambling preserves lexical content/character count, not necessarily all semantics or token count.",
+  "control_pairs": 83,
+  "models": {
+    "astra_chat": {
+      "context_tokens": 1050000,
+      "credential": "project subscription OAuth (.secrets/chatgpt.json)",
+      "endpoint": "https://api.openai.com/v1/responses",
+      "input_usd_per_million": 10,
+      "kind": "chat",
+      "model": "gpt-6-astra",
+      "output_cap": 2048,
+      "output_usd_per_million": 50,
+      "paid_enabled": false,
+      "provider": "OpenAI separately authorized ChatGPT subscription",
+      "reasoning_effort": "low"
+    },
+    "jev_firstparty": {
+      "context_tokens": 32000,
+      "credential": "TYPESAFE_API_KEY",
+      "endpoint": "https://api.typesafe.ai/v1/systemone",
+      "input_usd_per_million": 0.042,
+      "kind": "noul",
+      "model": "jev-1.14.0",
+      "output_cap": null,
+      "output_usd_per_million": 0,
+      "paid_enabled": false,
+      "provider": "TypeSafe first-party"
+    },
+    "laya_local": {
+      "backend": "eager",
+      "calibration": "publisher defaults; no fitting",
+      "context_tokens": 8192,
+      "credential": null,
+      "device": "cpu",
+      "head_max_len": 256,
+      "input_usd_per_million": 0,
+      "kind": "local_decision",
+      "model": "convaiinnovations/laya-multilingual",
+      "output_cap": null,
+      "output_usd_per_million": 0,
+      "provider": "Convai Innovations weights / local CPU",
+      "revision": "1720e3e3357cfe1e281542e223f8273b0890ca34",
+      "sdk": "laya==0.4.17",
+      "threads": 2,
+      "threshold": 0.5
+    },
+    "luna_chat": {
+      "context_tokens": 1050000,
+      "credential": "project subscription OAuth (.secrets/chatgpt.json)",
+      "endpoint": "https://api.openai.com/v1/responses",
+      "input_usd_per_million": 0.1,
+      "kind": "chat",
+      "model": "gpt-6-luna",
+      "output_cap": 256,
+      "output_usd_per_million": 0.5,
+      "paid_enabled": false,
+      "provider": "OpenAI separately authorized ChatGPT subscription",
+      "reasoning_effort": "none"
+    },
+    "luna_decisions": {
+      "context_tokens": 1050000,
+      "credential": "OPENAI_API_KEY",
+      "endpoint": "https://api.openai.com/v1/decisions",
+      "input_usd_per_million": 0.1,
+      "kind": "predicate",
+      "model": "gpt-6-luna",
+      "output_cap": null,
+      "output_usd_per_million": 0,
+      "paid_enabled": false,
+      "provider": "OpenAI first-party API"
+    },
+    "nimble_local": {
+      "calibration": "native probabilities; no fitting",
+      "context_tokens": 8194,
+      "credential": null,
+      "endpoint": "http://127.0.0.1:11434/v1/systemone",
+      "input_usd_per_million": 0,
+      "keep_alive": "2m",
+      "kind": "local_decision",
+      "model": "nimble:9b-q4_K_M",
+      "output_cap": null,
+      "output_usd_per_million": 0,
+      "provider": "Bespoke Nimble / official Ollama local Q4_K_M",
+      "revision": "d99f22c363cea449151cc473887de081b98ca98e8a29b1a8710e09da916f2c79",
+      "runtime": "Ollama 0.40.11",
+      "threshold": 0.5
+    },
+    "protectai_local": {
+      "aggregation": "maximum P(INJECTION) over candidate-only windows",
+      "context_tokens": 512,
+      "credential": null,
+      "input_usd_per_million": 0,
+      "kind": "local_detector",
+      "model": "protectai/deberta-v3-base-prompt-injection-v2",
+      "output_cap": null,
+      "output_usd_per_million": 0,
+      "overlap_tokens": 64,
+      "paid_enabled": false,
+      "provider": "Protect AI weights / local CPU",
+      "revision": "90c9989b1a342275dd0d1a95aad283c04e075671",
+      "threshold": 0.5,
+      "window_tokens": 510
+    }
+  },
+  "no_paid_fallback": true,
+  "planned_confirmation_requests": 11387,
+  "prior_accounted_usd": {
+    "openai": 0.09644279999999997,
+    "typesafe": 0.05117078400000004
+  },
+  "provider_caps_usd": {
+    "openai": 15,
+    "typesafe": 20
+  },
+  "routes": {
+    "astra_chat": "subscription",
+    "jev_firstparty": "api_key",
+    "laya_local": "local",
+    "luna_chat": "subscription",
+    "luna_decisions": "api_key",
+    "nimble_local": "local",
+    "protectai_local": "local"
+  },
+  "status": "pending_token_coverage_and_development_freeze",
+  "task_candidate_pairs": 761,
+  "version": "extension-plan-v1"
+}

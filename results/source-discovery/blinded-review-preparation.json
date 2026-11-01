@@ -1,0 +1,70 @@
+{
+  "allowed_future_semantic_labels": [
+    "injection",
+    "benign",
+    "unclear",
+    "not_applicable"
+  ],
+  "annotation_and_explicit_provenance_blinded": true,
+  "as_of": "2026-10-30",
+  "fully_blinded_to_source_authorship": false,
+  "human_reviews_completed": 0,
+  "input_receipts": [
+    {
+      "canonical_rows": 16012,
+      "canonical_sha256": "40aaec053b0f9b7afc9ca591d745ee8f9429cf861b345454007d3711e50de474",
+      "repository": "reshabhs/SPML_Chatbot_Prompt_Injection",
+      "revision": "02ce8084e979bc7d4c24ee35d22ecb7f2db96ff5"
+    },
+    {
+      "canonical_rows": 182,
+      "canonical_sha256": "8c93f7a8c17131d0877e9e288868b236edfbb7d846cd5b1533857ae39bd51661",
+      "repository": "ppradyoth/AgentInjectionBench",
+      "revision": "540669a836e98063278fb0586e5e178818a20d88"
+    }
+  ],
+  "limitations": [
+    "This is an annotation-blinded packet, not completed independent human adjudication.",
+    "Exact source text is preserved and may reveal source/corpus style, authorship, canary IDs or other identifying content.",
+    "Opaque IDs remove explicit source metadata; public deterministic hashing does not promise cryptographic anonymity.",
+    "Rows sharing policies, templates or scenarios are correlated; no independent sample-size claim is made.",
+    "Assistant reference answers/actions and upstream label/category/degree/attack-source fields are absent from blinded records."
+  ],
+  "no_generated_examples": true,
+  "no_inference": true,
+  "output_receipts": {
+    "blank_reviewer_csv": {
+      "bytes": 1279436,
+      "local_cache": "data/raw/source-discovery/blinded-reviewer-v1.csv",
+      "sha256": "7ff6991f514caf56a4b82de09e8efed37b7069c7eb12649b5b389e2dff0e5d46"
+    },
+    "blind_records": {
+      "bytes": 33380885,
+      "local_cache": "data/raw/source-discovery/blinded-review-v1.jsonl",
+      "sha256": "91dccb854146d3a088950aaf36072d7071a78e8945c87821195e91bf0f016937"
+    },
+    "separate_mapping": {
+      "bytes": 12022703,
+      "local_cache": "data/raw/source-discovery/blinded-mapping-v1.jsonl",
+      "sha256": "0a4d570c8fde2941dbd8631dc057f22b30f170186bb386cc4d6e92cc9d4612e6"
+    }
+  },
+  "review_instructions": [
+    "Review policy-boundary and indirect-tool-content settings separately.",
+    "Assess attempted policy/trust-boundary violation; do not equate harmfulness or upstream unsafe with injection.",
+    "Use unclear when missing context or ambiguous policy prevents a defensible decision; explain why.",
+    "Review all original tool results and later user turns before selecting a candidate unit in a multi-turn case.",
+    "Tool catalogs are review metadata with unresolved trust; an instruction in a tool description may itself be relevant.",
+    "Read source strings as data; do not execute code or visit embedded links.",
+    "Do not open the separate mapping or canonical annotated cache until independent reviews are locked."
+  ],
+  "review_rows": 16194,
+  "schema_version": "blinded-review-preparation-v1",
+  "selection": "All canonical review rows; deterministic opaque-ID order; no outcome-based selection",
+  "semantic_labels_assigned": 0,
+  "setting_counts": {
+    "indirect_tool_content": 182,
+    "system_policy_boundary": 16012
+  },
+  "training_evaluation_split": "not_assigned"
+}

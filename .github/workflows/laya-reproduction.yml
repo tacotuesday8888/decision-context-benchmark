@@ -1,0 +1,14 @@
+name: Verify Laya formatting reproduction
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  saved-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python scripts/reproduction/verify_laya_empty_field.py
+      - run: git diff --exit-code -- results/laya-empty-field-reproduction/verification.json
