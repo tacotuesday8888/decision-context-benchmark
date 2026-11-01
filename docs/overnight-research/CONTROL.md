@@ -220,3 +220,8 @@ Root checked journal prefix130294:58,566dispatches and58,566settlements,zero dup
 ## 12:47 UTC eligible collection complete
 
 Worker cursor755reports successful executor exit and frozen offlineanalysis starting. Root independently verified external Jev3990OK+10ties/4000,ProtectAI4000OK/4000,and Jev repeats797OK+3ties/800 against originalplan. Receipt external-repeat-completion-check.json; no accuracy inspected yet. Native48000 and localmain1000 were independently verified earlier. Root instructed worker to finish frozen analysis and finalaccounting; root will independently check numerical results, planneddenominators,missingness,repeatseparation,and renderedoutputs. DeferredOpenAI/Sol remainexplicit; no newinference requested. Goal stillactive pending verifiedanalysis and plainhandoff.
+
+
+## 12:51 UTC primary numerical verification
+
+Root independently reconstructed rawpredictions/source labels without importing study analysis functions. Sharedcohort2850/3000. Allsixmeans,n,t,p,Holmp,bounds andsensitivitycounts/means match frozenoutput to numericalprecision; artifacthashes verified. Jevtask reduceserror by1.28/2.37/1.07percentagepoints versusformat/reminder/length; Lunatask increaseserror by1.40/1.16/1.77points. AllHolmp<.001; allplanned finitecohortbounds preserve directions. Receipts independent-primary-results.json andprimary-results-crosscheck.json. Bootstrapintervals notindependentlyrecalculated yet. Root requested presentation-only repair: primaryfigure legend overlaysfirstinterval; boundsfigure title clipped. Preserve numericalhashes anddocument renderingrevision. Remaining: repeat/externalnumericalchecks, finalcosts, revisedfigures, plainhandoff andcompletionaudit.
