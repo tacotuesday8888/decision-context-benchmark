@@ -146,3 +146,7 @@ Worker reports94offline tests passed. Root verified active v7.0.6manifest/author
 ### Paced continuation active, 08:19 UTC
 
 Worker started paced run at commitac495002; first paced dispatch08:18:09UTC after startup cooldown. Root checked first138pacing events: maximum observed60second proxy sum1,497,820 below1,500,000. Worker reports3,493/48,000native confirmation records without newstop. Latest cursor185.
+
+### Independent live accounting check, 08:29 UTC
+
+Root reconciled a complete-line journal prefix through index 18202: 8,706 dispatches and 8,706 settlements, zero duplicate dispatch or settlement keys. New settled usage OpenAI $4.63367705 / TypeSafe $0.855393042, total $5.489070092; unknown OpenAI holds $1.050 remain preserved. Excludes historical accounting and any later/in-flight reservations; not an invoice. Receipt `live-accounting-check.json`. Root research PR13 head 6e7dac74 has 20/20 checks passed. Worker remains active, latest observed 6,260/48,000 native records at cursor 202. No accuracy inspected.

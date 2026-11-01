@@ -46,3 +46,5 @@ New groups stop being admitted at **14:00 UTC / 9:00 AM New York**. The authoriz
 Raw examples, responses, and credentials are not included in these status notes. The repository remains private.
 
 Update at 08:19 UTC: the paced run is active. The worker reports 3,493 of 48,000 planned native confirmation responses saved, with no new stop. Root independently checked the first 138 pacing events: maximum observed rolling weight 1,497,820, below the 1,500,000 soft limit. The money and detailed counts above remain the explicitly timestamped earlier snapshot.
+
+Update at 08:29 UTC: the worker last reported 6,260 of 48,000 native confirmation records and remains active. Independent spending reconciliation now shows approximately **$5.49** in new recorded usage ($4.63367705 OpenAI and $0.855393042 Jev), plus the preserved $1.05 unknown-usage hold. No duplicate requests were found among 8,706 dispatches across development, audit, and confirmation. These are interim totals, not final bills or accuracy results.
