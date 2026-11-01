@@ -170,3 +170,9 @@ Root verified v7.0.7 active pointer, authorization and all acknowledged-stop has
 ### Independent accounting refresh, 10:18 UTC
 
 Root checked journal prefix index 79930: 38,635 dispatches and 38,634 settlements, zero duplicate dispatch or settlement keys; one call in flight. New usage is OpenAI $22.64612220 and TypeSafe $4.329417372, total $26.975539572. Unknown OpenAI holds remain $1.575. Receipt `live-accounting-check-4.json` excludes historical usage and in-flight reservations. Worker remains active at cursor453, reporting36,087/48,000 native records and no new stop since the documented continuation. Latest Codex allowance check:71% remaining, one reset unused. PR13 revision1c8bd33f passed20/20checks. No accuracy inspected.
+
+### 2026-11-01 10:45 UTC — independent accounting checkpoint
+
+- Live complete-line journal prefix through index 95684 independently summed: OpenAI $27.34706450, TypeSafe $5.228007498, unknown OpenAI hold $1.575. 46,273 dispatches and settlements, no duplicate dispatches. Receipt: `live-accounting-check-5.json`. No accuracy inspected.
+- Worker active at cursor `48e27ee0-0d56-4e05-98f1-457d179d0219:515`, last report 43,964/48,000 native records, no new stop.
+- Root PR13 commit b42a02b3 verified 20/20 CI checks passed. Shared Codex allowance recently 32% used / 68% remaining, one free reset still unused.
