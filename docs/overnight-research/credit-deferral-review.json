@@ -1,0 +1,57 @@
+{
+  "reviewed_at_utc": "2026-11-01T11:12:03.515320+00:00",
+  "test_command": "canonical .venv/bin/python -m unittest discover -s tests/study_v7 -p test_deferral.py -v",
+  "tests_passed": 4,
+  "duration_seconds": 0.11,
+  "review_scope": [
+    "run.py dispatch and request-authorization denial",
+    "reserved-only cancellation; existing unknown holds retained",
+    "mixed groups and restart without replay",
+    "exact credit evidence and all-native terminal precondition",
+    "manifest/authorization receipt hash binding"
+  ],
+  "evidence_hash_checks": {
+    "plan": true,
+    "prior_manifest": true,
+    "stop": true,
+    "journal_prefix": true,
+    "journal_event_count": true,
+    "both_completed_and_raw_files": true
+  },
+  "deferral_receipt_sha256": "2c92367ad01ae64b98d18528e7270d0741173a2b475adf4a0e3e9853ac625cce",
+  "reviewed_code_sha256": {
+    "scripts/study_v7/run.py": "1c3326220b20f53bf1490bfd49fa390693c17424fe655d130b6ec8c9a297cbba",
+    "scripts/study_v7/deferral.py": "3871839d521361c4503e889d7ba16f32c5634759f1c7dde7fcf2fece10767bda",
+    "tests/study_v7/test_deferral.py": "c0b95c980a553b6df8fee25d379f61c5c5ee8faf20f596c1bb3f51a67c9bace4"
+  },
+  "remaining": "Live eligible execution, collection completion, final analysis and independent result verification remain.",
+  "restart_correction_review": {
+    "reviewed_at_utc": "2026-11-01T11:14:03.667883+00:00",
+    "tests_passed": 4,
+    "duration_seconds": 0.131,
+    "finding": "Original stop prefix has no in-flight calls; later eligible Jev/local completion-only recovery remains possible. Deferred paid intents fail closed. Synthetic recovered local call is not materialized or resent.",
+    "code_sha256": {
+      "scripts/study_v7/run.py": "1c3326220b20f53bf1490bfd49fa390693c17424fe655d130b6ec8c9a297cbba",
+      "scripts/study_v7/deferral.py": "51cbf9989accf93a6997801adc75224d6eeec42fce27a882b619cf28e1068e06",
+      "tests/study_v7/test_deferral.py": "45aabc30162cccaa11b32af980017fd0149c6319217e572ed4f2001ae8727a91"
+    }
+  },
+  "final_binding_review": {
+    "verified_at_utc": "2026-11-01T11:16:59.271035+00:00",
+    "all_checks_passed": true,
+    "execution_files_verified": 174,
+    "manifest_sha256": "d8f76649b18fbfbaa5a548ebc4248839fdceb609ef62b24de705a696213d19b2",
+    "authorization_sha256": "b0ccab8dea39890bafed4aafed452278fad989e4dcfb310f81ee1ff0c6c60d61",
+    "checks": [
+      "all execution code hashes",
+      "unchanged request plan",
+      "receipt bound to manifest and authorization",
+      "all acknowledged stops",
+      "unchanged caps, allocations and deadlines",
+      "amendment document hash",
+      "reviewed restart-corrected code unchanged"
+    ],
+    "worker_reported_full_offline_tests": 98,
+    "sole_executor_notified_to_continue": true
+  }
+}
