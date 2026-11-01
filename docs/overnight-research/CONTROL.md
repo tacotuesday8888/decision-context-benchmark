@@ -106,3 +106,31 @@ Root observed491amended Sol responses parsed ok plus one HTTP503 after the lane 
 ### Bounded service recovery chosen, approximately07:32UTC
 
 Worker inspected the retained HTTP503 body: `service_unavailable_error`, code `subscription_sharing_user_unavailable`, message that the ChatGPT user is temporarily unavailable. Root requested evaluation of a documented pre-confirmation recovery because this is not another unsupported-parameter rejection. Worker accepted one continuation for exactly eight never-sent development requests, unchanged payloads/settings, retaining491valid responses and the failed first attempt. No retry/replacement of the503, reset or paid fallback; another service failure stops the lane. Await final settled receipt before confirmation freeze. Worker active, latest cursor97.
+
+### All five configurations validated,07:43UTC
+
+Root independently counted499valid amended Sol development completions and one retained HTTP503, with zero duplicate dispatch keys. Final `development-validation-v7.0.3-final.json` validates all five configurations, no unsupported configurations, all500Sol development requests terminal, exactly eight new valid responses from the never-sent continuation. Old premature v7.0.2 snapshot remains preserved. Worker reports71offline tests passed and is beginning the locked100-pair audit. No confirmation accuracy examined. Latest active cursor110. Recovery/analysis independent test receipt saved as `recovery-analysis-review.json`; root private revision4c7cc25e.
+
+### Partial audit evidence check, approximately07:48UTC
+
+Root independently checked20completed audit outputs against their own retained request fields TASK/CLEAN_PAGE/ATTACK_PAGE:20valid diagnostic reviews,125literal matching spans,1nonliteral span,zero reviews without spans. This is an interim operational check, not final audit totals or human validation; do not modify labels/cohorts based on it. Worker reports a separate reviewer requested tightening service-recovery acceptance of additional non-valid outcomes; actual development has499ok+the retained503, so observed data are unaffected. Worker will make the stricter guard change after the audit executor exits and before confirmation freeze. Latest active cursor122.
+
+### Second subscription service failure; bounded recovery exhausted,07:55UTC
+
+Root independently observed the audit stop at70valid reviews plus one HTTP504 (Retry-After120 seconds, transport exit0). Worker confirms the audit executor exited. Under the previously recorded one-continuation rule, Sol is now operationally deferred, with no further recovery, reset or paid fallback. Retain29unattempted audit cases and all failed/valid outputs; report the audit as partial, not100reviews. Four core configurations remain eligible for confirmation after final freeze and runtime optimization verification. Do not call this intrinsic model incompatibility or infer detection quality from service failure. Latest worker cursor140.
+
+### Final partial audit independently reconciled, approximately07:58UTC
+
+Root checked all100locked audit keys and literal evidence directly from retained request/response files:70ok,1HTTP error,29unattempted;390literal spans,1unverified span in one review,zero empty-evidence reviews. These exactly match `audit-validation-v7.0.3.json`, which correctly declares completed=false and preserves source labels/cohorts. Model judgments about fidelity/ambiguity remain unblinded diagnostic claims, not validated human labels. Independent repeat-analysis tests4/4passed; hash receipt `repeat-analysis-review.json`. Worker received these checks. Latest cursor143; confirmation awaits runtime optimization verification/freeze.
+
+### Core confirmation started and freeze independently verified,08:00UTC
+
+Worker launched one confirmation-then-repeat executor at07:59UTC from commitc08deef0. Root checked active pointer/manifest/authorization/plan hashes and all172recorded execution-code hashes: allmatch. Frozen plan remains70d8606f..., paid Sol prohibited; admission cutoff14:00UTC and final work window16:06UTC. Root observed201Luna Decisions ok/202Jev ok/2Jev ties confirmation completions; no correctness inspected. Receipt `confirmation-freeze-check.json`. Cache11regression tests independently passed (`ledger-cache-review.json`), repeat4passed. Runtime estimate remains conditional, not guaranteed. Latest worker cursor150.
+
+### First core transport stop,08:00UTC
+
+Root inspected `stop-confirmation-v7.0.4.json` and432confirmation completions:215Luna Decisions ok,214Jev ok,2Jev ties,1Luna Decisions HTTP504. Failed key7f472597d64410f504939b31e1b9524f4a5f4c3af5ccefc894f5073cef0a76fd, transport exit0, elapsed5.11s, no returned headers. Worker is reconciling the preserved failed first attempt and unknown-cost hold before documented unsent-only continuation under the unchanged freeze. No accuracy inspected or failed request retried. Latest worker cursor154.
+
+### Core continuation running, approximately08:05UTC
+
+Worker settled all27first admitted groups, waited two minutes and resumed untouched requests under unchanged freeze. Root independently checked3,043total journal dispatches:zero duplicate keys, failed Luna key dispatched once, OpenAI unknown-cost hold0.525 preserved. At that snapshot new settled usage was OpenAI1.12791925 /TypeSafe0.182868210 (excludes old studies, holds and in-flight reservations). Worker subsequently reports more than1,200native confirmation records, no further transport error. Latest active cursor161. Root still inspects only transport/coverage/accounting, not accuracy.
