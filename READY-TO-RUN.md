@@ -95,14 +95,14 @@ Default inspection stays offline:
 
 ```sh
 cd '/Users/langqi/Developer/Projects/Decision Context Benchmark Plan'
-'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest-development-v7.0.3.json
+'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest-confirmation-v7.0.4.json
 ```
 
-The complete bounded development instruction is:
+The complete bounded core confirmation instruction is:
 
 ```sh
 cd '/Users/langqi/Developer/Projects/Decision Context Benchmark Plan'
-'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest-development-v7.0.3.json --authorization results/study-v7/development-authorization-v7.0.3.json --phase development --execute
+'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest-confirmation-v7.0.4.json --authorization results/study-v7/confirmation-authorization-v7.0.4.json --phase confirmation --execute
 ```
 
 It is inert until its owner receipt matches the exact frozen plan/manifest/code,
@@ -134,8 +134,13 @@ Sol development has finished:499valid classifications and one preserved temporar
 [V7.0.3](docs/study-v7/AMENDMENT-v7.0.3.md) records a single continuation of the
 eight never-sent requests, all successful. The failed first attempt was not retried.
 The final [operational receipt](results/study-v7/development-validation-v7.0.3-final.json)
-validates all five configurations. The locked100-pair audit is running; no
-confirmation request has run at this checkpoint.
+validates all five configurations. The locked100-pair audit stopped at70valid reviews, oneHTTP504 and29unattempted.
+The one bounded continuation is exhausted: Sol is operationally deferred, with
+all planned cells retained. [Final readiness](results/study-v7/route-validation-confirmation-v7.0.4.json)
+validates the four core configurations. [Confirmation freeze](docs/study-v7/CONFIRMATION-FREEZE.md)
+binds unchanged payloads/settings and the tested v7 accounting cache.86offline
+tests and the full locked-source/raw-artifact verification pass. No confirmation
+accuracy was inspected before freezing.
 
 The Scientific Agent Skills procedural assistance is cited in the
 [software provenance outline](docs/study-v7/PAPER-OUTLINE.md); it does not certify

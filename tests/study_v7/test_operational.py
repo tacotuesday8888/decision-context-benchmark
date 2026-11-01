@@ -147,6 +147,10 @@ class OperationalTests(unittest.TestCase):
                 repeated=op.validate_service_recovery(receipt,plan,attempts,state,accounting,plan_sha256="a"*64,journal_path=journal,retained_records=retained)
                 self.assertFalse(repeated["completed"])
                 self.assertEqual(repeated["disposition"],"operationally_deferred")
+                for invalid in ("tie","unsupported_over_limit","ok"):
+                    retained[unsent[0]["key"]]=dict(retained[unsent[0]["key"]],status=invalid,valid=False)
+                    rejected=op.validate_service_recovery(receipt,plan,attempts,state,accounting,plan_sha256="a"*64,journal_path=journal,retained_records=retained)
+                    self.assertFalse(rejected["completed"])
                 recovery["pre_continuation_journal_sha256"]="f"*64;receipt.write_bytes(canonical(recovery))
                 with self.assertRaisesRegex(ValueError,"journal prefix changed"):
                     op.development_receipt(plan,attempts,plan_sha256="a"*64,journal_path=journal,service_recovery=receipt)

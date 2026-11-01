@@ -403,10 +403,9 @@ def validate_service_recovery(path, plan, attempts_directory, state, accounting,
     if any(e.get("split")!="development" for e in prefix["entries"].values()):
         raise ValueError("Service recovery is limited to preconfirmation operational development")
     all_terminal=all(retained_records[k]["evidence_sha256"] is not None for k in development)
-    allowed={"ok","tie","tied","unsupported_over_limit"}
     remaining=[retained_records[k] for k in development if k!=failed]
     unexpected=Counter(r["status"] if r["status"]!="ok" else "ok_with_invalid_flag"
-        for r in remaining if r["status"] not in allowed or r["status"]=="ok" and not r["valid"])
+        for r in remaining if r["status"]!="ok" or not r["valid"])
     new_valid=sum(retained_records[k]["valid"] for k in keys)
     recovered=all_terminal and not unexpected and new_valid>0
     return {"receipt_sha256":digest(body),"completed":recovered,

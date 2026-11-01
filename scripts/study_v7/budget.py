@@ -13,6 +13,7 @@ from pathlib import Path
 from scripts.study_v6.accounting import (BudgetLedger as HistoricalLedger, AccountingError,
     BudgetExceeded, AlreadyDispatched, PROVIDERS, money, amount, _requests)
 from scripts.study_v7.requests import PANEL, canonical, digest
+from scripts.study_v7.ledger_cache import V7LedgerCacheMixin
 
 CURRENT_CAPS = {'openai': '15', 'typesafe': '20'}
 HISTORICAL = {'openai': '7.02755920', 'typesafe': '1.827584934'}
@@ -143,7 +144,7 @@ def _validate_subscription_supersession(state, receipt, new_schedules, receipt_s
     return old_keys
 
 
-class BudgetLedger(HistoricalLedger):
+class BudgetLedger(V7LedgerCacheMixin, HistoricalLedger):
     def __init__(self, path, frozen_policy=None, *, guard=None, history_root=None):
         self.path = Path(path); self.lock_path = self.path.with_name(self.path.name + '.lock')
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -184,8 +185,7 @@ class BudgetLedger(HistoricalLedger):
     def _check_guard(self, state):
         if self.history_root is not None:
             for name, sha in state['policy']['historical_evidence_sha256'].items():
-                if digest((Path(self.history_root) / name).read_bytes()) != sha:
-                    raise AccountingError('Historical spending evidence changed')
+                self.verify_historical_file(Path(self.history_root) / name, sha)
         if self.guard is not None:
             self.guard()
 
@@ -258,6 +258,7 @@ class BudgetLedger(HistoricalLedger):
                 {'allocation': allocation, 'groups': groups})['schedules'][allocation])
 
     def reserve_next_group(self, allocation, *, admission_open=True):
+        self.verify_full_journal()
         with self._locked() as state:
             self._check_guard(state)
             schedule = state['schedules'][allocation]

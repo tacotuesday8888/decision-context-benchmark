@@ -1,0 +1,26 @@
+{
+  "actual_inference_or_invoice_records": 0,
+  "assumptions": "Local temporary filesystem; one 90MiB synthetic padding event; real future event count/history/provider waits differ.",
+  "cache_safety_assumptions": [
+    "Ordinary local dev/inode/size/mtime_ns/ctime_ns semantics; unprivileged writers cannot restore ctime.",
+    "All compliant writers use the existing OS journal lock; one process owns dispatch.",
+    "Privileged adversaries controlling both filesystem metadata and process memory are outside the cache guarantee."
+  ],
+  "conditional_runtime_estimate": "Measured development provider/local durations and fixed batch concurrency suggest about3.6h confirmation+repeat transport/local work, plus roughly10-20min accounting after caching. Not a finish guarantee: source-length mix/provider availability/rate limits remain variable;14:00UTC admission cutoff unchanged.",
+  "frozen_event_policy": "Same v6 journal canonical bytes, chain, fsync and v7 event application; cache adds stat identity and full validation boundaries.",
+  "full_prefix_validation_seconds": 0.05257445899769664,
+  "integration": "V7BudgetLedger mixin; full prefix at every whole-group admission/snapshot/restart; changed fingerprints force verification; historical evidence SHA checked first/on change.",
+  "recorded_at_utc": "2026-11-01T07:56:11.362245+00:00",
+  "restart_full_replay_seconds": 0.47875779203604907,
+  "small_event_append_fsync_tail_verify_seconds": 0.0001800115776455237,
+  "synthetic_journal_bytes": 94406883,
+  "totals_optimization_added": false,
+  "totals_scaling_seconds": {
+    "synthetic22570entries": 0.0346,
+    "synthetic2257entries": 0.0035,
+    "synthetic72224entries": 0.1093
+  },
+  "unchanged_entry_seconds": 3.256258391775191e-05,
+  "verification": "Synthetic cache fixture only; no real ledger write, model/auth/network call, invoice or empirical correctness inspected.",
+  "version": "study-v7-ledger-cache-benchmark-1"
+}

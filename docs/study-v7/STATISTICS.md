@@ -98,3 +98,30 @@ and destroyed nominal coverage. Known-error full-cohort bounds contained the
 realized planned-cohort mean in every synthetic repetition under every mechanism.
 That deterministic finite-cohort protection is separate from population-level
 sampling uncertainty.
+
+
+## Descriptive comparators and repeated calls
+
+`analyze_run.py` preserves every planned confirmation first cell. Contextual model
+pairs are compared within each condition on the locked500main groups. External
+pairs use the locked1,000request subset. Each comparison reports its own complete
+cohort hash, planned/observed class counts and95% whole-group interval. The external
+matched metric is a request-mean error difference; it is not called balanced error
+when missing outputs change the class balance. No extra pvalues are introduced.
+
+`repeat_analysis.py` separately matches native100groups and general50groups to
+fresh repeat-1 calls with identical payload hashes, distinct keys/namespaces,
+verified raw/started records and the same configuration revision. It reports
+valid-first/valid-repeat/both-valid class denominators, ties, other missingness,
+flip directions and available provider IDs/timestamps. Duplicate recorded IDs
+are diagnostic; missing IDs/timestamps are not invented. Repeats never replace
+first outputs. No classification accuracy is used to select or retry a repeat.
+
+The paired-page disagreement rate uses whole planned-group resampling and
+recomputes the observed paired-page denominator in each of20,000draws. This avoids
+silently replacing the page rate by an unweighted average of incomplete-group
+rates. A separate complete-two-page-group mean is a sensitivity description.
+Native absolute score changes include valid tie scores and use their own explicit
+score-pair denominator; Boolean models have no score-change calculation. Intervals
+are descriptive and conditional on observed paired outputs, with omitted
+zero-denominator draws reported. There are no additional pvalues.
