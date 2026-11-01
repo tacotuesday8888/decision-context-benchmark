@@ -8,6 +8,19 @@ Start with the [pilot report](results/pilot/report.md), [frozen protocol](docs/p
 [related-work and dataset review](docs/related-work.md), and [execution notes](docs/execution-notes.md).
 The paper/report makes no novelty claim: closely related context ablations already exist.
 
+## Expanded v2 preparation
+
+The expanded collection contains **402 distinct evaluation candidates and 60 development
+candidates**, with original task/source support recorded per row. **No expanded evaluation
+has run.** Paid execution is disabled while billing is pending.
+
+Read the [expanded protocol](docs/expanded-v2/protocol.md),
+[dataset review](docs/expanded-v2/dataset-review.md),
+[exact model panel](docs/expanded-v2/model-selection.md), and
+[API shopping list with budget](docs/expanded-v2/api-shopping-list.md).
+The original pilot below remains unchanged. See
+[expanded reproduction instructions](docs/expanded-v2/README.md).
+
 ## Pilot artifacts
 
 - `data/pilot.jsonl`: 2 development and 18 held-out, deterministically extracted examples.
