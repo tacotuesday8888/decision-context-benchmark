@@ -215,3 +215,8 @@ Root independently joined all1,000planned ProtectAI main_general keys to complet
 ## 12:40 UTC accounting checkpoint
 
 Root checked journal prefix130294:58,566dispatches and58,566settlements,zero duplicates. Allpost-deferral dispatches remain eligible:4,562ProtectAI and3,590Jev,zero paidOpenAI. Knownnewusage29.69410125OpenAI/5.753963628TypeSafe;unknownOpenAIholds1.9952816 unchanged. Receipt live-accounting-check-8.json. Worker cursor749active at7,643/8,000external records, no newstop; repeats and finalanalysis pending. RootPR13 a47a46d7passed20/20CI.
+
+
+## 12:47 UTC eligible collection complete
+
+Worker cursor755reports successful executor exit and frozen offlineanalysis starting. Root independently verified external Jev3990OK+10ties/4000,ProtectAI4000OK/4000,and Jev repeats797OK+3ties/800 against originalplan. Receipt external-repeat-completion-check.json; no accuracy inspected yet. Native48000 and localmain1000 were independently verified earlier. Root instructed worker to finish frozen analysis and finalaccounting; root will independently check numerical results, planneddenominators,missingness,repeatseparation,and renderedoutputs. DeferredOpenAI/Sol remainexplicit; no newinference requested. Goal stillactive pending verifiedanalysis and plainhandoff.
