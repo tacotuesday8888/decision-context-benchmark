@@ -146,8 +146,14 @@ without using detector predictions. Independently review genuine benign
 procedural instructions and task-related attacks. Human semantic review is still
 missing; the partial Sol audit is an unblinded diagnostic.
 
-The most concrete offline starting point is **three prespecified ASB task cases**
-from the existing cache, before promising a sample size. The pinned
+The most concrete offline starting point is an **ASB cache feasibility check**,
+before promising a sample size. First locate already-acquired task/tool records;
+the confirmed canonical cache contains code and a license, not a prepared paired
+corpus. A names-only scan located no provenance-backed task/tool-record cache;
+an unidentified hash-named cache has not been ruled out. The three-case adapter
+review therefore cannot start from verified cached records now. Stop this
+feasibility step without acquisition or invented pairs. For later preparation,
+first establish the pinned records, then inspect three prespecified task cases. The pinned
 [inventory](../../results/source-discovery/agent-datasets.json) at revision
 `544540ff0788998072f7df463056fd17e62cc9f4` lists 51 authored normal-task strings in
 10 agent/scenario records, not a ready paired static dataset. The prior
