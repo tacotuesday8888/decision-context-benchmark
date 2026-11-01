@@ -166,3 +166,7 @@ After more than 26,000 additional native records under pacing, Luna Decisions re
 ### Continuation independently verified and resumed
 
 Root verified v7.0.7 active pointer, authorization and all acknowledged-stop hashes. Compared with the preceding receipt, only stop acknowledgment, continuation reference, timestamp, stop filename, supersession and version fields changed. All 173 execution-code hashes and the complete request-plan hash still match the same v7.0.6 manifest. Caps, deadlines, model settings, inference plan and analysis remain unchanged. Worker cursor400 confirms new untouched native records are arriving:29,344/48,000, no new stop.
+
+### Independent accounting refresh, 10:18 UTC
+
+Root checked journal prefix index 79930: 38,635 dispatches and 38,634 settlements, zero duplicate dispatch or settlement keys; one call in flight. New usage is OpenAI $22.64612220 and TypeSafe $4.329417372, total $26.975539572. Unknown OpenAI holds remain $1.575. Receipt `live-accounting-check-4.json` excludes historical usage and in-flight reservations. Worker remains active at cursor453, reporting36,087/48,000 native records and no new stop since the documented continuation. Latest Codex allowance check:71% remaining, one reset unused. PR13 revision1c8bd33f passed20/20checks. No accuracy inspected.
