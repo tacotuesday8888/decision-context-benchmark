@@ -102,7 +102,7 @@ The complete bounded core confirmation instruction is:
 
 ```sh
 cd '/Users/langqi/Developer/Projects/Decision Context Benchmark Plan'
-'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest-confirmation-v7.0.6.json --authorization results/study-v7/confirmation-authorization-v7.0.6.json --phase confirmation --execute
+'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest-confirmation-v7.0.6.json --authorization results/study-v7/confirmation-authorization-v7.0.7.json --phase confirmation --execute
 ```
 
 It is inert until its owner receipt matches the exact frozen plan/manifest/code,
@@ -158,3 +158,8 @@ conservative rolling allowance across both paid Luna routes after a provider429.
 94offline tests pass; payloads/cohorts/statistics/caps/deadline remain unchanged.
 Both native failures retain0.525unknown-charge holds. Seven never-sent requests
 in the admitted group resume first; completed/failed first outcomes are not retried.
+
+
+The [v7.0.7 service continuation](docs/study-v7/CORE-CONTINUATION-v7.0.7.md)
+preserves a later native504 and all1.575unknown-charge holds. The paced execution
+manifest/code remain unchanged; only untouched first requests resume after cooldown.

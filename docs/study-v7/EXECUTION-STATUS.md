@@ -60,3 +60,57 @@ Its shared rolling gate covers both paid Luna routes,1.5msoft/60sec,2xproxy with
 Sol remains deferred, its last pause unacknowledged. No code is to change during
 execution. Next: one root executor with finalv7.0.6manifest/receipt, confirmation
 then separate repeats; same14:00admission cutoff and16:06window end.
+
+
+Paced confirmation launched08:17:09UTC from commitac495002, root toolsession48329.
+It owns the single executor lock; wrapper chains the separate repeat phase only
+with the same finalv7.0.6manifest/owner receipt. Logs are ignored
+`data/raw/study-v7/confirmation-run-v7.0.6.log` and `repeat-run-v7.0.6.log`.
+Do not start a competing executor. The prior seven unsent reservations finish
+before new admissions; neither failed key is ever resent. Pacing metadata lives
+in `data/raw/study-v7/execution-v1/pacing-events-v7.0.6.jsonl` (mode0600).
+No frozen code/document is to change while collection runs. Monitor statuses,
+coverage, quota and conservative spending; defer accuracy analysis until it ends.
+
+
+## Live checkpoint09:15:30UTC
+
+Rootsession48329/PID86268 remains the sole paced confirmation executor, with
+wrapper86266 to chain separate repeats. Native19,500/48,000terminal records:
+19,436ok,62ties,2preserved pre-pacing HTTPfailures. No newv7.0.6stop. All22CI
+checks passed at frozen commitac495002. No accuracy has been inspected. A pure
+operational cache in ignored `execution-v1/operational-monitor-state.json` holds
+progress counts/seen keys only; it is not analysis or accounting authority.
+
+The09:00read-only accounting prefix verified36,617events at37.20MB. V7known
+settled usage cost was9.97995195OpenAI/1.889328462TypeSafe; unknown holds1.05OpenAI,
+active reservation0.525OpenAI. Allkeysmax1dispatch, both failed keys once, original
+completion hashes match. Frozen source/plan/code/policy/deadline remained intact.
+Do not treat these snapshots as final spend or a full current live journal hash.
+
+Continue monitoring only operational counts/caps/stops. After both phases truly
+exit, reconstruct first attempts with `analyze_run.py` and repeat stability with
+`repeat_analysis.py`, using current request-plan-v7.0.2.json and attempts. Write
+technical outputs to results/study-v7-execution; no paper. Obtain independent raw
+math/accounting/denominator/interval checks, inspect rendered figures, update the
+private draft PR, obtain greenCI and report true coverage/holds/limitations.
+
+
+## Service checkpoint09:52UTC
+
+Paced session48329 ended after29,328native terminal records (29,222ok/103ties/
+3HTTPerrors). The new failure was LunaDecisionsHTTP504/15.21sec, not quota. All
+three failed keys have one dispatch and0.525held each. The stopped51,318,127byte
+journal prefix/65,428events was independently replayed; no reserved/inflight
+requests, next frozen group22352all16untouched. Same source/plan/code/caps/deadline.
+
+After120sec cooldown, root started ONE continuation session60436at09:52:05UTC,
+with the SAMEv7.0.6manifest14b9... and newowner receiptv7.0.7ACKing exactoldstop.
+Logs: ignored confirmation-run-v7.0.7.log/repeat-run-v7.0.7.log. Pacing log remains
+pacing-events-v7.0.6.jsonl; startup waits60sec on each new process. Old failed keys
+never retry, Sol stays deferred/unACKed. Monitor current active-run pointer and
+any unacknowledged stop; do not start a competing executor.
+
+Known new usage cost at the stop:18.32802035OpenAI/3.496494162TypeSafe, plus1.575
+unknownOpenAIhold. This is usage-based conservative accounting, not provider invoices.
+No accuracy was inspected; no source/prompt/model/pacing/statistical code changed.
