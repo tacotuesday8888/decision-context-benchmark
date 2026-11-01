@@ -237,3 +237,48 @@ the unchanged main/supporting/comparator schedules.
   v6.0.1 confirmation coverage, and pinned current code plus archived parent code
   correctly. Offline v5 and final audit v4 are written; no child preparation or
   activation has happened yet. All original 423 records and active STOP persist.
+- Code/audit commit `23620837` and explicit child receipt commit `8299118e` are
+  pushed. Production child preparation passed against the actual parent, all
+  423 records, current source and immutable old source objects. Its raw manifest
+  SHA is `302e082646c003e8b52c5fa2daab1609ec65f31c899cf372e18c3a08cf717a23`.
+  It authorizes only the remaining 29 Nimble / eight ProtectAI initial keys.
+  Parent receipt/raw manifest and both failed first attempts are unchanged.
+  CI is running at the child receipt head; activation is still pending.
+
+## Confirmation freeze checkpoint
+
+- All 20 CI checks passed at `8299118e2a67c92846fc45b783505f0117c89d87`.
+  Explicit v6.0.2 activation appended the token-capacity event before archiving
+  its exact stop. The remaining 37 initial keys completed without another stop:
+  24 usable Nimble responses, five unsupported native token rejections, and all
+  eight usable ProtectAI responses. Both earlier errors retain their original
+  parsing; no failed key was resent.
+- Development is terminal: 460 unique logical first-attempt records, including
+  451 native dispatch/inference intents and nine local preflight exclusions.
+  There are 434 usable records, 24 unsupported records and two preserved reviewed
+  errors. All seven configurations have interface success; correctness was not
+  inspected. ProtectAI's 204 windows exactly match frozen coverage counts.
+- Independent production raw/accounting verification reparsed all 460 records,
+  checked every retained hash, both activation scopes/archives, no duplicate
+  dispatch, no pending requests and cap conservation. Its only incomplete study
+  reason was the then-missing confirmation freeze. The new ignored aggregate
+  receipt SHA is `0790bbc9e9c52fb8af611164a39a4a35e768dc38c39110f237057f7766c63784`;
+  a safe tracked projection is `development-verification-v1.json`.
+- Development conservative accounting remains OpenAI $0.0955757 / TypeSafe
+  $0.088137462, including $0.082156032 retained TypeSafe holds. Cumulative totals
+  are $0.5794161 / $0.34691231400000006. No main/supporting/recovery spend exists.
+- Confirmation freeze was generated successfully: 23,957 full planned cells,
+  23,537 eligible cells / 22,933 eligible unique requests, and all source/price/
+  native settings/coverage/analysis hashes. It pins both operational amendments,
+  all 460 development record/completion files, seven successful interfaces, two
+  reviewed capacity failures, zero retries, and the 658,848-byte journal prefix
+  SHA `935533e35d3613589e24bfaff75c23f7640f5730fd5ef6e98326c58506b730b4`.
+  Its committed code parent is `8299118e`. No confirmation inference has started.
+
+Next: inspect and commit the confirmation freeze, development aggregate receipt
+and this checkpoint; push to PR #11 and obtain green CI. Start `run.py main`
+with `.venv/bin/python` as sole executor, then supporting and each fixed comparator
+sequentially. Scientific code and request choices are now frozen. Use only existing
+reviewed transient continuation machinery if justified, preserving every first
+attempt and unknown hold. Terminal raw verification, independent statistics and
+checked final paper/PDF remain outstanding.
