@@ -42,3 +42,21 @@ checkpoint; no manuscript. Canonical v6 checkout/data/results remain unchanged.
   and visual verification, private PR delivery. No paper/PDF/public release/merge.
 - Do not run `prepare.py` to overwrite historical preparation. Project clock
   continues and overlapping helper wall times are not added as independent work.
+
+
+## Pacing freeze 2026-11-01T08:17:03.679468+00:00
+
+Session89909 stopped after3,209native terminal attempts, including one earlier504
+and one new429. The new response explicitly reported a2mTPM Luna quota. Group201
+has7never-sent reservations; no dispatch is in flight. Both failed first requests
+remain held at0.525each and are never resent. Raw/stop/prefix hashes are preserved.
+
+V7.0.6 changes only pacing.py/run.py. All94offline tests and metadata verification
+pass, with independent code/usage-only review. ManifestSHA:
+14b9eba3b1536f7c6a5046cba0b8dd524ac3562e2424cf67d4db819a11afc14b.
+Its shared rolling gate covers both paid Luna routes,1.5msoft/60sec,2xproxy with
+1024floor and256Responses output allowance. Every new process waits60sec. All
+35,200paid Luna keys/payloads match the bound audit; no native bound is claimed.
+Sol remains deferred, its last pause unacknowledged. No code is to change during
+execution. Next: one root executor with finalv7.0.6manifest/receipt, confirmation
+then separate repeats; same14:00admission cutoff and16:06window end.

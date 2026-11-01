@@ -278,6 +278,7 @@ def _settle_finished(ledger, key, request, directory):
 def execute(permit):
     """Single process owns dispatch; provider workers share one locked ledger."""
     from scripts.study_v7.routes import invoke
+    from scripts.study_v7.pacing import from_manifest as pacing_from_manifest
     execution = RAW / 'execution-v1'
     execution.mkdir(parents=True, exist_ok=True)
     process_lock = (execution / 'executor.lock').open('a+b')
@@ -297,6 +298,7 @@ def execute(permit):
         _check_stops(execution, permit.receipt)
     try:
         guard()
+        pacing = pacing_from_manifest(permit.manifest, permit.plan, ROOT)
         r = permit.receipt
         frozen = policy(r['historical_accounted_usd'], r['caps_usd'], r['incremental_caps_usd'],
             r['allocations_usd'], permit.manifest['historical_accounting'].get('evidence_sha256'))
@@ -323,6 +325,10 @@ def execute(permit):
             else:
                 body = materialize(request, permit.rows)
                 permit.check_request(request, body)
+                if pacing is not None and pacing.acquire(request, stop) is None:
+                    return None
+                if stop.is_set():
+                    return None
                 ledger.mark_dispatched(key)
                 # Local model loading/forward calls serialize with each other;
                 # API workers still run concurrently under the same reservations.
