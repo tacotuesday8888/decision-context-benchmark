@@ -210,3 +210,8 @@ Root checked journal prefix index109299:51,194dispatches,51,192settlements,two c
 ## 12:24 UTC local main complete
 
 Root independently joined all1,000planned ProtectAI main_general keys to completed.json:1,000OK,zero missing. No accuracy inspected. Saved local-main-completion-check.json binds the original plan and a digest of completion hashes. Worker cursor704 confirms external dataset collection has begun:156/8,000eligible Jev/local records. PaidOpenAI and Sol remain deferred. PR13 e4cf5409passed20/20CI.
+
+
+## 12:40 UTC accounting checkpoint
+
+Root checked journal prefix130294:58,566dispatches and58,566settlements,zero duplicates. Allpost-deferral dispatches remain eligible:4,562ProtectAI and3,590Jev,zero paidOpenAI. Knownnewusage29.69410125OpenAI/5.753963628TypeSafe;unknownOpenAIholds1.9952816 unchanged. Receipt live-accounting-check-8.json. Worker cursor749active at7,643/8,000external records, no newstop; repeats and finalanalysis pending. RootPR13 a47a46d7passed20/20CI.
