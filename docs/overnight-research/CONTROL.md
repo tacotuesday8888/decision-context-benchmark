@@ -47,4 +47,12 @@ Both were told the latest routing/reset instructions and to avoid expanding the 
 
 ## Supervision
 
+### Verified checkpoint, approximately 06:16 UTC
+
+Research notes committed as `5a3c74ef` and pushed in private draft PR 13 (base `codex/research-plan-update`); all 20 CI jobs passed. Both literature helpers completed their assigned notes. No experimental result is claimed by their reviews.
+
+Worker acknowledged cheap-API/expensive-subscription routing and confirmed no paid Sol calls had run. Its subscription configuration cannot preserve the original API output-token cap, so any such comparison requires explicit route documentation. Worker remains live; latest observed cursor `48e27ee0-0d56-4e05-98f1-457d179d0219:16`.
+
+External selection v3 now includes every individual historical AIB message in its exposure screen (20,167 historical unique inputs versus 20,117 previously). Compared v2/v3 selected IDs: zero additions/removals, still 4,100 unique groups and the planned balanced counts. The saved v2 inspection remains a historical check, not a checksum attestation for v3. At this check the execution authorization JSON was still unpopulated pending readiness; this is not a user pause or missing permission.
+
 Heartbeat ID `research-preparation-overnight`, renamed **Overnight experiment supervision**, updated to hourly through deadline. Inspect with automation_update; do not edit scheduler files manually. Use compact wait_threads snapshots, diagnose stopped work before restarting, preserve user-facing updates for meaningful changes. At deadline stop new scheduling, safely settle/checkpoint in-flight work, pause heartbeat and produce a plain-language evidence/cost handoff. Do not silently extend the ten-hour window.
