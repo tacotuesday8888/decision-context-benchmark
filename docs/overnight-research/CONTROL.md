@@ -205,3 +205,8 @@ Complete-line prefix through index107193:50,870dispatches/50,868settlements,zero
 ## 12:09 UTC accounting checkpoint
 
 Root checked journal prefix index109299:51,194dispatches,51,192settlements,two calls in flight,zero duplicate dispatches or settlements. All780post-deferral calls were ProtectAI; no paidOpenAI call resumed. Known new usage remains29.69410125OpenAI and5.671810830TypeSafe; unknownOpenAIholds1.9952816. Receipt:live-accounting-check-7.json. Worker remains active; last cursor672reported797/1000local main pages. PR13 revision3ac79ac3passed20/20CI. Codex allowance last checked38%used/62%remaining,one reset unused. Collection/analysis/final handoff still pending; retain14:00UTC admission cutoff and16:06deadline.
+
+
+## 12:24 UTC local main complete
+
+Root independently joined all1,000planned ProtectAI main_general keys to completed.json:1,000OK,zero missing. No accuracy inspected. Saved local-main-completion-check.json binds the original plan and a digest of completion hashes. Worker cursor704 confirms external dataset collection has begun:156/8,000eligible Jev/local records. PaidOpenAI and Sol remain deferred. PR13 e4cf5409passed20/20CI.
