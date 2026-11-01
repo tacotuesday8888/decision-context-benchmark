@@ -97,7 +97,7 @@ paper/PDF. No new inference costs as of this record.
   rerun against the updated route file in `prefreeze-audit-v2.json`; payloads,
   cohort, coverage and reservations are unchanged.
 
-## Current durable checkpoint
+## Pre-execution checkpoint (superseded below)
 
 No v6 experimental inference has started and `execution-v1/budget.jsonl` does not
 yet exist. Remote checkpoint is `3d6cc7fd`; working execution branch contains the
@@ -115,3 +115,69 @@ Run main, supporting and fixed comparators under the sole executor lock. Inspect
 only operational dispositions/costs for continuation; no output-driven cohort or
 prompt changes. Independently verify raw terminal execution/accounting, then
 recompute analysis/tables/figures and author/check the final five-page paper/PDF.
+
+## Development execution checkpoint
+
+- Final implementation and admission receipts were committed at `51e2f5ae`.
+  Development freeze was then committed at `4af6eb5e` and pushed to private
+  dependent PR #11. All 20 CI checks passed before the first development call.
+- The sole executor started `.venv-laya/bin/python scripts/study_v6/run.py
+  development` from that committed freeze. Its fixed eligible schedule contains
+  460 unique requests / 470 cells on 12 reviewed cases, under the unchanged
+  $0.50/provider development limits. The append-only budget journal now exists.
+- Operational responses verify native access for Jev and Luna Decisions and
+  existing subscription access for Luna and Astra chat. Jev's reported over-limit
+  inputs remain unsupported cases. No correctness-based tuning or confirmation
+  execution has occurred. Local routes still await their scheduled checks.
+- Every request retains its first-attempt raw response and usage/accounting
+  evidence. Current costs and in-flight state belong to the local journal, not
+  this asynchronous prose checkpoint. No transient continuation or recovery has
+  been used at this checkpoint.
+- Verified bibliography notes were prepared separately in REFERENCE-NOTES.md.
+  They contain no empirical results and change no frozen scientific file.
+
+Next: finish development operational checks; preserve any stop and diagnose it
+before further dispatch. When all required interfaces pass, freeze and commit
+confirmation with the exact retained development evidence and journal prefix.
+Then execute the unchanged cost-only main prefix, supporting schedule and fixed
+comparators sequentially. Independent terminal verification and analysis remain
+required before empirical figures or the final paper/PDF.
+
+## Development capacity-stop checkpoint
+
+- Development stopped after 407 terminal records on pinned Nimble's HTTP 413:
+  `text and schema must not exceed 64 KiB`. Transport completed normally; no
+  model prediction or input usage was returned. Its original `http_error`, raw
+  response, STOP, development freeze and append-only journal remain unchanged.
+- Completed operational dispositions: Jev 68 usable / ten unsupported token-limit
+  errors; Luna Decisions 78 usable; Luna chat 78; Astra chat 78; Laya 62 usable
+  with cached/live token hashes matching and no truncation; Nimble 32 usable plus
+  the preserved HTTP 413. ProtectAI has not started. No correctness was inspected.
+- The journal is terminal at this stop, with no pending attempts. Conservative
+  incremental accounting is OpenAI $0.0955757 and TypeSafe $0.088137462; the latter
+  retains $0.082156032 for ten unknown-usage over-limit responses. No provider
+  invoice or current balance is claimed. No confirmation freeze or calls exist.
+- Read-only diagnosis established a permanent native serialized-request byte
+  limit, distinct from token capacity. The frozen route recognized HTTP 400 token
+  errors but not this HTTP 413. The existing transient continuation remains
+  inapplicable and unchanged.
+- The authorized development operational fix is being separately versioned as
+  v6.0.1. AMENDMENT-v6.0.1.md specifies preserved history, exact remaining 53-key
+  scope, local byte preflight, prospective Nimble paired confirmation coverage,
+  unchanged requests/caps/science and a distinct journal-before-archive activation.
+  Original first attempts will not be resent or relabeled. Code, deterministic
+  fixtures, refreshed offline audit and a committed amendment are required before
+  activation. The sole executor remains stopped while this work proceeds.
+- Correction fixtures now pass: 207 v6 tests, 21 preserved v5 tests and 16
+  resolution tests. Independent byte-length algebra agrees with the native
+  envelope helper on all 2,870 Nimble payloads. Nine unsent development keys will
+  receive local preflight exclusions; 44 confirmation keys / 48 cells exceed the
+  byte envelope. All 32 prior accepted Nimble keys remain supported. The native
+  request/token gate still applies after a byte pass; it is not a token certificate.
+- The exact installed binary, static reconstruction and metadata-only capacity
+  counts are preserved below ignored `amendment-byte-limit-evidence-v1/`.
+  Original development records, STOP and budget journal remain untouched during
+  implementation and testing. Next: finalize independent audit v3 and offline
+  verification v4, inspect/stage only intended files, commit/push code and receipts,
+  prepare/commit the explicit amendment, obtain green CI, activate and resume only
+  the 53 remaining initial requests.

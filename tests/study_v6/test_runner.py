@@ -210,6 +210,29 @@ class RunnerTests(unittest.TestCase):
         self.assertTrue(record['result']['parsed']['valid'])
         self.assertEqual(self.calls, 1)
 
+    def test_amended_historical_capacity_failure_is_read_without_resending(self):
+        req = request(config='nimble_local', provider=None)
+        self.ledger.reserve_batch('dev', 'development', [spec(req)])
+        self.ledger.mark_dispatched(req['key'])
+        folder = self.root / 'attempts' / req['key']
+        exclusive(folder / 'request.json', canonical_bytes(req['payload']))
+        exclusive(folder / 'response.raw', b'{"error":"text and schema must not exceed 64 KiB"}')
+        result = {'request_sha256': req['request_sha256'],
+            'parsed': {'status': 'http_error', 'valid': False, 'prediction': None},
+            'observation': {'http_status': 413, 'transport_exit_code': 0},
+            'stop_required': True,
+            'raw_hashes': {p.name: sha256(p.read_bytes()) for p in folder.iterdir()}}
+        exclusive(folder / 'completed.json', result)
+        executor = self.executor([req])
+        record = executor._record(req, result)
+        with patch('scripts.study_v6.development_amendment.approved_failure', return_value=True), \
+                patch('scripts.study_v6.continuations.approved_failure') as transient:
+            retained = executor.dispatch(req['key'])
+        transient.assert_not_called()
+        self.assertEqual(retained, record)
+        self.assertEqual(self.calls, 0)
+        self.assertEqual(retained['result']['parsed']['status'], 'http_error')
+
 
 if __name__ == '__main__':
     unittest.main()

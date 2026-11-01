@@ -17,7 +17,8 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from scripts.study_v6 import plan, routes
-from scripts.study_v6.accounting import BudgetLedger, canonical, money, amount
+from scripts.study_v6.accounting import (BudgetLedger, canonical, money, amount,
+    NIMBLE_LEGACY_CAPACITY_BODY, NIMBLE_LEGACY_CAPACITY_SHA256)
 from scripts.study_v6.common import ROOT, canonical_bytes, sha256
 from scripts.study_v6.evidence import immutable, load
 from scripts.study_v6.pricing import reserve, usage_cost
@@ -49,6 +50,26 @@ def _failure(status):
 def _reparse(request, result, folder):
     """Reparse complete native bytes; interrupted intent remains primary missing."""
     raw_path = folder / 'response.raw'
+    require(result.get('parser_version') in (None, 'v6-routes-2'), 'Unknown retained native parser version')
+    if result.get('parser_version') == 'v6-routes-2':
+        require(type(result.get('local_preflight')) is bool and type(result.get('native_request_sent')) is bool,
+                'New parser records require explicit preflight/request-sent provenance')
+        if request['config'] == 'nimble_local' and not result['local_preflight']:
+            audit = result.get('native_byte_coverage')
+            if result['native_request_sent'] or audit is not None:
+                measured = routes.native_byte_coverage(request['payload'])
+                require(audit == measured and measured['supported'] is True,
+                        'New Nimble request does not match its complete native-byte admission proof')
+    if result.get('local_preflight') is True:
+        require(result.get('parser_version') == 'v6-routes-2' and request['config'] == 'nimble_local' and
+                result.get('native_request_sent') is False, 'Preflight exclusion claims a native model request')
+        byte_audit = routes.native_byte_coverage(request['payload'])
+        require(byte_audit['supported'] is False and byte_audit['coverage_status'] == 'unsupported_native_byte_limit' and
+                result.get('native_byte_coverage') == byte_audit, 'Preflight byte exclusion does not match complete frozen request')
+        require(load(folder/'local-preflight.json') == byte_audit and not any((folder/name).exists() for name in
+                ('response.raw','response.partial','response-headers.partial')),
+                'Local preflight contains fabricated native response evidence')
+        return _failure('unsupported_over_limit')
     if result.get('interrupted_dispatch_intent_preserved') is True or result.get('reserved_raw_conflict_retained') is True:
         require(result['parsed'] == _failure('interrupted_unknown'), 'Interrupted primary was promoted to a prediction')
         return _failure('interrupted_unknown')
@@ -83,6 +104,9 @@ def _reparse(request, result, folder):
         return _failure('authentication_error')
     if http == 400 and any(s in body.lower() for s in (
             'max_tokens_exceeded', 'context_length_exceeded', 'context length', 'too long', 'context window')):
+        return _failure('unsupported_over_limit')
+    if (result.get('parser_version') == 'v6-routes-2' and config == 'nimble_local' and
+            http == 413 and exit_code == 0 and raw_path.read_bytes() == NIMBLE_LEGACY_CAPACITY_BODY):
         return _failure('unsupported_over_limit')
     return _failure('transport_error' if exit_code else 'http_error')
 
@@ -271,6 +295,13 @@ def _audit_cost_order(journal_path, requests, expected_schedules):
         elif kind == 'continuation':
             entry = entries[data['failed_key']]
             require(entry['status'] in ('settled', 'unknown_usage'), 'Continuation was journaled before terminal failure accounting')
+        elif kind == 'development_capacity_continuation':
+            entry = entries[data['failed_key']]
+            require(entry['status'] == 'settled' and entry['config'] == 'nimble_local' and
+                entry['split'] == 'development' and entry['provider'] is None and
+                money(entry['reserved_usd']) == money(entry['accounted_usd']) == 0 and
+                data['raw_response_sha256'] == NIMBLE_LEGACY_CAPACITY_SHA256,
+                'Development capacity amendment changed its exact legacy settled unmetered failure')
         else:
             raise VerificationError('Unknown primary accounting event')
     return entries, dict(admitted), cost_stops
@@ -401,7 +432,8 @@ def verify_bundle(frozen_by_split, ledger_path, directory, terminal_receipts=Non
         require(entry['status'] == actual['status'] and _decimal_equal(entry['accounted_usd'], actual['accounted_usd']),
                 'Independent replay differs from journal accounting')
     known_stops = _stop_hashes(directory)
-    scopes = _unrun_scopes(directory, terminal_receipts, known_stops, ledger['continuations'])
+    approved_events = dict(ledger['continuations'], **ledger['development_amendments'])
+    scopes = _unrun_scopes(directory, terminal_receipts, known_stops, approved_events)
     attempt_root = directory / 'attempts'
     if attempt_root.exists():
         require(all(p.is_dir() and p.name in requests and p.name in ledger['entries'] for p in attempt_root.iterdir()),
@@ -425,10 +457,19 @@ def verify_bundle(frozen_by_split, ledger_path, directory, terminal_receipts=Non
                 freeze_checker=continuation_freeze_checker), 'Invalid reviewed continuation')
             manifests[key], _, _ = validate_link(Path(project_root)/event['manifest_path'], directory=directory,
                 project_root=project_root, freeze_checker=continuation_freeze_checker, require_archive=True)
+    capacity_keys = set()
+    if ledger['development_amendments']:
+        from scripts.study_v6.development_amendment import approved_failure, validate_link
+        for key, event in ledger['development_amendments'].items():
+            require(approved_failure(key, ledger, directory, project_root=project_root),
+                    'Invalid reviewed development capacity amendment')
+            manifests[key], _, _ = validate_link(Path(project_root)/event['manifest_path'], directory=directory,
+                project_root=project_root, require_archive=True)
+            capacity_keys.add(key)
     pending_failure, authorized = None, []
     for event in (json.loads(line) for line in Path(ledger_path).read_text().splitlines()):
         data = event['data']
-        if event['kind'] == 'continuation':
+        if event['kind'] in ('continuation', 'development_capacity_continuation'):
             require(pending_failure == data['failed_key'] and data['failed_key'] in manifests,
                     'Continuation does not follow the outstanding systemic first-attempt failure')
             authorized.append(manifests[data['failed_key']])
@@ -472,7 +513,9 @@ def verify_bundle(frozen_by_split, ledger_path, directory, terminal_receipts=Non
         if not cell['inference_eligible']:
             outcome, reason = _failure('unsupported'), 'frozen_full_input_or_whole_group_exclusion'
         elif key in parsed:
-            outcome, reason = parsed[key], 'retained_first_attempt' if key in records else 'positive_unsent_cancellation'
+            outcome = parsed[key]
+            reason = ('native_byte_preflight_exclusion' if records.get(key, {}).get('result', {}).get('local_preflight')
+                      else 'retained_first_attempt' if key in records else 'positive_unsent_cancellation')
         else:
             outcome = _failure('not_attempted')
             allocation = cell['allocation']
@@ -514,8 +557,12 @@ def verify_bundle(frozen_by_split, ledger_path, directory, terminal_receipts=Non
         'journal_sha256': sha256(Path(ledger_path).read_bytes()), 'journal_bytes': Path(ledger_path).stat().st_size,
         'first_attempt_unique_reserved_requests': len(ledger['entries']),
         'first_attempt_raw_execution_records_reparsed': len(records),
+        'local_preflight_excluded_unique_requests': sum(r['result'].get('local_preflight') is True for r in records.values()),
+        'local_preflight_is_model_inference': False,
+        'valid_native_output_unique_requests': sum(r['result']['parsed']['status'] in ('ok','tie') for r in records.values()),
         'accounting_only_reserved_raw_conflicts_retained': sum(r['result'].get('reserved_raw_conflict_retained') is True for r in records.values()),
-        'reviewed_remaining_first_attempt_continuations': len(manifests),
+        'reviewed_remaining_first_attempt_continuations': len(ledger['continuations']),
+        'reviewed_development_capacity_amendments': len(capacity_keys),
         'confirmation_normalized_eligible_cells': len(normalized), 'source_denominators': by_source,
         'main_target_reviewed_groups': len(main_target),
         'main_target_runnable_groups': len(expected_schedules['main']),

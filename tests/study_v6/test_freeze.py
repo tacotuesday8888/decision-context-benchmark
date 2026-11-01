@@ -201,6 +201,36 @@ class JournalPrefixTests(unittest.TestCase):
                 freeze.verify('confirmation', require_committed=False)
         self.history_check.assert_not_called()
 
+    def test_development_amendment_accepts_only_its_exact_replacement_hashes(self):
+        original = {'scientific_hashes': {'old.py': 'old'}, 'evidence': {},
+            'raw_plan': str((self.dest / 'development-frozen-plan.json').relative_to(self.root))}
+        original_bytes = write(self.results / 'development-freeze-v1.json', original)
+        write(self.dest / 'development-frozen-plan.json', {'fixture': 'original requests'})
+        current = {'old.py': 'new', 'amendment.py': 'added'}
+        amendment = {'replacement_hashes': dict(current)}
+        with patch.object(freeze, 'scientific_hashes', return_value=current), \
+                patch.object(freeze, 'development_amendment', return_value=amendment):
+            receipt, raw = freeze.verify('development', require_committed=False)
+        self.assertEqual(receipt, original)
+        self.assertEqual(raw, {'fixture': 'original requests'})
+        self.assertEqual((self.results / 'development-freeze-v1.json').read_bytes(), original_bytes)
+        amendment['replacement_hashes'].pop('amendment.py')
+        with patch.object(freeze, 'scientific_hashes', return_value=current), \
+                patch.object(freeze, 'development_amendment', return_value=amendment):
+            with self.assertRaisesRegex(PermissionError, 'scientific code/specification changed'):
+                freeze.verify('development', require_committed=False)
+
+    def test_confirmation_pins_the_separate_amendment_receipt(self):
+        path = self.results / 'development-amendment-v6.0.1.json'
+        write(path, {'fixture': 'exact committed amendment'})
+        self.frozen['development_amendment_sha256'] = sha256(path.read_bytes())
+        write(self.results / 'confirmation-freeze-v1.json', self.frozen)
+        with patch.object(freeze, 'development_amendment', return_value={'fixture': 'verified'}):
+            freeze.verify('confirmation', require_committed=False)
+        write(path, {'fixture': 'changed amendment'})
+        with self.assertRaisesRegex(ValueError, 'operational amendment changed'):
+            freeze.verify('confirmation', require_committed=False)
+
 
 class SetupTests(unittest.TestCase):
     def inputs(self):
@@ -235,7 +265,8 @@ class SetupTests(unittest.TestCase):
         for values in ({'checks_passed': False, 'new_model_calls': 0, 'model_outputs_inspected': False},
                        {'checks_passed': True, 'new_model_calls': 1, 'model_outputs_inspected': False},
                        {'checks_passed': True, 'new_model_calls': 0, 'model_outputs_inspected': True}):
-            with patch.object(freeze, 'load', return_value=values):
+            with patch.object(freeze, 'development_amendment', return_value=None), \
+                    patch.object(freeze, 'load', return_value=values):
                 with self.assertRaises(PermissionError):
                     freeze.prefreeze_audit_gate()
 
@@ -278,11 +309,25 @@ class DevelopmentOperationalTests(unittest.TestCase):
     def test_reviewed_transient_failure_stays_frozen_with_other_interface_successes(self):
         self.add('failed', 'luna_decisions', 'http_error')
         with patch('scripts.study_v6.accounting.BudgetLedger') as ledger, \
+                patch('scripts.study_v6.development_amendment.approved_failure', return_value=False), \
                 patch('scripts.study_v6.continuations.approved_failure', return_value=True):
             ledger.return_value.snapshot.return_value = {'continuations': {}}
             result = freeze.development_operational_gate({'requests': self.requests})
         self.assertEqual(result['reviewed_transient_failures'], 1)
         self.assertEqual(len(result['first_attempt_records']), 8)
+        self.assertFalse(result['failed_requests_resent'])
+
+    def test_development_capacity_amendment_is_separate_from_transient_failure(self):
+        self.add('capacity', 'nimble_local', 'http_error')
+        with patch('scripts.study_v6.accounting.BudgetLedger') as ledger, \
+                patch('scripts.study_v6.development_amendment.approved_failure', return_value=True), \
+                patch('scripts.study_v6.continuations.approved_failure') as transient:
+            ledger.return_value.snapshot.return_value = {'continuations': {}, 'development_amendments': {}}
+            result = freeze.development_operational_gate({'requests': self.requests})
+        transient.assert_not_called()
+        self.assertEqual(result['reviewed_transient_failures'], 0)
+        self.assertEqual(result['reviewed_development_capacity_failures'], 1)
+        self.assertEqual(result['successful_configuration_count'], 7)
         self.assertFalse(result['failed_requests_resent'])
 
     def test_case_refusal_is_retained_without_accuracy_or_prompt_optimization(self):
@@ -298,7 +343,9 @@ class DevelopmentOperationalTests(unittest.TestCase):
             path.write_bytes(b'exact bytes')
             receipt = {'checks_passed': True, 'new_model_calls': 0, 'model_outputs_inspected': False,
                        'inputs': {'plan': {'path': 'plan.json', 'sha256': sha256(path.read_bytes())}}}
-            with patch.object(freeze, 'ROOT', Path(directory)), patch.object(freeze, 'load', return_value=receipt):
+            with patch.object(freeze, 'ROOT', Path(directory)), \
+                    patch.object(freeze, 'development_amendment', return_value=None), \
+                    patch.object(freeze, 'load', return_value=receipt):
                 self.assertEqual(freeze.prefreeze_audit_gate(), receipt)
                 path.write_bytes(b'changed bytes')
                 with self.assertRaises(ValueError):

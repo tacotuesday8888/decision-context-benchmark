@@ -56,6 +56,9 @@ SERVER_COVERAGE_SOURCES = {
     'nimble_local': ['https://huggingface.co/bespokelabs/Bespoke-Nimble-9B',
         'docs/controls-v4/MODEL-ROUTES.md', 'scripts/controls_v4/nimble_runtime.py'],
 }
+PARSER_VERSION = 'v6-routes-2'
+NIMBLE_CAPACITY_BODY = '{"error":"text and schema must not exceed 64 KiB"}'
+NIMBLE_BYTE_LIMIT = 65536
 
 
 def canonical(value):
@@ -64,6 +67,44 @@ def canonical(value):
 
 def digest(value):
     return hashlib.sha256(value).hexdigest()
+
+
+def native_byte_coverage(request):
+    """Exact byte admission for the pinned Nimble SystemOne request shape.
+
+    Ollama 0.40.13 measures its typed JSON request (Images cleared), with outer
+    HTML escaping disabled and whitespace trimmed. State is a RawMessage, so its
+    input JSON string encoding is retained. Questions' ordered-map marshaler
+    uses json.Marshal on each typed question, retaining that inner HTML and
+    U+2028/U+2029 escaping. Duration.MarshalJSON normalizes 2m to 2m0s. This
+    reconstructs that envelope; it neither counts tokens nor changes dispatch.
+    Other shapes require a separate audited reconstruction, not an approximation.
+    """
+    if (set(request) != {'model', 'state', 'questions', 'keep_alive'} or
+            request['model'] != PANEL['nimble_local']['model'] or
+            request['keep_alive'] != '2m' or not isinstance(request['state'], str) or
+            not isinstance(request['questions'], dict) or set(request['questions']) != {'injection'}):
+        raise ValueError('Unsupported pinned Nimble byte-gate request shape')
+    question = request['questions']['injection']
+    if (not isinstance(question, dict) or set(question) != {'type', 'instructions'} or
+            question['type'] != 'noul' or not isinstance(question['instructions'], str)):
+        raise ValueError('Unsupported pinned Nimble byte-gate question shape')
+    # json.Marshal's default HTML escaping occurs inside orderedmap.MarshalJSON,
+    # before the outer Encoder (escapeHTML=false) compacts its returned bytes.
+    instruction = canonical(question['instructions'])
+    for literal, escaped in ((b'<', b'\\u003c'), (b'>', b'\\u003e'), (b'&', b'\\u0026'),
+            ('\u2028'.encode(), b'\\u2028'), ('\u2029'.encode(), b'\\u2029')):
+        instruction = instruction.replace(literal, escaped)
+    envelope = (b'{"model":' + canonical(request['model']) + b',"state":' + canonical(request['state']) +
+        b',"questions":{"injection":{"type":"noul","instructions":' + instruction +
+        b'}},"keep_alive":"2m0s"}')
+    supported = len(envelope) <= NIMBLE_BYTE_LIMIT
+    return {'rule': 'ollama-0.40.13-systemone-typed-request-v1',
+        'payload_sha256': digest(canonical(request)), 'request_bytes': len(canonical(request)),
+        'native_envelope_sha256': digest(envelope), 'measured_bytes': len(envelope),
+        'limit_bytes': NIMBLE_BYTE_LIMIT, 'supported': supported,
+        'coverage_status': 'complete_native_byte_gate' if supported else 'unsupported_native_byte_limit',
+        'preflight_native_token_count': False, 'full_input': True}
 
 
 def payload(config, row, condition):
@@ -218,6 +259,28 @@ def parse_response(config, body):
         return result
     except (ValueError, TypeError, KeyError, IndexError, AttributeError):
         return _failure('parse_error', **metadata)
+
+
+def parse_transport(config, observation, body, parser_version=None):
+    """Reparse transport evidence without rewriting legacy first-attempt records."""
+    if parser_version not in (None, PARSER_VERSION):
+        raise ValueError('Unknown route parser version')
+    status, code = observation['http_status'], observation['transport_exit_code']
+    if status == 200:
+        parsed = parse_response(config, body)
+        if code and parsed['status'] != 'model_mismatch':
+            return _failure('transport_error', usage=parsed.get('usage') or {},
+                returned_model=parsed.get('returned_model'))
+        return parsed
+    if status in (401, 403):
+        return _failure('authentication_error')
+    if (parser_version == PARSER_VERSION and config == 'nimble_local' and status == 413 and not code and
+            body in (NIMBLE_CAPACITY_BODY, NIMBLE_CAPACITY_BODY.encode())):
+        return _failure('unsupported_over_limit')
+    if status == 400 and any(s in body.lower() for s in
+            ('max_tokens_exceeded', 'context_length_exceeded', 'context length', 'too long', 'context window')):
+        return _failure('unsupported_over_limit')
+    return _failure('transport_error' if code else 'http_error')
 
 
 def coverage(config, request, *, laya_audit=None, native_count=None, tokenizer=None, allow_server_gate=False):
@@ -412,18 +475,27 @@ def invoke(config, request, raw_directory, attempt_key, *, runtime=None):
     _exclusive(directory / 'started.json', {'config': config, 'attempt_key': attempt_key,
         'payload_sha256': digest(canonical(request)), 'route': ROUTES[config],
         'started_at': datetime.now(timezone.utc).isoformat()})
-    observation, parsed, audit = {}, None, None
+    observation, parsed, audit, byte_audit = {}, None, None, None
+    local_preflight, native_request_sent = False, False
     start = time.perf_counter()
     try:
-        if config == 'laya_local':
+        if config == 'nimble_local':
+            byte_audit = native_byte_coverage(request)
+        if byte_audit is not None and not byte_audit['supported']:
+            local_preflight = True
+            _exclusive(directory / 'local-preflight.json', byte_audit)
+            parsed = _failure('unsupported_over_limit')
+        elif config == 'laya_local':
             if runtime is None:
                 raise ValueError('Explicit initialized local runtime required')
+            native_request_sent = True
             raw, parsed, audit = runtime.predict(request)
             _exclusive(directory / 'response.raw', canonical(raw))
             parsed = parse_response(config, raw)
         elif config == 'protectai_local':
             if runtime is None or request.get('revision') != PANEL[config]['revision']:
                 raise ValueError('Explicit pinned specialist runtime required')
+            native_request_sent = True
             raw = runtime.classify(request['candidate'])
             _exclusive(directory / 'response.raw', canonical(raw))
             if raw.get('returned_model') != PANEL[config]['model'] or raw.get('revision') != PANEL[config]['revision']:
@@ -433,19 +505,12 @@ def invoke(config, request, raw_directory, attempt_key, *, runtime=None):
         else:
             if config == 'nimble_local' and runtime is None:
                 raise ValueError('Verified native Nimble runtime required')
-            observation, body = _post(config, request, _credential(config), directory)
-            if observation['http_status'] == 200:
-                parsed = parse_response(config, body)
-                if observation['transport_exit_code'] and parsed['status'] != 'model_mismatch':
-                    parsed = _failure('transport_error', usage=parsed.get('usage') or {},
-                        returned_model=parsed.get('returned_model'))
-            elif observation['http_status'] in (401, 403):
-                parsed = _failure('authentication_error')
-            elif observation['http_status'] == 400 and any(s in body.lower() for s in
-                    ('max_tokens_exceeded', 'context_length_exceeded', 'context length', 'too long', 'context window')):
-                parsed = _failure('unsupported_over_limit')
-            else:
-                parsed = _failure('transport_error' if observation['transport_exit_code'] else 'http_error')
+            token = _credential(config)
+            # This flag is dispatch/inference invocation intent. A successful
+            # HTTP contact is separately evidenced by the transport observation.
+            native_request_sent = True
+            observation, body = _post(config, request, token, directory)
+            parsed = parse_transport(config, observation, body, parser_version=PARSER_VERSION)
         result = {'parsed': parsed, 'observation': observation, 'token_audit': audit,
             'elapsed_seconds': round(time.perf_counter()-start, 4), 'access_route': ROUTES[config],
             'paid_request': ROUTES[config] == 'api_key', 'attempt_key': attempt_key,
@@ -458,6 +523,10 @@ def invoke(config, request, raw_directory, attempt_key, *, runtime=None):
             'access_route': ROUTES[config], 'paid_request': ROUTES[config] == 'api_key',
             'request_sha256': digest(canonical(request)), 'raw_directory': str(directory),
             'elapsed_seconds': round(time.perf_counter()-start, 4)}
+    result.update(parser_version=PARSER_VERSION, native_request_sent=native_request_sent,
+        local_preflight=local_preflight)
+    if byte_audit is not None:
+        result['native_byte_coverage'] = byte_audit
     result['raw_hashes'] = {path.name: digest(path.read_bytes()) for path in sorted(directory.iterdir()) if path.is_file()}
     _exclusive(directory / 'completed.json', result)
     return result

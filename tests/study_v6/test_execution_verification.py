@@ -11,7 +11,8 @@ from scripts.study_v6.accounting import BudgetLedger
 from scripts.study_v6.common import canonical_bytes, sha256
 from scripts.study_v6.evidence import exclusive, load
 from scripts.study_v6.pricing import reserve, usage_cost
-from scripts.study_v6.verify_execution import verify_bundle, VerificationError
+from scripts.study_v6.verify_execution import verify_bundle, VerificationError, _reparse
+from scripts.study_v6.accounting import NIMBLE_LEGACY_CAPACITY_BODY
 
 
 class ExecutionVerificationTests(unittest.TestCase):
@@ -300,6 +301,74 @@ class ExecutionVerificationTests(unittest.TestCase):
         self.assertEqual(summary['accounting_only_reserved_raw_conflicts_retained'],1)
         self.assertEqual({r['status'] for r in normalized},{'interrupted_unknown','cancelled_unsent'})
         self.assertGreater(float(summary['spending']['typesafe']['unknown_usage_holds_usd']),0)
+
+    def test_legacy_413_keeps_original_parser_and_future_exact_capacity_is_versioned(self):
+        folder=self.root/'legacy-capacity';folder.mkdir()
+        exclusive(folder/'response.raw',NIMBLE_LEGACY_CAPACITY_BODY)
+        payload=native_payload({'candidate':'Complete page.','task':'Read the page.','policy':None,
+            'source':'browsesafe','setting':'indirect_tool_content'},'task','nimble_local')
+        request={'config':'nimble_local','payload':payload}
+        result={'observation':{'http_status':413,'transport_exit_code':0}}
+        self.assertEqual(_reparse(request,result,folder)['status'],'http_error')
+        future=dict(result,parser_version='v6-routes-2',local_preflight=False,native_request_sent=True,
+                    native_byte_coverage=routes.native_byte_coverage(payload))
+        self.assertEqual(_reparse(request,future,folder)['status'],'unsupported_over_limit')
+        self.assertEqual(_reparse({'config':'jev_firstparty'},future,folder)['status'],'http_error')
+        with self.assertRaises(VerificationError):_reparse(request,dict(result,parser_version='unfrozen-parser'),folder)
+
+    def test_local_preflight_is_independently_recomputed_and_has_no_native_response(self):
+        payload=native_payload({'candidate':'x'*70000,'task':'Read the page.','policy':None,
+            'setting':'indirect_tool_content','source':'browsesafe'},'task','nimble_local')
+        request={'config':'nimble_local','payload':payload}
+        audit=routes.native_byte_coverage(payload)
+        self.assertFalse(audit['supported'])
+        folder=self.root/'local-byte-preflight';folder.mkdir()
+        exclusive(folder/'local-preflight.json',audit)
+        result={'parser_version':'v6-routes-2','local_preflight':True,'native_request_sent':False,
+                'native_byte_coverage':audit}
+        self.assertEqual(_reparse(request,result,folder),{'status':'unsupported_over_limit','valid':False,'prediction':None})
+        forged=dict(audit,measured_bytes=audit['measured_bytes']+1)
+        with self.assertRaises(VerificationError):_reparse(request,dict(result,native_byte_coverage=forged),folder)
+        with self.assertRaises(VerificationError):_reparse(request,dict(result,native_request_sent=True),folder)
+        exclusive(folder/'response.raw',b'{"error":"fabricated response"}')
+        with self.assertRaises(VerificationError):_reparse(request,result,folder)
+
+    def test_preflight_record_is_counted_as_exclusion_and_never_native_output(self):
+        self.finish()
+        config='nimble_local'
+        payload=native_payload({'candidate':'x'*70000,'task':'Read the page.','policy':None,
+            'setting':'indirect_tool_content','source':'browsesafe'},'task',config)
+        digest=sha256(canonical_bytes(payload));key=sha256(canonical_bytes([plan.VERSION,'development',config,digest]))
+        request={'key':key,'config':config,'provider':None,'split':'development','allocation':'development',
+            'batch':'development:preflight','payload':payload,'request_sha256':digest,'reserved_usd':'0',
+            'inference_eligible':True,'refs':[{'id':'dev','source':'browsesafe','group':'dev','condition':'task'}]}
+        cell={'id':'dev','source':'browsesafe','group':'dev','gold':0,'config':config,'condition':'task',
+            'split':'development','allocation':'development','batch':request['batch'],'request_key':key,
+            'payload_sha256':digest,'coverage_supported':True,'inference_eligible':True}
+        frozen=copy.deepcopy(self.frozen);frozen['development']={'split':'development','requests':[request],'cells':[cell],'schedules':{}}
+        self.ledger.reserve_batch('development:preflight','development',[self.spec(request)]);self.ledger.mark_dispatched(key)
+        folder=self.root/'attempts'/key
+        exclusive(folder/'request.json',canonical_bytes(payload))
+        exclusive(folder/'started.json',{'config':config,'attempt_key':key,'payload_sha256':digest,'route':'local'})
+        audit=routes.native_byte_coverage(payload);exclusive(folder/'local-preflight.json',audit)
+        result={'parser_version':'v6-routes-2','local_preflight':True,'native_request_sent':False,
+            'native_byte_coverage':audit,'parsed':{'status':'unsupported_over_limit','valid':False,'prediction':None},
+            'request_sha256':digest,'attempt_key':key,'access_route':'local','paid_request':False,'stop_required':False,
+            'raw_hashes':{p.name:sha256(p.read_bytes()) for p in folder.iterdir()}}
+        exclusive(folder/'completed.json',result)
+        record={'version':plan.VERSION,'attempt':0,'first_attempt_primary':True,'charged_allocation':'development',
+            **{k:request[k] for k in ('key','config','split','allocation','batch','request_sha256','reserved_usd')},
+            'result':result,'costs':{'accounted_usd':'0','actual_billed_usd':None,
+                'basis':'Existing subscription/local route; zero incremental metered API charge'}}
+        exclusive(folder/'execution-record.json',record)
+        self.ledger.settle(key,'0',evidence_sha256=sha256((folder/'execution-record.json').read_bytes()))
+        summary, normalized, details=self.audit(frozen)
+        self.assertTrue(summary['ready'])
+        self.assertEqual(summary['local_preflight_excluded_unique_requests'],1)
+        self.assertFalse(summary['local_preflight_is_model_inference'])
+        self.assertEqual(summary['valid_native_output_unique_requests'],2)
+        self.assertEqual(len(normalized),4)
+        self.assertEqual(next(r['reason'] for r in details['planned_cell_dispositions'] if r['id']=='dev'),'native_byte_preflight_exclusion')
 
 
 if __name__ == '__main__':

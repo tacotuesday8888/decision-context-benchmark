@@ -69,8 +69,17 @@ def price_gate():
     return receipt
 
 
+def development_amendment(hashes=None, *, base_freeze=None, require_committed=True):
+    """Resolve the separately preserved development-only operational lineage."""
+    from scripts.study_v6.development_amendment import verify
+    return verify(base_freeze=base_freeze, current_hashes=hashes,
+        require_committed=require_committed, project_root=ROOT, directory=plan.DEST)
+
+
 def offline_gate(hashes):
-    receipt = load(plan.RESULTS / 'offline-verification-v3.json')
+    amendment = development_amendment(hashes)
+    name = 'offline-verification-v4.json' if amendment else 'offline-verification-v3.json'
+    receipt = load(plan.RESULTS / name)
     if receipt.get('checks_passed') is not True or receipt.get('scientific_hashes') != hashes:
         raise PermissionError('Offline verification is missing or stale')
     return receipt
@@ -94,7 +103,9 @@ def setup_gate():
 
 
 def prefreeze_audit_gate():
-    receipt = load(plan.RESULTS / 'prefreeze-audit-v2.json')
+    amendment = development_amendment()
+    name = 'prefreeze-audit-v3.json' if amendment else 'prefreeze-audit-v2.json'
+    receipt = load(plan.RESULTS / name)
     if (receipt.get('checks_passed') is not True or receipt.get('new_model_calls') != 0 or
             receipt.get('model_outputs_inspected') is not False):
         raise PermissionError('Independent offline request/cohort audit is incomplete')
@@ -152,7 +163,7 @@ def prepare(*, protectai_tokenizer=None):
 
 def development_operational_gate(intended):
     """Check access/schema, never correctness; preserve any first-attempt failures."""
-    records, native_records, reviewed_failures, case_failures = [], [], [], []
+    records, native_records, reviewed_failures, capacity_failures, case_failures = [], [], [], [], []
     ledger = None
     by_key = {r['key']: r for r in intended['requests']}
     for request in by_key.values():
@@ -172,10 +183,14 @@ def development_operational_gate(intended):
             else:
                 from scripts.study_v6.accounting import BudgetLedger
                 from scripts.study_v6.continuations import approved_failure
+                from scripts.study_v6.development_amendment import approved_failure as amended_capacity_failure
                 ledger = ledger or BudgetLedger(plan.DEST / 'budget.jsonl', history_root=ROOT)
-                if not approved_failure(request['key'], ledger, plan.DEST, ROOT):
+                if amended_capacity_failure(request['key'], ledger, plan.DEST, ROOT):
+                    capacity_failures.append(request['key'])
+                elif approved_failure(request['key'], ledger, plan.DEST, ROOT):
+                    reviewed_failures.append(request['key'])
+                else:
                     raise PermissionError('Development route needs documented operational resolution: ' + request['config'])
-                reviewed_failures.append(request['key'])
         records.append(file_receipt(path, ROOT))
         native = folder / 'completed.json'
         if native.exists():
@@ -186,13 +201,16 @@ def development_operational_gate(intended):
         raise PermissionError('Every retained configuration needs a reviewed development interface success')
     continuation_evidence = []
     if ledger:
-        for event in ledger.snapshot().get('continuations', {}).values():
+        state = ledger.snapshot()
+        events = list(state.get('continuations', {}).values()) + list(state.get('development_amendments', {}).values())
+        for event in events:
             for name in ('manifest_path', 'receipt_path'):
                 continuation_evidence.append(file_receipt(ROOT / event[name], ROOT))
             continuation_evidence.append(file_receipt(plan.DEST / 'stops' / (event['stop_sha256'] + '.json'), ROOT))
     return {'correctness_not_used': True, 'first_attempt_records': records,
             'native_completion_records': native_records, 'continuation_evidence': continuation_evidence,
             'reviewed_transient_failures': len(reviewed_failures),
+            'reviewed_development_capacity_failures': len(capacity_failures),
             'retained_case_failures': len(case_failures),
             'failed_requests_resent': False, 'successful_configuration_count': len(successful)}
 
@@ -207,21 +225,30 @@ def freeze(split):
     from scripts.study_v6.grouping_gate import verify as verify_grouping
     _, grouping = verify_grouping()
     hashes = scientific_hashes()
+    amendment = development_amendment(hashes)
     offline_gate(hashes)
     head = committed(hashes)
     intended = load(plan.DEST / 'intended-plan.json')
+    if amendment:
+        if split != 'confirmation':
+            raise PermissionError('Preserve the original development freeze; its amendment is a separate lineage')
+        from scripts.study_v6.development_amendment import apply_confirmation_coverage
+        intended = apply_confirmation_coverage(intended)
     current_history = reconcile_history(ROOT)
     if current_history != load(plan.DEST / 'inherited-accounting.json'):
         raise PermissionError('Spending changed after planning')
     refs = [plan.RESULTS / 'request-plan-v1.json', plan.RESULTS / 'price-verification-v2.json',
-            plan.RESULTS / 'offline-verification-v3.json',
+            plan.RESULTS / ('offline-verification-v4.json' if amendment else 'offline-verification-v3.json'),
             plan.RESULTS / 'runtime-versions-v1.json',
-            plan.RESULTS / 'prefreeze-audit-v2.json',
+            plan.RESULTS / ('prefreeze-audit-v3.json' if amendment else 'prefreeze-audit-v2.json'),
             plan.DEST / 'noninference-access-v1.json', plan.DEST / 'nimble-local-metadata.json',
             plan.RESULTS / 'grouping-admission-v1.json',
             plan.DEST / 'intended-plan.json', plan.DEST / 'coverage.json', plan.DEST / 'inherited-accounting.json',
             ROOT / 'results/study-v6-review-resolution/resolution-final.json',
             ROOT / 'results/study-v6-review-resolution/planning-final.json']
+    if amendment:
+        refs += [plan.RESULTS / 'development-amendment-v6.0.1.json',
+                 plan.DEST / 'development-amendment-v6.0.1.json']
     resolution = load(ROOT / 'results/study-v6-review-resolution/resolution-final.json')
     refs += [ROOT / v['path'] for v in resolution['inputs'].values()]
     refs += [ROOT / v['path'] for v in resolution['outputs'].values()]
@@ -256,6 +283,14 @@ def freeze(split):
         ledger_bytes = (plan.DEST / 'budget.jsonl').read_bytes()
         output['ledger_before_confirmation_sha256'] = sha256(ledger_bytes)
         output['ledger_before_confirmation_bytes'] = len(ledger_bytes)
+        if amendment:
+            output['development_amendment_sha256'] = sha256(
+                (plan.RESULTS / 'development-amendment-v6.0.1.json').read_bytes())
+            output['development_capacity_amendment'] = {
+                'version': amendment['version'],
+                'scientific_requests_unchanged': True,
+                'prospective_native_byte_gate': 'nimble_local',
+                'original_development_first_attempts_preserved': True}
     immutable(plan.RESULTS / (split + '-freeze-v1.json'), output)
     return output
 
@@ -263,7 +298,13 @@ def freeze(split):
 def verify(split, *, require_committed=True):
     path = plan.RESULTS / (split + '-freeze-v1.json')
     frozen = load(path)
-    if frozen['scientific_hashes'] != scientific_hashes():
+    hashes = scientific_hashes()
+    expected = dict(frozen['scientific_hashes'])
+    if split == 'development':
+        amendment = development_amendment(hashes, base_freeze=frozen, require_committed=require_committed)
+        if amendment:
+            expected.update(amendment['replacement_hashes'])
+    if expected != hashes:
         raise PermissionError('Frozen scientific code/specification changed')
     for name, digest in frozen['evidence'].items():
         if sha256((ROOT / name).read_bytes()) != digest:
@@ -272,6 +313,12 @@ def verify(split, *, require_committed=True):
     if require_committed:
         committed({str(path.relative_to(ROOT)): sha256(path.read_bytes())})
     if split == 'confirmation':
+        amendment_hash = frozen.get('development_amendment_sha256')
+        if amendment_hash is not None:
+            if sha256((plan.RESULTS / 'development-amendment-v6.0.1.json').read_bytes()) != amendment_hash:
+                raise ValueError('Development operational amendment changed')
+            if development_amendment(hashes, require_committed=require_committed) is None:
+                raise ValueError('Confirmation requires its pinned development amendment')
         if sha256((plan.RESULTS / 'development-freeze-v1.json').read_bytes()) != frozen['development_freeze_sha256']:
             raise ValueError('Development freeze changed')
         dev = frozen['development']

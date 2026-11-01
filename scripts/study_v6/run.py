@@ -137,7 +137,9 @@ class Executor:
     def _terminal_gate(self, record, key):
         if record['result']['stop_required']:
             from scripts.study_v6.continuations import approved_failure
-            if not approved_failure(key, self.ledger, self.directory, ROOT):
+            from scripts.study_v6.development_amendment import approved_failure as amended_capacity_failure
+            if not (amended_capacity_failure(key, self.ledger, self.directory, ROOT) or
+                    approved_failure(key, self.ledger, self.directory, ROOT)):
                 self.stop('Preserved first-attempt route failure', key)
         if record['costs'].get('unexpected_pricing_tier'):
             self.stop('Unexpected long-input pricing tier; actual multiplier accounted', key)

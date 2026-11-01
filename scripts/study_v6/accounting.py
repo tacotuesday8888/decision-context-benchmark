@@ -25,6 +25,8 @@ DEFAULT_ALLOCATIONS = {name: {p: value for p in PROVIDERS} for name, value in
                        (("main", "9"), ("supporting", "2"),
                         ("development", "0.50"), ("recovery", "0.50"))}
 ZERO_HASH = "0" * 64
+NIMBLE_LEGACY_CAPACITY_BODY = b'{"error":"text and schema must not exceed 64 KiB"}'
+NIMBLE_LEGACY_CAPACITY_SHA256 = hashlib.sha256(NIMBLE_LEGACY_CAPACITY_BODY).hexdigest()
 
 
 class AccountingError(ValueError):
@@ -291,7 +293,8 @@ class BudgetLedger:
                               policy["v6_caps_usd"], policy["allocations_usd"])
             if policy != checked:
                 raise AccountingError("Invalid immutable policy")
-            return {"policy": policy, "entries": {}, "batches": {}, "schedules": {}, "continuations": {}}
+            return {"policy": policy, "entries": {}, "batches": {}, "schedules": {},
+                    "continuations": {}, "development_amendments": {}}
         if kind == "register_schedule":
             allocation = data["allocation"]
             if allocation in state["schedules"]:
@@ -344,6 +347,16 @@ class BudgetLedger:
             if entry["evidence_sha256"] != data["failure_evidence_sha256"]:
                 raise AccountingError("Continuation failure evidence differs from terminal accounting")
             state["continuations"][key] = data
+        elif kind == "development_capacity_continuation":
+            key = data["failed_key"]
+            entry = state["entries"][key]
+            if (key in state["development_amendments"] or entry["status"] != "settled" or
+                    entry.get("config") != "nimble_local" or entry.get("split") != "development" or
+                    entry["provider"] is not None or entry["evidence_sha256"] != data["failure_evidence_sha256"] or
+                    any(money(entry[k]) != 0 for k in ("reserved_usd", "accounted_usd", "actual_usd")) or
+                    data.get("raw_response_sha256") != NIMBLE_LEGACY_CAPACITY_SHA256):
+                raise AccountingError("Development capacity amendment requires the exact settled unmetered legacy failure")
+            state["development_amendments"][key] = data
         else:
             raise AccountingError("Unknown journal event")
         return state
@@ -610,3 +623,57 @@ class BudgetLedger:
                     raise AccountingError("A failed first attempt already has a different immutable continuation")
                 return dict(old)
             return dict(self._append(state, "continuation", data)["continuations"][failed_key])
+
+    def record_development_capacity_continuation(self, failed_key, *, failure_record,
+            failure_evidence_sha256, stop_sha256, manifest_sha256, manifest_path,
+            receipt_path, receipt_sha256, activated_at_epoch, raw_response_sha256):
+        """Approve remaining DEV first attempts after one exact native byte rejection.
+
+        This separate operational amendment does not widen transient continuation,
+        replace any original parsing, retry a key or release/change any money.
+        The activation module validates the committed amendment, frozen scope,
+        exact retained bytes and stop archive before using this ledger event.
+        """
+        hashes = (failure_evidence_sha256, stop_sha256, manifest_sha256,
+                  receipt_sha256, raw_response_sha256)
+        if any(not isinstance(v, str) or len(v) != 64 or any(c not in "0123456789abcdef" for c in v) for v in hashes):
+            raise AccountingError("Development amendment requires exact evidence SHA-256 values")
+        for value in (manifest_path, receipt_path):
+            if not isinstance(value, str) or Path(value).is_absolute() or ".." in Path(value).parts:
+                raise AccountingError("Development amendment paths must stay inside the project")
+        if isinstance(activated_at_epoch, bool) or not isinstance(activated_at_epoch, (int, float)) or not money(activated_at_epoch) > 0:
+            raise AccountingError("Development amendment requires an explicit activation time")
+        if digest(canonical(failure_record)+b"\n") != failure_evidence_sha256:
+            raise AccountingError("Development amendment must bind the exact original first-attempt record")
+        result = failure_record.get("result", {})
+        parsed, observation = result.get("parsed", {}), result.get("observation", {})
+        if (failure_record.get("key") != failed_key or failure_record.get("config") != "nimble_local" or
+                failure_record.get("split") != "development" or failure_record.get("attempt") != 0 or
+                failure_record.get("first_attempt_primary") is not True or
+                result.get("parser_version") is not None or parsed.get("status") != "http_error" or
+                parsed.get("valid") is not False or parsed.get("prediction") is not None or parsed.get("score") is not None or
+                result.get("stop_required") is not True or observation.get("http_status") != 413 or
+                observation.get("transport_exit_code") != 0 or result.get("access_route") != "local" or
+                result.get("paid_request") is not False or
+                raw_response_sha256 != NIMBLE_LEGACY_CAPACITY_SHA256 or
+                result.get("raw_hashes", {}).get("response.raw") != raw_response_sha256):
+            raise AccountingError("Only the exact legacy DEV Nimble HTTP413 byte-limit failure permits this amendment")
+        data = dict(failed_key=failed_key, failure_evidence_sha256=failure_evidence_sha256,
+            stop_sha256=stop_sha256, manifest_sha256=manifest_sha256, manifest_path=manifest_path,
+            receipt_path=receipt_path, receipt_sha256=receipt_sha256,
+            activated_at_epoch=activated_at_epoch, raw_response_sha256=raw_response_sha256)
+        with self._locked() as state:
+            self._check_guard(state)
+            entry = state["entries"][failed_key]
+            if (entry["status"] != "settled" or entry.get("config") != "nimble_local" or
+                    entry.get("split") != "development" or entry["provider"] is not None or
+                    entry["evidence_sha256"] != failure_evidence_sha256 or
+                    entry["request_sha256"] != failure_record.get("request_sha256") or
+                    any(money(entry[k]) != 0 for k in ("reserved_usd", "accounted_usd", "actual_usd"))):
+                raise AccountingError("Development amendment cannot change original accounting or request identity")
+            previous = state["development_amendments"].get(failed_key)
+            if previous is not None:
+                if any(previous[k] != data[k] for k in data if k != "activated_at_epoch"):
+                    raise AccountingError("The legacy development failure already has a different immutable amendment")
+                return dict(previous)
+            return dict(self._append(state, "development_capacity_continuation", data)["development_amendments"][failed_key])

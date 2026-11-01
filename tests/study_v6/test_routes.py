@@ -33,6 +33,21 @@ def stream(answer=True, model='gpt-6-luna', status='completed', **extra):
 
 
 class Parsers(unittest.TestCase):
+    def test_versioned_exact_nimble_capacity_response_preserves_legacy(self):
+        observation = {'http_status': 413, 'transport_exit_code': 0}
+        body = routes.NIMBLE_CAPACITY_BODY
+        self.assertEqual(routes.parse_transport('nimble_local', observation, body)['status'], 'http_error')
+        current = routes.parse_transport('nimble_local', observation, body, routes.PARSER_VERSION)
+        self.assertEqual(current, {'status': 'unsupported_over_limit', 'valid': False, 'prediction': None})
+        for config, obs, raw, expected in (
+                ('nimble_local', observation, body + '\n', 'http_error'),
+                ('nimble_local', observation, '{"error":"another limit"}', 'http_error'),
+                ('jev_firstparty', observation, body, 'http_error'),
+                ('nimble_local', observation | {'transport_exit_code': 28}, body, 'transport_error')):
+            self.assertEqual(routes.parse_transport(config, obs, raw, routes.PARSER_VERSION)['status'], expected)
+        with self.assertRaises(ValueError):
+            routes.parse_transport('nimble_local', observation, body, 'unknown')
+
     def test_fixed_boolean_orientation_and_ties(self):
         for config in ('jev_firstparty', 'luna_decisions', 'nimble_local'):
             for score, prediction, status in ((.1, 0, 'ok'), (.9, 1, 'ok'), (.5, None, 'tie')):
@@ -134,6 +149,47 @@ class Parsers(unittest.TestCase):
 
 
 class Coverage(unittest.TestCase):
+    def test_native_byte_gate_normalization_unicode_and_schema(self):
+        request = routes.payload('nimble_local', row(), 'task')
+        proof = routes.native_byte_coverage(request)
+        self.assertEqual(proof['measured_bytes'], len(routes.canonical(request)) + 2)
+        self.assertEqual(proof['limit_bytes'], 65536)
+        self.assertTrue(proof['supported'])
+        self.assertFalse(proof['preflight_native_token_count'])
+        request['state'] = 'é<&>\u2028\u2029'
+        baseline = routes.native_byte_coverage(request)
+        # State RawMessage retains these exact UTF-8 bytes. Schema's inner
+        # default json.Marshal escapes HTML (5 extra each) and separators
+        # (6 escape bytes replacing each 3-byte UTF-8 sequence).
+        self.assertEqual(baseline['measured_bytes'], len(routes.canonical(request)) + 2)
+        request['questions']['injection']['instructions'] = 'é<&>\u2028\u2029'
+        escaped = routes.native_byte_coverage(request)
+        self.assertEqual(escaped['measured_bytes'], len(routes.canonical(request)) + 2 + 15 + 6)
+        self.assertEqual(escaped['payload_sha256'], routes.digest(routes.canonical(request)))
+        self.assertEqual(request['keep_alive'], '2m')
+
+    def test_native_byte_gate_inclusive_utf8_and_schema_boundaries(self):
+        for schema in (False, True):
+            request = routes.payload('nimble_local', row(), 'task')
+            if schema:
+                request['questions']['injection']['instructions'] = 'é'
+            else:
+                request['state'] = 'é'
+            missing = 65536 - routes.native_byte_coverage(request)['measured_bytes']
+            if schema:
+                request['questions']['injection']['instructions'] += 'x' * missing
+            else:
+                request['state'] += 'x' * missing
+            at = routes.native_byte_coverage(request)
+            self.assertEqual((at['measured_bytes'], at['supported']), (65536, True))
+            request['state'] += 'x'
+            over = routes.native_byte_coverage(request)
+            self.assertEqual((over['measured_bytes'], over['supported']), (65537, False))
+            self.assertEqual(over['coverage_status'], 'unsupported_native_byte_limit')
+        for change in ({'keep_alive': '3m'}, {'images': []}, {'model': 'other'}):
+            with self.assertRaises(ValueError):
+                routes.native_byte_coverage(request | change)
+
     def test_exact_v5_contract_and_source_fields(self):
         for config in routes.PANEL:
             if config == 'protectai_local':
@@ -206,6 +262,52 @@ class Accounting(unittest.TestCase):
 
 
 class DurableAttempts(unittest.TestCase):
+    def test_credential_failure_has_no_dispatch_intent(self):
+        request = routes.payload('jev_firstparty', row(), 'task')
+        with tempfile.TemporaryDirectory() as temp, patch.object(routes, '_credential',
+                side_effect=ValueError('fixture-only missing credential')), patch.object(routes, '_post') as post:
+            result = routes.invoke('jev_firstparty', request, temp, 'no-credential')
+            post.assert_not_called()
+            self.assertFalse(result['native_request_sent'])
+            self.assertFalse(result['local_preflight'])
+            self.assertTrue(result['stop_required'])
+            self.assertEqual(result['parsed']['status'], 'runtime_error')
+
+    def test_known_native_overflow_has_only_local_evidence_without_dispatch(self):
+        request = routes.payload('nimble_local', row(), 'task')
+        request['state'] = 'é' * 40000
+        unchanged = routes.canonical(request)
+        with tempfile.TemporaryDirectory() as temp, patch.object(routes, '_post') as post, patch.object(routes, '_credential') as credential:
+            result = routes.invoke('nimble_local', request, temp, 'preflight')
+            post.assert_not_called()
+            credential.assert_not_called()
+            self.assertEqual(result['parser_version'], 'v6-routes-2')
+            self.assertFalse(result['native_request_sent'])
+            self.assertTrue(result['local_preflight'])
+            self.assertFalse(result['stop_required'])
+            self.assertEqual(result['parsed'], {'status': 'unsupported_over_limit', 'valid': False, 'prediction': None})
+            self.assertEqual(result['observation'], {})
+            self.assertNotIn('usage', result['parsed'])
+            directory = Path(temp) / 'preflight'
+            self.assertEqual({p.name for p in directory.iterdir()},
+                {'request.json', 'started.json', 'local-preflight.json', 'completed.json'})
+            self.assertEqual(json.loads((directory / 'local-preflight.json').read_text()), result['native_byte_coverage'])
+            self.assertEqual((directory / 'request.json').read_bytes(), unchanged)
+            self.assertEqual(routes.canonical(request), unchanged)
+
+    def test_native_byte_fit_still_dispatches_unchanged_request_once(self):
+        request = routes.payload('nimble_local', row(), 'task')
+        body = json.dumps(native(config='nimble_local'))
+        with tempfile.TemporaryDirectory() as temp, patch.object(routes, '_post',
+                return_value=({'http_status': 200, 'transport_exit_code': 0}, body)) as post:
+            result = routes.invoke('nimble_local', request, temp, 'fit', runtime=object())
+            post.assert_called_once()
+            self.assertIs(post.call_args.args[1], request)
+            self.assertTrue(result['native_request_sent'])
+            self.assertFalse(result['local_preflight'])
+            self.assertTrue(result['native_byte_coverage']['supported'])
+            self.assertEqual(result['parsed']['status'], 'ok')
+
     def test_case_behavior_does_not_stop_invoke_or_trigger_retry(self):
         request = routes.payload('luna_chat', row(), 'task')
         bodies = [stream(output=[{'content': [{'type': 'refusal'}]}]), stream('not a Boolean'),

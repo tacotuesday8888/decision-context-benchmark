@@ -1,4 +1,5 @@
 from decimal import Decimal
+import copy
 import hashlib
 import json
 import multiprocessing
@@ -8,7 +9,7 @@ import unittest
 
 from scripts.study_v6.accounting import (
     AccountingError, AlreadyDispatched, BudgetExceeded, BudgetLedger,
-    money, reconcile_history, verify_history,
+    money, reconcile_history, verify_history, canonical, digest, NIMBLE_LEGACY_CAPACITY_SHA256,
 )
 
 
@@ -364,6 +365,76 @@ class AccountingTests(unittest.TestCase):
         path.write_text(json.dumps(corrupt))
         with self.assertRaises(AccountingError):
             reconcile_history(base)
+
+
+class DevelopmentCapacityAccountingTests(unittest.TestCase):
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
+        self.path=Path(self.temp.name)/'budget.jsonl'
+        self.ledger=BudgetLedger(self.path,{'prior_accounted_usd':{'openai':'0','typesafe':'0'}})
+        self.key='dev-nimble-capacity'
+        self.payload_hash=digest(b'complete frozen request')
+        self.record={'key':self.key,'config':'nimble_local','split':'development','attempt':0,
+            'first_attempt_primary':True,'request_sha256':self.payload_hash,
+            'result':{'parsed':{'status':'http_error','valid':False,'prediction':None},
+                'observation':{'http_status':413,'transport_exit_code':0},
+                'access_route':'local','paid_request':False,'stop_required':True,
+                'raw_hashes':{'response.raw':NIMBLE_LEGACY_CAPACITY_SHA256}}}
+        self.record_hash=digest(canonical(self.record)+b'\n')
+        self.ledger.reserve_batch('development:first-attempts','development',[
+            {'key':self.key,'provider':None,'config':'nimble_local','split':'development',
+             'request_sha256':self.payload_hash,'reserved_usd':'0'},
+            {'key':'remaining','provider':None,'config':'nimble_local','split':'development',
+             'request_sha256':'a'*64,'reserved_usd':'0'}])
+        self.ledger.mark_dispatched(self.key)
+        self.ledger.settle(self.key,'0',evidence_sha256=self.record_hash)
+
+    def args(self, record=None):
+        record=self.record if record is None else record
+        return {'failure_record':record,'failure_evidence_sha256':digest(canonical(record)+b'\n'),
+            'stop_sha256':'b'*64,'manifest_sha256':'c'*64,'manifest_path':'data/raw/amendment.json',
+            'receipt_path':'results/amendment.json','receipt_sha256':'d'*64,
+            'activated_at_epoch':1060,'raw_response_sha256':NIMBLE_LEGACY_CAPACITY_SHA256}
+
+    def test_exact_legacy_failure_adds_only_nonfinancial_immutable_event(self):
+        before=self.ledger.snapshot();prefix=self.path.read_bytes()
+        event=self.ledger.record_development_capacity_continuation(self.key,**self.args())
+        after=self.ledger.snapshot()
+        self.assertEqual(before['entries'],after['entries'])
+        self.assertEqual(before['policy'],after['policy'])
+        self.assertEqual(before['incremental_accounted_usd'],after['incremental_accounted_usd'])
+        self.assertEqual(before['continuations'],after['continuations'])
+        self.assertEqual(after['development_amendments'],{self.key:event})
+        self.assertTrue(self.path.read_bytes().startswith(prefix))
+        events=after['events']
+        self.ledger.record_development_capacity_continuation(self.key,**dict(self.args(),activated_at_epoch=2000))
+        self.assertEqual(self.ledger.snapshot()['events'],events)
+        self.assertEqual(BudgetLedger(self.path).snapshot()['development_amendments'],after['development_amendments'])
+        with self.assertRaises(AlreadyDispatched):self.ledger.mark_dispatched(self.key)
+
+    def test_transient_method_still_rejects_413(self):
+        args=self.args();args.pop('raw_response_sha256')
+        with self.assertRaisesRegex(AccountingError,'Only an invalid transient'):
+            self.ledger.record_continuation(self.key,**args)
+        self.assertFalse(self.ledger.snapshot()['continuations'])
+
+    def test_valid_answer_confirmation_future_parser_or_changed_body_cannot_qualify(self):
+        variants=[]
+        wrong=copy.deepcopy(self.record);wrong['result']['parsed']={'status':'ok','valid':True,'prediction':0,'score':.1};variants.append(wrong)
+        wrong=copy.deepcopy(self.record);wrong['split']='confirmation';variants.append(wrong)
+        wrong=copy.deepcopy(self.record);wrong['result']['parser_version']='v6-routes-2';variants.append(wrong)
+        wrong=copy.deepcopy(self.record);wrong['result']['observation']['transport_exit_code']=1;variants.append(wrong)
+        wrong=copy.deepcopy(self.record);wrong['result']['raw_hashes']['response.raw']='e'*64;variants.append(wrong)
+        for record in variants:
+            with self.subTest(record=record):
+                with self.assertRaises(AccountingError):
+                    self.ledger.record_development_capacity_continuation(self.key,**self.args(record))
+        self.assertFalse(self.ledger.snapshot()['development_amendments'])
+
+    def test_changed_manifest_cannot_reauthorize_old_key(self):
+        self.ledger.record_development_capacity_continuation(self.key,**self.args())
+        with self.assertRaises(AccountingError):
+            self.ledger.record_development_capacity_continuation(self.key,**dict(self.args(),manifest_sha256='e'*64))
 
 
 if __name__ == "__main__":
