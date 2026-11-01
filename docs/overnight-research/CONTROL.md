@@ -196,3 +196,7 @@ Root verified manifest d8f76649.../authorization b0ccab8d.../deferral2c92367a...
 ### Live v7.0.8 continuation checkpoint 2026-11-01T11:33:13.473636+00:00
 
 Worker active at cursor590; ProtectAI256/1000main, no new stop. Earlier root suffix check after deferral prefix:36ProtectAI dispatches,145never-sent Luna cancellations,zero paid OpenAI dispatches. Active pointer matches reviewed v7.0.8hashes. Executioncommit c187d46c passed22/22CI; root334bb81f passed20/20CI. No accuracy inspected.
+
+### 11:44 UTC independent live accounting
+
+Complete-line prefix through index107193:50,870dispatches/50,868settlements,zero duplicate dispatches/settlements,two calls in flight. All456post-deferral dispatches are ProtectAI;zero new paid OpenAI calls. Known new usage unchanged at OpenAI29.69410125/TypeSafe5.671810830 and unknown hold1.9952816. Receipt live-accounting-check-6.json. Worker activecursor616,ProtectAI474/1000mainlastreported,no new stop. No accuracy inspected.
