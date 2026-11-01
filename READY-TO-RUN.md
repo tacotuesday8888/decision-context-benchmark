@@ -102,7 +102,7 @@ The complete bounded core confirmation instruction is:
 
 ```sh
 cd '/Users/langqi/Developer/Projects/Decision Context Benchmark Plan'
-'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest-confirmation-v7.0.4.json --authorization results/study-v7/confirmation-authorization-v7.0.4.json --phase confirmation --execute
+'/Users/langqi/Developer/Projects/Decision Context Benchmark/.venv/bin/python' -m scripts.study_v7.run --manifest results/study-v7/run-manifest-confirmation-v7.0.4.json --authorization results/study-v7/confirmation-authorization-v7.0.5.json --phase confirmation --execute
 ```
 
 It is inert until its owner receipt matches the exact frozen plan/manifest/code,
@@ -145,3 +145,9 @@ accuracy was inspected before freezing.
 The Scientific Agent Skills procedural assistance is cited in the
 [software provenance outline](docs/study-v7/PAPER-OUTLINE.md); it does not certify
 the study. No manuscript or empirical PDF has been created.
+
+
+The [first core continuation](docs/study-v7/CORE-CONTINUATION-v7.0.5.md) preserves
+one LunaDecisions HTTP504 and its0.525unknown-charge hold after27native groups.
+Only new first requests resume after cooldown under the SAME frozen manifest;
+the failed key is never retried. The active pointer identifies the current receipt.

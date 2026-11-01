@@ -25,9 +25,16 @@ checkpoint; no manuscript. Canonical v6 checkout/data/results remain unchanged.
 - Final confirmation manifest `run-manifest-confirmation-v7.0.4.json` SHA
   c96fbd1797c37792b176e992b78ebe8b1e896ee45519c243090a6699aa93948e.
   Matching owner receipt authorizes confirmation and separate repeat phases only.
-- No executor is active at this freeze checkpoint. Next: launch one root executor
-  for confirmation, then its separate repeat phase, using the final manifest/receipt.
-  Never launch a competitor; inspect the process lock/current log on continuation.
+- Initial confirmation session41073 stopped after27native groups/432terminal
+  records (429ok/2ties/1LunaDecisionsHTTP504). Repeat phase guard blocked beforeAPI.
+  Preserve stop/raw/completed and the failed first0.525unknown-usage hold. Noreserved
+  or in-flight requests remain from that job.
+- After120sec cooldown, one root executor resumed at08:02:40UTC, toolsession89909,
+  using confirmation-authorization-v7.0.5.json and the same manifestc96fbd.../code.
+  New receipt acknowledges only the exact old stop; the failed key is never resent.
+  Sol remains deferred.
+  Logs: ignored `confirmation-run-v7.0.5.log` and `repeat-run-v7.0.5.log`.
+  Never launch a competitor; monitor statuses, coverage and spend only.
 - New known settled spend at freeze: OpenAI0.66480345/TypeSafe0.091181622;
   all-in accounting7.69236265/1.91876655600000006, not invoices. Subscription0API dollars.
 - After collection: frozen first-attempt analysis, separate repeat stability,
