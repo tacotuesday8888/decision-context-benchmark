@@ -25,4 +25,4 @@ BrowseSafe++ contains privacy-rewritten pages; this project's evaluation selecti
 - [Source comparison notes](docs/critical-review/METHODS-NOTE.md)
 - Existing notices: `docs/third-party/` and `docs/expanded-v2/third-party/`.
 
-Dataset access terms and licenses remain source-specific. This private repository does not grant permission to redistribute third-party data. No blanket public code license or paper DOI is claimed; decide release permissions before making the repository public.
+Dataset access terms and licenses remain source-specific. Source-containing files retain their original licenses and attribution. AgentDojo, AgentDyn and InjecAgent MIT notices are in `docs/third-party/`; BIPIA, LLMail and control-source notices are linked above. Restricted downloads and private review records are not included. No blanket license over third-party data or paper DOI is claimed.
