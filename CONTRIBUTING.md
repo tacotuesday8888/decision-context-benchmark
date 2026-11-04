@@ -1,6 +1,8 @@
 # Working on this project
 
-- `main` is the current, checked research snapshot.
+- The repository is public; `main` is the current, checked research snapshot.
+- Start with `.github/README.md` and `docs/paper-preparation/README.md`. The root
+  `README.md` is a frozen historical artifact; `READY-TO-RUN.md` records v7 closeout.
 - Use a short-lived `codex/...` branch and pull request for a new change.
 - Run the relevant offline checks before merging. Do not modify frozen results to make a check pass.
 - Keep study stages separate. Preserve failed attempts, labels, grouping, prompts and analysis plans.

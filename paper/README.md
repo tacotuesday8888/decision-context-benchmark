@@ -1,4 +1,9 @@
-# Research draft reproduction
+# Historical expanded-v2 draft reproduction
+
+This directory documents the earlier expanded-v2 manuscript and PDF. These are
+not the current consolidated paper. For the current results and unwritten paper
+plan, see [paper preparation](../docs/paper-preparation/README.md). The commands
+below reproduce only the historical expanded-v2 artifacts.
 
 `manuscript-template.md` contains the prose and named insertion points.
 `manuscript.md` and `../output/pdf/decision-context-benchmark-draft.pdf` are generated
