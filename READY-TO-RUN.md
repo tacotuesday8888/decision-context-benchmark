@@ -1,5 +1,13 @@
 # V7 collection and analysis handoff
 
+> Historical stage handoff. The repository is now public and PR #14 is closed;
+> its work was superseded by consolidation into `main`. Later subscription
+> follow-up completed Sol evaluations. For current results and paper status,
+> start with [paper preparation](docs/paper-preparation/README.md) and
+> [repository history](docs/repository/HISTORY.md). Counts, costs, deferrals and
+> closure statements below describe v7 at closeout, not the current project as
+> a whole. This file does not authorize new inference.
+
 The authorized eligible run is closed and independently verified. On the shared
 2,850-group native cohort, authentic task information lowers Jev’s source-label
 balanced error by 1.07–2.37 percentage points and raises Luna Decisions’ error by
@@ -12,7 +20,7 @@ to 11.79%.
 Start with the [technical handoff](results/study-v7-execution/README.md),
 [reviewed primary figure](results/study-v7-execution/reviewed-figures/primary-contrasts.png)
 and [exact primary table](results/study-v7-execution/tables/primary-contrasts.csv).
-Delivery remains [private draft PR #14](https://github.com/tacotuesday8888/decision-context-benchmark/pull/14).
+At v7 closeout, delivery was [then-private draft PR #14](https://github.com/tacotuesday8888/decision-context-benchmark/pull/14).
 No manuscript, PDF, public release, submission or merge was produced.
 
 ## Completed and deferred coverage
@@ -49,8 +57,8 @@ verifies 135,053 journal events, 60,186 unique actual attempts (including four
 legacy Sol parameter failures) and 350,716 evidence files. All 5,200 local records
 match 16,048 full overlapping windows. Independent numerical audits agree on
 primary/sensitivity results, source metrics, all 34 matched comparisons and
-separate repeat stability. All 98 offline tests passed; see the private PR for
-current delivery CI.
+separate repeat stability. All 98 offline tests passed at that closeout; see the current repository checks
+and PR history for subsequent delivery verification.
 
 ## Frozen records and closure
 
